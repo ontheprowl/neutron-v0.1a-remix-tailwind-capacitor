@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">neutron</string>
+    <string name="title_activity_main">neutron</string>
+    <string name="package_name">com.app.neutron</string>
+    <string name="custom_url_scheme">com.app.neutron</string>
+</resources>
