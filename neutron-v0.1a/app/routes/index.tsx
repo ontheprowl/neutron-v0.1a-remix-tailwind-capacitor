@@ -10,6 +10,7 @@ import { json } from "remix-utils";
 import React from "react";
 import { Auth } from "firebase/auth";
 import { useForm } from "react-hook-form";
+import Icon from "../assets/images/icon.svg"
 
 export default function Home() {
   let navigate = useNavigate();
@@ -18,9 +19,10 @@ export default function Home() {
   const { register, handleSubmit } = useForm();
   
   React.useEffect(() => {
-    if (!loading && user) {
+    if (!loading && user && !error) {
+      console.log(user);
       setTimeout(() => {
-        navigate("/session");
+        navigate("/session/dashboard");
       }, 1000);
     }
   });
@@ -29,7 +31,7 @@ export default function Home() {
     <div className="h-[100vh] w-auto justify-center bg-bg-primary-dark align-middle">
       <div className="ml-4 flex flex-col items-center justify-center pt-6 text-center">
         <img
-          src="icon.svg"
+          src={Icon}
           className="h-20 w-20 snap-center"
           alt="hi there"
         ></img>

@@ -1,7 +1,10 @@
+import { useNavigate } from "@remix-run/react";
 import * as React from "react";
 import { UIStore } from "../stores/UIStore";
 
 export default function CalendarButton() {
+
+  let navigate = useNavigate();
   return (
     <button
       className="pl-2 pt-1"
@@ -9,6 +12,8 @@ export default function CalendarButton() {
         UIStore.update((s) => {
           s.selectedTab = "Calendar";
         });
+        navigate('calendar')
+
       }}
     >
       <svg

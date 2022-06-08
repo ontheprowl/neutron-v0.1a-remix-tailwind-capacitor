@@ -7,9 +7,9 @@ import { useLoaderData } from "@remix-run/react";
 import { firestore } from "~/firebase/neutron-config";
 import { primaryGradientDark, primaryGradientLight } from "~/utils/neutron-theme-extensions";
 import { AnimatePresence, motion } from "framer-motion";
-import { ContractStageStore } from "~/stores/ContractStageStore";
-import ContractOverview from "~/components/ContractOverview";
-import ContractEditScreen from "~/components/ContractEditScreen";
+import { ContractDataStore } from "~/stores/ContractStores";
+import ContractOverview from "~/components/contracts/ContractOverview";
+import ContractEditScreen from "~/components/contracts/ContractEditScreen";
 
 
 
@@ -25,7 +25,7 @@ export const loader: LoaderFunction = async ({ params }) => {
 export default function DetailedContractView() {
 
 
-    const stage = ContractStageStore.useState(s => s.stage);
+    const stage = ContractDataStore.useState(s => s.stage);
 
     const data = useLoaderData();
     const overviewStages = [<ContractOverview key={0} data={data}></ContractOverview>, <ContractEditScreen data={data} key={1} ></ContractEditScreen>]
@@ -48,11 +48,11 @@ export default function DetailedContractView() {
                     <option value="">test 2</option>
                 </select>
                 <button className="w-40 rounded-lg bg-bg-primary-dark p-3 text-white border-solid border-2 border-white transition-all hover:scale-105" onClick={stage == 1 ? () => {
-                    ContractStageStore.update((s) => {
+                    ContractDataStore.update((s) => {
                         s.stage = 0;
                     })
                 } : () => {
-                    ContractStageStore.update((s) => {
+                    ContractDataStore.update((s) => {
                         s.stage = 1;
                     })
                 }}>{stage == 1 ? 'Back to Overview' : 'Open Contract'}</button>

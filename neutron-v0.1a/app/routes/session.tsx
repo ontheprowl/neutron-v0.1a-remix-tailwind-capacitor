@@ -12,6 +12,7 @@ import { LoaderFunction, redirect } from "@remix-run/server-runtime";
 import { logout } from "~/firebase/firebase-utils";
 import { time } from "console";
 import { formatDateToReadableString } from "~/utils/utils";
+import Icon from '../assets/images/icon.svg';
 
 export default function SessionPage() {
   let tab = UIStore.useState((s) => s.selectedTab);
@@ -22,16 +23,16 @@ export default function SessionPage() {
   let navigate = useNavigate();
 
   return (
-    <div className="flex h-screen w-full flex-row bg-bg-primary-dark">
-      <aside className="h-screen w-64" aria-label="Sidebar">
+    <div className="flex h-auto w-full flex-row bg-bg-primary-dark">
+      <aside className="h-screen w-auto" aria-label="Sidebar">
         <div className="h-screen rounded ml-4 bg-bg-primary-dark py-4 px-3 dark:bg-gray-800">
           <a
             href="https://neutron.money"
             className="mb-5 flex items-center pl-2.5"
           >
             <img
-              src="icon.svg"
-              className="mr-3 h-6 transition-all sm:h-7 lg:h-20 lg:w-20"
+              src={Icon}
+              className="mr-3 transition-all h-20 w-20"
               alt="Neutron Logo"
             />
           </a>
@@ -136,17 +137,10 @@ export default function SessionPage() {
           </div>
         </div>
       </div> */}
-      <div className="flex flex-col m-8 w-full h-auto">
-        <div>
-          <article className="prose">
-            <h2 className="text-white">Welcome {auth.currentUser?.email}!</h2>
-            <h3 className="text-white">{date.toString()}</h3>
-          </article>
-
-        </div>
+      <div className="flex flex-col w-full h-auto">
         <div
           id="content-window"
-          className=" mt-5 h-auto w-auto rounded-lg bg-bg-secondary-light"
+          className="h-full w-auto rounded-lg bg-bg-secondary-light"
         >
           <Outlet></Outlet>
         </div>
