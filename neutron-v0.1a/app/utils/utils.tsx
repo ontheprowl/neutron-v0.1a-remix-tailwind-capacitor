@@ -2,16 +2,18 @@ import { useFormContext } from "react-hook-form";
 import { ContractDataStore } from "~/stores/ContractStores";
 
 
-export const formatDateToReadableString = (seconds?: number | undefined) => {
+export const formatDateToReadableString = (seconds?: number | undefined, onlyTime?: boolean) => {
 
     let date;
     if (seconds == undefined) {
         date = new Date();
     }
     else {
-        date = new Date(seconds * 1000);
+        date = new Date(seconds);
     }
 
+    if(onlyTime)
+        return date.getHours()+ ":" +date.getMinutes();
 
     let formattedDate =
         date.getFullYear() +

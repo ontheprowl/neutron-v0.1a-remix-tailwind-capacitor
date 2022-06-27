@@ -1,13 +1,17 @@
-import { useNavigate, useLoaderData, Outlet, Link } from '@remix-run/react'
-import { LoaderFunction } from '@remix-run/server-runtime';
+import { useNavigate, useLoaderData, Outlet, Link, useSubmit } from '@remix-run/react'
+import { ActionFunction, LoaderFunction, redirect } from '@remix-run/server-runtime';
 import * as React from 'react'
 import { json } from 'remix-utils';
 import { firestore, auth } from '../../../firebase/neutron-config';
 import { useCollection, useCollectionData } from 'react-firebase-hooks/firestore'
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDocs } from 'firebase/firestore';
 import { formatDateToReadableString } from '~/utils/utils';
 import { primaryGradientDark, secondaryGradient } from '~/utils/neutron-theme-extensions';
 import { useAuthState } from 'react-firebase-hooks/auth';
+import ViewIcon from '~/components/inputs/ViewIcon';
+import EditIcon from '~/components/inputs/EditIcon';
+import DeleteIcon from '~/components/inputs/DeleteIcon';
+import ChatIcon from '~/components/inputs/ChatIcon';
 
 export const loader: LoaderFunction = async ({ request }) => {
 
@@ -21,7 +25,17 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 }
 
+export const action: ActionFunction = async ({ request }) => {
 
+    const data = await request.formData();
+    const id = data.get('id');
+    console.log(data);
+    const docRef = doc(firestore, `contracts/${id}`);
+    await deleteDoc(docRef);
+    console.log(`Contract deleted from firestore with id ${id}`);
+    return redirect('/session/contracts')
+
+}
 
 export default function ListContracts() {
 
@@ -29,7 +43,8 @@ export default function ListContracts() {
     const [user, loading, error] = useAuthState(auth);
     const contracts = useLoaderData();
 
-    console.log(contracts);
+    const submit = useSubmit();
+
     let navigate = useNavigate();
 
     return (
@@ -119,15 +134,26 @@ export default function ListContracts() {
                                 <td className="px-6 py-4">
                                     <h3 className="font-medium text-black bg-gray-100 text-center rounded-lg p-1">Draft</h3>
                                 </td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
+                                <td><ViewIcon onClick={() => {
+                                    navigate(`${contract.id}`)
+                                }} className={''}></ViewIcon></td>
+                                <td><EditIcon onClick={function (event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
+                                    throw new Error('Function not implemented.');
+                                }} className={''}></EditIcon></td>
+                                <td><DeleteIcon onClick={(e) => {
+                                    let data = new FormData();
+                                    data.append('id', contract.id);
+                                    submit(data,
+                                        { method: 'post' });
+                                }} className={''}></DeleteIcon></td>
+                                <td><ChatIcon onClick={function (event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
+                                    throw new Error('Function not implemented.');
+                                }} className={''}></ChatIcon></td>
                             </tr>)
                         })}
 
                     </tbody>
                 </table>
             </div>
-        </div>);
+        </div >);
 }

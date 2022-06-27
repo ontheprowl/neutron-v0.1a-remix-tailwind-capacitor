@@ -6,9 +6,10 @@ const config: CapacitorConfig = {
   webDir: "public/build",
   bundledWebRuntime: false,
   server: {
-    url: "http://192.168.0.109:3000",
+    url: "http://neutron-alpha.fly.dev",
     cleartext: true,
   },
+  loggingBehavior:'production'
 };
 
 export default config;

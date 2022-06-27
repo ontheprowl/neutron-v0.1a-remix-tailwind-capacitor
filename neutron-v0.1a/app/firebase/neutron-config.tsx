@@ -3,6 +3,7 @@ import { initializeApp } from "firebase/app";
 import {getAuth} from 'firebase/auth'
 import {getFirestore} from 'firebase/firestore'
 import {getStorage} from 'firebase/storage'
+import {getDatabase} from 'firebase/database'
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -24,3 +25,16 @@ export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const firestore = getFirestore(app);
 export const storage = getStorage(app);
+export const db = getDatabase(app);
+
+
+// oAuth2Client.getToken(code, (err, token) => {
+//   if (err) return console.error('Error retrieving access token', err);
+//   oAuth2Client.setCredentials(token);
+//   // Store the token to disk for later program executions
+//   fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
+//       if (err) return console.error(err);
+//       console.log('Token stored to', TOKEN_PATH);
+//   });
+//   callback(oAuth2Client);
+// });

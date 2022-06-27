@@ -1,4 +1,4 @@
-import { Form, Link, useActionData, useNavigate } from "@remix-run/react";
+import { Form, Link, useActionData, useLoaderData, useNavigate } from "@remix-run/react";
 
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "../firebase/neutron-config";
@@ -8,76 +8,75 @@ import { login, logout } from "~/firebase/firebase-utils";
 import { Response } from "@remix-run/node";
 import { json } from "remix-utils";
 import React from "react";
-import { Auth } from "firebase/auth";
 import { useForm } from "react-hook-form";
-import Icon from "../assets/images/icon.svg"
+import Icon from "~/assets/images/iconFull.svg"
+import { generateAuthUrl, authorizeAndExecute } from "~/firebase/gapis-config.server";
+import useWindowDimensions from "~/hooks/useWindowDimensions";
+import { motion } from "framer-motion";
+
+export async function loader({ request }: { request: Request }) {
+
+  const authURL = generateAuthUrl();
+  const result = await authorizeAndExecute(() => {
+    return json({ gapi_scopes_valid: true, authurl: authURL });
+
+  }, () => {
+    return json({ gapi_scopes_valid: false, authurl: authURL });
+
+  })
+  return result;
+
+}
 
 export default function Home() {
+  const data = useLoaderData();
+  const parsedData = JSON.parse(data);
+  console.log(parsedData)
   let navigate = useNavigate();
   const [user, loading, error] = useAuthState(auth);
 
   const { register, handleSubmit } = useForm();
-  
+
   React.useEffect(() => {
-    if (!loading && user && !error) {
-      console.log(user);
-      setTimeout(() => {
-        navigate("/session/dashboard");
-      }, 1000);
+    if (!loading) {
+      if (user && !error) {
+        console.log(user);
+        setTimeout(() => {
+          if (parsedData.gapi_scopes_valid) {
+            navigate("/session/dashboard");
+          }
+          else {
+            console.log(parsedData)
+
+            window.location.href = parsedData.authurl;
+          }
+        }, 1000);
+      } else {
+        setTimeout(() => {
+          console.log('NO LOGGED IN USER DETECTED... redirecting to login page')
+
+          navigate("login");
+        }, 1000);
+      }
     }
+
   });
 
+
   return (
-    <div className="h-[100vh] w-auto justify-center bg-bg-primary-dark align-middle">
-      <div className="ml-4 flex flex-col items-center justify-center pt-6 text-center">
+    <div className="h-full w-full justify-center bg-bg-primary-dark align-middle">
+      <div
+        className="flex flex-col h-full items-center justify-center p-10 text-center">
         <img
           src={Icon}
-          className="h-20 w-20 snap-center"
+          className="h-auto max-h-28 m-10 max-w-28 snap-center"
           alt="hi there"
         ></img>
-        <h1
-          className={`mt-10 bg-gradient-to-tr from-yellow-500 via-orange-100 to-yellow-700 bg-clip-text text-transparent`}
-        >
-          Welcome to Neutron!
-        </h1>
-        {!user ? (
-          <div className="mt-2 flex flex-col items-center space-y-4 p-10">
-            <form
-              className="flex flex-col items-center space-y-4"
-              onSubmit={handleSubmit((data) => {
-                console.log(data.email, data.password);
-                login(auth, data.email, data.password);
-              })}
-            >
-              <input
-                placeholder="Username/Email"
-                {...register("email")}
-                className="rounded-lg border-2 border-solid bg-transparent p-3 text-center text-white placeholder-white transition-all focus:border-4 focus:border-white"
-                type="text"
-              />
-              <input
-                placeholder="Password"
-                {...register("password")}
-                className="rounded-lg border-2 border-solid bg-transparent p-3 text-center text-white placeholder-white transition-all focus:border-4 focus:border-white"
-                type="password"
-              />
-              <button
-                className="w-40 rounded-lg bg-accent-dark p-3 text-white transition-all hover:scale-105"
-                type="submit"
-              >
-                Login/Signup
-              </button>
-            </form>
-            <button
-              className="w-40 rounded-lg bg-accent-dark p-3 text-white transition-all hover:scale-105"
-              onClick={() => logout(auth)}
-            >
-              Logout
-            </button>
-          </div>
-        ) : (
-          <p>Logged in user detected! Redirecting to your dashboard...</p>
-        )}
+        {loading ? <svg role="status" className="inline w-8 h-8 mr-2 text-gray-200 animate-spin dark:text-gray-600 fill-purple-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" />
+          <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill" />
+        </svg> : !user ? <p className="prose prose-lg text-white p-6 transition-all">Not logged in </p> : <p className="prose prose-lg transition-all text-white p-6">Logged in ! Redirecting to dashboard...</p>}
+
       </div>
     </div>
   );

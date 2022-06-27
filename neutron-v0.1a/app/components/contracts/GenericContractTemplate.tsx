@@ -1,19 +1,29 @@
-import { Contract } from "~/types/contracts";
+import { ContractDataStore } from "~/stores/ContractStores";
+import { Contract, ContractCreationStages } from "~/types/contracts";
 import { formatDateToReadableString } from "~/utils/utils";
+import ContractEditableLink from "./ContractEditableLink";
 
 
 
-export default function GenericContractTemplate({ data }: { data: Contract }) {
+export default function GenericContractTemplate({ loaderData }: { loaderData: Contract | undefined }) {
+
+    let data = ContractDataStore.useState();
+    if (loaderData) {
+        data = loaderData;
+    }
+
+    console.log('data for the edit screen is')
+    console.log(data)
 
     return (<div className="m-5 text-center items-center overflow-y-scroll h-[50vh]"><article className="prose prose-xl max-w-none text-center" >
         <p>
             <strong>Independent Contractor Agreement</strong>
         </p>
         <p>
-            This Contract is between {data?.clientName}  (the "Client") and {data?.providerName}, a {data?.isCompany ? `${data?.companyRole} at ${data?.companyName}`:""} (the "Contractor").
+            This Contract is between <ContractEditableLink to={ContractCreationStages.ClientInformation}>{data?.clientName}</ContractEditableLink>  (the "Client") and <ContractEditableLink to={ContractCreationStages.ClientInformation}>{data?.providerName}</ContractEditableLink>, a {data?.isCompany ? `${data?.companyRole} at ${data?.companyName}` : ""} (the "Contractor").
         </p>
         <p>
-            The Contract is dated {data?.signedDate}.
+            The Contract is dated <ContractEditableLink to={ContractCreationStages.ClientInformation}>{data?.signedDate}</ContractEditableLink>.
         </p>
         <p>
             <strong>1. INTERPRETATION.</strong> In this Contract, unless the context otherwise requires, the following expressions shall have the following meanings:
@@ -43,11 +53,11 @@ export default function GenericContractTemplate({ data }: { data: Contract }) {
         </p>
         <p>
 
-            <strong>2.1 Project.</strong> The Client is hiring the Contractor to do the following: {data?.description}
+            <strong>2.1 Project.</strong> The Client is hiring the Contractor to do the following:  <ContractEditableLink to={ContractCreationStages.ScopeOfWork}>{data?.description}</ContractEditableLink>.
         </p>
         <p>
 
-            <strong>2.2 Support.</strong> The Contractor {data?.supportPolicy} provide support for any deliverable once the Client accepts it upon Completion, unless otherwise agreed by the Contractor in writing.
+            <strong>2.2 Support.</strong> The Contractor  <ContractEditableLink to={ContractCreationStages.ScopeOfWork}>{data?.supportPolicy}</ContractEditableLink> provide support for any deliverable once the Client accepts it upon Completion, unless otherwise agreed by the Contractor in writing.
         </p>
         <p>
 
@@ -55,11 +65,11 @@ export default function GenericContractTemplate({ data }: { data: Contract }) {
         </p>
         <p>
 
-            <strong>2.3.1 Start Date.</strong> {formatDateToReadableString(data?.startDate?.getSeconds())}
+            <strong>2.3.1 Start Date.</strong> <ContractEditableLink to={ContractCreationStages.ClientInformation}>{data?.startDate}</ContractEditableLink>
         </p>
         <p>
 
-            <strong>2.3.2 Duration.</strong> {formatDateToReadableString(data?.endDate?.getSeconds()) || data?.endCondition}, and subject to termination under Section 6 of this Agreement.
+            <strong>2.3.2 Duration.</strong> {<ContractEditableLink to={ContractCreationStages.ClientInformation}>{data?.endDate}</ContractEditableLink> || data?.endCondition}, and subject to termination under Section 6 of this Agreement.
         </p>
         <p>
 
@@ -70,11 +80,11 @@ export default function GenericContractTemplate({ data }: { data: Contract }) {
         </p>
         <p>
 
-            <strong>3.1 Payment.</strong> The Client will pay the Contractor {data?.paymentType} of {data?.totalValue}
+            <strong>3.1 Payment.</strong> The Client will pay the Contractor <ContractEditableLink to={ContractCreationStages.PaymentAndMilestones}>{data?.totalValue}</ContractEditableLink>
         </p>
         <p>
 
-            <strong>3.2 Invoices.</strong> The Contractor will invoice the Client {data?.invoiceDate || data?.invoiceCondition}. The Client agrees to automated fund release within {data?.redressalWindow} of receiving the invoice.
+            <strong>3.2 Invoices.</strong> The Contractor will invoice the Client {data?.invoiceDate || data?.invoiceCondition}. The Client agrees to automated fund release within <ContractEditableLink to={ContractCreationStages.ClientInformation}>{data?.redressalWindow}</ContractEditableLink>of receiving the invoice.
         </p>
         <p>
 

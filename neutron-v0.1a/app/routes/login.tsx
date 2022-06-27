@@ -1,189 +1,109 @@
-import type {
-  ActionFunction,
-  LoaderFunction,
-  MetaFunction,
-} from "@remix-run/node";
-import { json, redirect } from "@remix-run/node";
-import { Form, Link, useActionData, useSearchParams } from "@remix-run/react";
-import * as React from "react";
+import { Form, Link, useActionData, useLoaderData, useNavigate } from "@remix-run/react";
 
-import { createUserSession, getUserId } from "~/session.server";
-import { verifyLogin } from "~/models/user.server";
-import { safeRedirect, validateEmail } from "~/utils";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { auth } from "../firebase/neutron-config";
+import type { ActionFunction, LoaderFunction } from "@remix-run/server-runtime";
+import { redirect } from "@remix-run/server-runtime";
+import { login, logout } from "~/firebase/firebase-utils";
+import { Response } from "@remix-run/node";
+import { json } from "remix-utils";
+import React from "react";
+import { useForm } from "react-hook-form";
+import Icon from "~/assets/images/iconFull.svg"
+import { generateAuthUrl, authorizeAndExecute } from "~/firebase/gapis-config.server";
+import useWindowDimensions from "~/hooks/useWindowDimensions";
 
-export const loader: LoaderFunction = async ({ request }) => {
-  const userId = await getUserId(request);
-  if (userId) return redirect("/");
-  return json({});
-};
+export async function loader({ request }: { request: Request }) {
 
-interface ActionData {
-  errors?: {
-    email?: string;
-    password?: string;
-  };
+  const authURL = generateAuthUrl();
+  const result = await authorizeAndExecute(() => {
+    return json({ gapi_scopes_valid: true, authurl: authURL });
+
+  }, () => {
+    return json({ gapi_scopes_valid: false, authurl: authURL });
+
+  })
+  return result;
+
 }
 
-export const action: ActionFunction = async ({ request }) => {
-  const formData = await request.formData();
-  const email = formData.get("email");
-  const password = formData.get("password");
-  const redirectTo = safeRedirect(formData.get("redirectTo"), "/notes");
-  const remember = formData.get("remember");
+export default function Login() {
+  const data = useLoaderData();
+  const parsedData = JSON.parse(data);
+  console.log(parsedData)
+  let navigate = useNavigate();
+  const [user, loading, error] = useAuthState(auth);
 
-  if (!validateEmail(email)) {
-    return json<ActionData>(
-      { errors: { email: "Email is invalid" } },
-      { status: 400 }
-    );
-  }
-
-  if (typeof password !== "string" || password.length === 0) {
-    return json<ActionData>(
-      { errors: { password: "Password is required" } },
-      { status: 400 }
-    );
-  }
-
-  if (password.length < 8) {
-    return json<ActionData>(
-      { errors: { password: "Password is too short" } },
-      { status: 400 }
-    );
-  }
-
-  const user = await verifyLogin(email, password);
-
-  if (!user) {
-    return json<ActionData>(
-      { errors: { email: "Invalid email or password" } },
-      { status: 400 }
-    );
-  }
-
-  return createUserSession({
-    request,
-    userId: user.id,
-    remember: remember === "on" ? true : false,
-    redirectTo,
-  });
-};
-
-export const meta: MetaFunction = () => {
-  return {
-    title: "Login",
-  };
-};
-
-export default function LoginPage() {
-  const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get("redirectTo") || "/notes";
-  const actionData = useActionData() as ActionData;
-  const emailRef = React.useRef<HTMLInputElement>(null);
-  const passwordRef = React.useRef<HTMLInputElement>(null);
+  const { register, handleSubmit } = useForm();
 
   React.useEffect(() => {
-    if (actionData?.errors?.email) {
-      emailRef.current?.focus();
-    } else if (actionData?.errors?.password) {
-      passwordRef.current?.focus();
+    if (!loading && user && !error) {
+      console.log(user);
+      setTimeout(() => {
+        if (parsedData.gapi_scopes_valid) {
+          navigate("/session/dashboard");
+        }
+        else {
+          console.log(parsedData)
+
+          window.location.href = parsedData.authurl;
+        }
+      }, 1000);
     }
-  }, [actionData]);
+  });
+
 
   return (
-    <div className="flex min-h-full flex-col justify-center">
-      <div className="mx-auto w-full max-w-md px-8">
-        <Form method="post" className="space-y-6">
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
+    <div className="h-full w-full justify-center bg-bg-primary-dark align-middle">
+      <div className=" flex flex-col items-center justify-center h-full text-center">
+        <img
+          src={Icon}
+          className="h-auto max-h-28 m-10 max-w-28 snap-center"
+          alt="hi there"
+        ></img>
+        <h1
+          className={`mt-5 bg-gradient-to-tr from-yellow-500 via-orange-100 to-yellow-700 bg-clip-text text-transparent`}
+        >
+          Welcome to Neutron!
+        </h1>
+        {!user ? (
+          <div className="mt-2 flex flex-col items-center space-y-4 p-10">
+            <form
+              className="flex flex-col items-center space-y-4"
+              onSubmit={handleSubmit((data) => {
+                console.log(data.email, data.password);
+                login(auth, data.email, data.password);
+              })}
             >
-              Email address
-            </label>
-            <div className="mt-1">
               <input
-                ref={emailRef}
-                id="email"
-                required
-                autoFocus={true}
-                name="email"
-                type="email"
-                autoComplete="email"
-                aria-invalid={actionData?.errors?.email ? true : undefined}
-                aria-describedby="email-error"
-                className="w-full rounded border border-gray-500 px-2 py-1 text-lg"
+                placeholder="Username/Email"
+                {...register("email")}
+                className="rounded-lg border-2 border-solid bg-transparent p-3 text-center text-white placeholder-white transition-all focus:border-4 focus:border-white"
+                type="text"
               />
-              {actionData?.errors?.email && (
-                <div className="pt-1 text-red-700" id="email-error">
-                  {actionData.errors.email}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Password
-            </label>
-            <div className="mt-1">
               <input
-                id="password"
-                ref={passwordRef}
-                name="password"
+                placeholder="Password"
+                {...register("password")}
+                className="rounded-lg border-2 border-solid bg-transparent p-3 text-center text-white placeholder-white transition-all focus:border-4 focus:border-white"
                 type="password"
-                autoComplete="current-password"
-                aria-invalid={actionData?.errors?.password ? true : undefined}
-                aria-describedby="password-error"
-                className="w-full rounded border border-gray-500 px-2 py-1 text-lg"
               />
-              {actionData?.errors?.password && (
-                <div className="pt-1 text-red-700" id="password-error">
-                  {actionData.errors.password}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <input type="hidden" name="redirectTo" value={redirectTo} />
-          <button
-            type="submit"
-            className="w-full rounded bg-blue-500  py-2 px-4 text-white hover:bg-blue-600 focus:bg-blue-400"
-          >
-            Log in
-          </button>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <input
-                id="remember"
-                name="remember"
-                type="checkbox"
-                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <label
-                htmlFor="remember"
-                className="ml-2 block text-sm text-gray-900"
+              <button
+                className="w-40 rounded-lg bg-accent-dark p-3 text-white transition-all hover:scale-105"
+                type="submit"
               >
-                Remember me
-              </label>
-            </div>
-            <div className="text-center text-sm text-gray-500">
-              Don't have an account?{" "}
-              <Link
-                className="text-blue-500 underline"
-                to={{
-                  pathname: "/join",
-                  search: searchParams.toString(),
-                }}
-              >
-                Sign up
-              </Link>
-            </div>
+                Login/Signup
+              </button>
+            </form>
+            <button
+              className="w-40 rounded-lg bg-accent-dark p-3 text-white transition-all hover:scale-105"
+              onClick={() => logout(auth)}
+            >
+              Logout
+            </button>
           </div>
-        </Form>
+        ) : (
+          <p>Logged in user detected! Redirecting to your dashboard...</p>
+        )}
       </div>
     </div>
   );

@@ -1,18 +1,36 @@
 import { useFormContext } from "react-hook-form"
 import { Contract } from "~/types/contracts";
+import GenericContractTemplate from '~/components/contracts/GenericContractTemplate';
+import TransparentButton from "../inputs/TransparentButton";
+import FormButton from "../inputs/FormButton";
+import ContractCustomizationComponent from "./ContractCustomizationComponent";
 
 
 
 
-export default function ContractEditScreen() {
+export default function ContractEditScreen({ loaderData }: { loaderData?: Contract }) {
 
     const formMethods = useFormContext();
 
     return (
-        <div className="flex flex-row w-auto h-auto justify-between items-center">
-            <div className="flex flex-col w-48 h-full bg-white p-5"> Contract Container</div>
-            <div className="flex flex-col p-5 m-5 h-auto">
-                <h2> Customization </h2>
+        <div className="flex flex-row space-x-10 justify-start">
+            <div className="bg-white h-full w-auto basis-2/3 border-2">
+                <GenericContractTemplate loaderData={loaderData}></GenericContractTemplate>
             </div>
-        </div >)
+            <div className="flex flex-col h-auto w-full basis-1/3 ">
+                <div className="flex flex-row space-x-3 m-5 justify-end">
+                    <TransparentButton className='' text="Unimplemented" onClick={() => {
+                        return new Error("Not Implemented");
+                    }}></TransparentButton>
+                    <FormButton submit text="Publish Draft" ></FormButton>
+                </div>
+                <div className="border-2 border-accent-dark rounded-xl m-5 mt-2">
+
+                    <ContractCustomizationComponent></ContractCustomizationComponent>
+                    <button type="submit">click here</button>
+
+                </div>
+            </div>
+
+        </div>)
 }

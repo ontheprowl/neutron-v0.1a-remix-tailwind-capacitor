@@ -1,6 +1,13 @@
 import { useFormContext } from "react-hook-form";
 import { ContractDataStore } from "~/stores/ContractStores";
 import Select from 'react-select'
+import { ContractCreationStages, Milestone } from "~/types/contracts";
+import AddButton from "../inputs/AddButton";
+import CrossButton from "../inputs/CrossButton";
+import FormButton from "../inputs/FormButton";
+import CurrencyInput from 'react-currency-input-field';
+import AccentedToggle from "../layout/AccentedToggle";
+
 
 
 
@@ -8,6 +15,10 @@ import Select from 'react-select'
 
 export default function ContractPaymentDetails() {
 
+    const deliverables = ContractDataStore.useState(s => s.deliverables);
+    const milestones = ContractDataStore.useState(s => s.milestonesCount)
+    let localMilestones: Array<Milestone> = [];
+    let currentMilestone: Milestone;
     const formMethods = useFormContext();
 
     return (
@@ -22,82 +33,71 @@ export default function ContractPaymentDetails() {
                     <input type="text" id="existing-client" className=" bg-[#4A4A4A] pt-3 pb-3 pl-10 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Search for an existing client" required />
 
                 </div> */}
-                <select id="country-select" {...formMethods.register('contractPenalty')} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white ">
+                <select id="payment-mode-select" {...formMethods.register('paymentMode')} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white ">
                     <option value="one-time">A flat fee</option>
                     <option value="recurring">A recurring fee</option>
                 </select>
-                <input type="text" id="client-name" {...formMethods.register('clientName')} onChange={(e) => {
-                    ContractDataStore.update((s) => {
-                        s.clientName = e.target.value;
-                    })
-                }} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Cost" required />
-                <div className="flex h-20 border-l-gray-500 border-l-2"></div>
-                <input type="text" id="client-email" {...formMethods.register('clientEmail')} onChange={(e) => {
-                    ContractDataStore.update((s) => {
-                        s.clientEmail = e.target.value;
-                    })
-                }}
-                    className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Base Pay" required />
+                <CurrencyInput
+                    prefix="₹"
+                    id="contract-value-one-time"
+                    placeholder="Cost"
+                    defaultValue={1000}
+                    decimalsLimit={2}
+                    {...formMethods.register('totalValue')}
+                    className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 space-x-3 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white "
 
+                />;
+                <div className="flex h-20 border-l-gray-500 border-l-2"></div>
+                <CurrencyInput
+                    prefix="₹"
+                    id="contract-value-basee-pay"
+                    placeholder="Cost"
+                    defaultValue={1000}
+                    decimalsLimit={2}
+                    {...formMethods.register('basePay')}
+                    className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 space-x-3 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white "
+
+                />;
             </div>
             <hr className="w-full mt-3 mb-5 border-solid border-gray-500"></hr>
 
             <label htmlFor="simple-search" className="sr-only">Search through contacts</label>
 
-            <h2 className="prose prose-lg text-white"> Deliverables </h2>
+            <h2 className="prose prose-lg text-white mb-5"> Milestones </h2>
 
-
-            <div className="overflow-y-scroll max-h-28"> {[...Array(numberOfDeliverables).keys()].map((deliverableInputNumber) => {
+            <div className="overflow-y-scroll mb-5 max-h-28"> {[...Array(milestones).keys()]?.map((milestoneNumber) => {
                 return (
-                    <div key={deliverableInputNumber} id={`deliverable-${deliverableInputNumber}`} className="flex flex-row space-x-5 mb-5 w-auto justify-start">
-                        <input type="text" {...formMethods.register(`deliverable-${deliverableInputNumber}-name`)} onChange={(e) => {
-                            ContractDataStore.update((s) => {
-                                currentDeliverable.name = e.currentTarget.value;
-                            })
-                        }} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Name" required />
-                        <select key={deliverableInputNumber} id={`deliverable-${deliverableInputNumber}`} {...formMethods.register(`deliverable-${deliverableInputNumber}-format`)} onChange={(e) => {
-                            ContractDataStore.update((s) => {
-                                currentDeliverable.format = e.currentTarget.value as unknown as number;
-                            })
-                        }} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Format" required>
-                            <option value={0}>PDF</option>
-                            <option value={1}>JPEG</option>
-                            <option value={2}>MP4</option>
-                        </select>
+                    <div key={milestoneNumber} id={`milestones-${milestoneNumber}`} className="flex flex-row space-x-5 mb-5 w-auto justify-start items-center">
+                        <input type="text" {...formMethods.register(`milestones.${milestoneNumber}.name`)} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Name" required />
                         <br></br>
-                        <input type="textarea" {...formMethods.register(`deliverable-${deliverableInputNumber}-document`)} onChange={(e) => {
-                            ContractDataStore.update((s) => {
-                                currentDeliverable.description = e.currentTarget.value;
-                            })
-                        }} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Attach a relevant document" />
-                        <input type="date" {...formMethods.register(`deliverable-${deliverableInputNumber}-document`)} onChange={(e) => {
-                            ContractDataStore.update((s) => {
-                                currentDeliverable.expectedDate = e.currentTarget.valueAsDate;
-                            })
-                        }} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Attach a relevant document" />
+                        <input type="textarea" {...formMethods.register(`milestones.${milestoneNumber}.description`)} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Attach a relevant document" />
+                        <input type="file" {...formMethods.register(`milestones.${milestoneNumber}.attachment`)} placeholder="Attach a relevant document" className="bg-[#4A4A4A]  border-gray-300 text-white text-sm rounded-lg placeholder-white block w-auto h-full dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white" />
+
+                        <input type="date" {...formMethods.register(`milestones.${milestoneNumber}.date`)} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Attach a relevant document" />
+                        <AccentedToggle name={`milestones.${milestoneNumber}.isAdvance`} states={{default:'Delivery', toggled:'Advance'}}></AccentedToggle>
+
                         <AddButton onClick={() => {
                             ContractDataStore.update((s) => {
-                                s.deliverablesCount += 1;
-                                currentDeliverable = localDeliverables[s.deliverablesCount - 1];
+                                s.milestonesCount += 1;
+                                currentMilestone = localMilestones[s.milestonesCount - 1];
 
                             });
-                            console.log(`number of deliverables is : ${numberOfDeliverables}`);
+                            console.log(`number of deliverables is : ${milestoneNumber}`);
                         }} className={""} />
-                        {deliverableInputNumber > 0 ? <CrossButton onClick={() => {
+                        {milestoneNumber > 0 ? <CrossButton onClick={() => {
                             ContractDataStore.update((s) => {
-                                s.deliverablesCount -= 1;
-                                currentDeliverable = localDeliverables[s.deliverablesCount - 1];
+                                s.milestonesCount -= 1;
+                                currentMilestone = localMilestones[s.deliverablesCount - 1];
                             });
                         }} className={""} /> : <div></div>}
 
                     </div>)
             })}</div>
-            <h2 className="prose prose-md text-black"> In case of premature termination, the Client will pay </h2>
-            <label htmlFor="country-select" className="sr-only">The client will pay</label>
-
-            <input readOnly value="Finalize" className="w-40 rounded-lg bg-accent-dark p-3 text-white transition-all hover:scale-105" onClick={() => {
+            <FormButton text="Proceed" onClick={() => {
                 ContractDataStore.update(s => {
-                    s.stage = 5;
+                    s.stage = ContractCreationStages.DraftReview;
+                    s.milestones = formMethods.getValues('milestones')
+                    formMethods.unregister('milestones');
                 });
             }} />
         </>);

@@ -146,6 +146,7 @@ export default function SessionPage() {
         </div>
 
       </div>
+      
     </div>
   );
 }

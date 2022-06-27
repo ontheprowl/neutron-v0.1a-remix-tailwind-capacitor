@@ -1,15 +1,20 @@
-import { useParams } from "@remix-run/react";
+import { useNavigate, useParams } from "@remix-run/react";
 import type { LoaderFunction } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
 import { getDoc, doc } from "firebase/firestore";
 import { useLoaderData } from "@remix-run/react";
 
-import { firestore } from "~/firebase/neutron-config";
+import { auth, firestore } from "~/firebase/neutron-config";
 import { primaryGradientDark, primaryGradientLight } from "~/utils/neutron-theme-extensions";
 import { AnimatePresence, motion } from "framer-motion";
 import { ContractDataStore } from "~/stores/ContractStores";
 import ContractOverview from "~/components/contracts/ContractOverview";
 import ContractEditScreen from "~/components/contracts/ContractEditScreen";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { formatDateToReadableString } from "~/utils/utils";
+import BackArrowButton from "~/components/inputs/BackArrowButton";
+import TransparentButton from "~/components/inputs/TransparentButton";
+import FormButton from "~/components/inputs/FormButton";
 
 
 
@@ -17,55 +22,77 @@ export const loader: LoaderFunction = async ({ params }) => {
 
     const contractID = params.contractID;
     const currentContract = await getDoc(doc(firestore, `contracts/${contractID}`));
-    return json(currentContract.data());
+    console.log('logging fetched object');
+    return json(JSON.stringify(currentContract.data()));
 }
 
 
 
 export default function DetailedContractView() {
 
+    const [user, loading, error] = useAuthState(auth);
+    const stage = ContractDataStore.useState(s => s.viewStage);
 
-    const stage = ContractDataStore.useState(s => s.stage);
+    let navigate = useNavigate();
 
-    const data = useLoaderData();
-    const overviewStages = [<ContractOverview key={0} data={data}></ContractOverview>, <ContractEditScreen data={data} key={1} ></ContractEditScreen>]
+    const data = JSON.parse(useLoaderData());
+    const overviewStages = [<ContractOverview key={0} loaderData={data}></ContractOverview>, <ContractEditScreen loaderData={data} key={1} ></ContractEditScreen>]
 
     const params = useParams();
 
     return (
-        <div className="flex flex-col w-auto h-auto space-x-3 space-y-3 m-4">
-            <div className="flex flex-row w-auto h-auto justify-between m-4">
-                <div className="flex flex-col w-auto h-auto m-5">
-                    <h2> Client Name : {data.clientName}</h2>
-                    <h2> Contract Period: {data.startDate} <b>-</b> {data.endDate} </h2>
+        <div className='flex flex-col space-y-8 bg-bg-primary-dark h-full'>
+            <div className=" flex flex-row w-full">
+                <div className='flex flex-row m-6 justify-between w-full space-x-10'>
+                    <div className="flex flex-col">
+                        <article className="prose">
+                            <h2 className="text-white prose prose-lg">Welcome {user?.email}</h2>
+                            <p className="text-white prose prose-sm">{formatDateToReadableString()}</p>
+                        </article>
+                    </div>
+                    <div className="flex items-center w-[692px] ">
+                        <label htmlFor="simple-search" className="sr-only">Search</label>
+                        <div className="relative w-full ">
+                            <div className="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
+                                <svg className="w-5 h-5 text-white dark:text-black" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path></svg>
+                            </div>
+                            <input type="text" id="simple-search" className="p-5 bg-bg-primary-dark border border-gray-300 text-gray-900 text-sm rounded-lg placeholder-white block w-full pl-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white " placeholder="Search through contracts" required />
+
+                        </div>
+                    </div>
                 </div>
-                <div className="flex flex-col w-auto h-auto m-5">
-                    <h2> Project Name: {data.projectName}</h2>
-                    <h2> Redressal Period: 14 days</h2>
-                </div>
-                <select className="w-auto h-auto" placeholder="More Options">
-                    <option value="">test 1 </option>
-                    <option value="">test 2</option>
-                </select>
-                <button className="w-40 rounded-lg bg-bg-primary-dark p-3 text-white border-solid border-2 border-white transition-all hover:scale-105" onClick={stage == 1 ? () => {
-                    ContractDataStore.update((s) => {
-                        s.stage = 0;
-                    })
-                } : () => {
-                    ContractDataStore.update((s) => {
-                        s.stage = 1;
-                    })
-                }}>{stage == 1 ? 'Back to Overview' : 'Open Contract'}</button>
-                <button className="w-40 rounded-lg bg-accent-dark p-3 text-white transition-all hover:scale-105" type="submit">Save As Draft</button>
+
+
+
             </div>
-            <AnimatePresence>
+            <div className="flex flex-row m-6 space-x-3 justify-between">
+                <div className="flex flex-row align-middle items-center space-x-3">
+                    <BackArrowButton onClick={() => {
+                        navigate(-1);
+
+                    }} className="scale-75"></BackArrowButton>
+                    <h1 className="prose prose-xl text-white">{data.projectName}</h1>
+                </div>
+                <div className="flex flex-row space-x-5 w-auto">
+                    <TransparentButton onClick={()=>{
+                        ContractDataStore.update(s=>{
+                            s.viewStage==1?s.viewStage=0:s.viewStage=1;
+                        })
+                    }} text={`${stage==1?'Back To Overview': 'Open Contract'}`}></TransparentButton>
+                    <FormButton onClick={()=>{
+
+                    }} text="Share Deliverables"></FormButton>
+                </div>
+
+            </div>
+            <AnimatePresence exitBeforeEnter>
                 <motion.div
                     key={stage}
                     animate={{ opacity: 1, x: 0 }}
                     initial={{ opacity: 0, x: 500 }}
                     exit={{ opacity: 0, x: -10 }}
                     transition={{ duration: 0.5 }}
-                    className="h-[50vh]"
+                    className="h-auto"
                 >
                     {overviewStages[stage]}
 

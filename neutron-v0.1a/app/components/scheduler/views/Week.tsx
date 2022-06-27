@@ -16,6 +16,7 @@ import {
   endOfDay,
   startOfDay,
   addMinutes,
+  parseISO
 } from "date-fns";
 import TodayTypo from "../components/common/TodayTypo";
 import EventItem from "../components/events/EventItem";
@@ -242,7 +243,7 @@ const Week = () => {
                       todayEvents={recousedEvents
                         .filter(
                           (e) =>
-                            isSameDay(date, e.start) &&
+                            isSameDay(parseISO(date.toString()), e.start) &&
                             !differenceInDays(e.end, e.start)
                         )
                         .sort((a, b) => a.end.getTime() - b.end.getTime())}

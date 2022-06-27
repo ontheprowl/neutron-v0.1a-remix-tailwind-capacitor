@@ -1,30 +1,58 @@
-import { useNavigate } from '@remix-run/react';
+import { Link, useNavigate, useSubmit } from '@remix-run/react';
 import * as React from 'react'
 import EscrowSummary from '~/components/escrow/EscrowSummary';
 import { primaryGradientDark, secondaryGradient } from '~/utils/neutron-theme-extensions';
 import { formatDateToReadableString } from '~/utils/utils';
 import ContractStats from '~/components/contracts/ContractStats';
-import type { LoaderFunction } from '@remix-run/server-runtime';
+import { ActionFunction, LoaderFunction, redirect } from '@remix-run/server-runtime';
 import { json } from '@remix-run/server-runtime';
 import { testContractsData, testDisputesData } from '~/utils/testData.server';
 import { useLoaderData } from '@remix-run/react';
 import PlaceholderDP from "~/assets/images/kartik.png"
 import PlaceholderCover from "~/assets/images/sample_cover.png"
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from '~/firebase/neutron-config';
+import { auth, firestore } from '~/firebase/neutron-config';
+import { collection, deleteDoc, doc, getDocs, limit, Query, query, where } from 'firebase/firestore';
+import { Contract } from '~/types/contracts';
+import Accordion from '~/components/layout/Accordion'
+import ViewIcon from '~/components/inputs/ViewIcon';
+import EditIcon from '~/components/inputs/EditIcon';
+import DeleteIcon from '~/components/inputs/DeleteIcon';
+import ChatIcon from '~/components/inputs/ChatIcon';
+
 
 export const loader: LoaderFunction = async ({ request }) => {
 
-    return json({ contracts: testContractsData, disputes: testDisputesData });
+    const contractsQuery = query(collection(firestore, 'contracts'), limit(5));
+    // const disputesQuery = query(collection(firestore, 'disputes'), limit(5));
+    const contractsData = await getDocs(contractsQuery);
+    // const disputesData = await getDocs(disputesQuery)
+    return json({
+        contracts: contractsData.docs.map((document) => {
+            return { id: document.id, ...document.data() };
+        }), disputes: []
+    });
 }
 
+
+export const action: ActionFunction = async ({ request }) => {
+
+    const data = await request.formData();
+    const id = data.get('id');
+    console.log(data);
+    const docRef = doc(firestore, `contracts/${id}`);
+    await deleteDoc(docRef);
+    console.log(`Contract deleted from firestore with id ${id}`);
+    return redirect('/session/contracts')
+
+}
 
 
 export default function Dashboard() {
 
     const [user, loading, error] = useAuthState(auth);
-
-
+    const [expanded, setExpanded] = React.useState(false);
+    const submit = useSubmit();
     const userData = useLoaderData();
 
     console.log(userData)
@@ -36,13 +64,14 @@ export default function Dashboard() {
         <div className="flex flex-row h-full">
             <div id="user-profile-panel" className="w-96 flex flex-col bg-[#202020] justify-evenly">
                 <div className="flex flex-col items-stretch">
-                    <img alt="cover" className="w-auto h-auto min-h-48 object-cover rounded-bl-[50px] rounded-br-[50px] rounded-tl-[50px] " src={PlaceholderCover}></img>
-                    <img alt="profile" src={PlaceholderDP} className="h-32 w-32 translate-y-[-50px] bg-[#e5e5e5] border-8 border-solid border-black rounded-full self-center object-contain"></img>
+                    {/* <img alt="cover" className="w-auto h-auto min-h-48 object-cover rounded-bl-[50px] rounded-br-[50px] rounded-tl-[50px] " src={PlaceholderCover}></img> */}
+                    <img alt="profile" src={PlaceholderDP} className="h-32 w-32 mt-16 translate-y-[-50px] bg-[#e5e5e5] border-8 border-solid border-black rounded-full self-center object-contain"></img>
                     <div className='flex flex-col justify-between space-y-5 translate-y-[-28px]'>
                         <h1 className="prose prose-lg text-white self-center">Harvey Spector</h1>
                         <p className="prose prose-lg text-white self-center"> UI Designer</p>
-                    </div></div>
-                <EscrowSummary></EscrowSummary>
+                    </div>
+                </div>
+                <Accordion content={<EscrowSummary expanded={expanded} setExpanded={setExpanded}></EscrowSummary>} expanded={expanded} setExpanded={setExpanded}></Accordion>
                 <ContractStats></ContractStats>
                 <button
                     className="m-4 h-16 p-3 rounded-lg bg-accent-dark w-auto text-black transition-all hover:scale-105"
@@ -94,66 +123,50 @@ export default function Dashboard() {
                     </div>
 
                 </div>
-                <div id="contracts-and-disputes-summary" className="flex w-auto h-full flex-row m-6 mt-2 space-x-7">
-                    <div className="flex flex-col rounded-xl h-auto w-full bg-[#F5EBFF] text-left justify-between">
-                        <div>
-                            <h1 className="prose prose-xl m-4 text-black">Contracts</h1>
-                            <ul className="m-4 space-y-3">
-                                {userData.contracts.map((contract) => {
-                                    return (
-                                        <li key={contract.projectName}>
-                                            <div className="flex flex-row justify-between">
-                                                <div className="flex flex-col">
-                                                    <h1 className="prose prose-lg text-black">{contract.projectName}</h1>
-                                                    <h3 className="prose prose-md text-black opacity-50">{contract.duration}</h3>
-                                                </div>
-                                                <div>
-                                                    <h3 className="font-medium text-white bg-accent-dark text-center rounded-full p-3">{contract.status}</h3>
-                                                </div>
-                                            </div>
-                                            <br></br>
-                                            <hr className="w-full"></hr>
-                                        </li>)
-                                })}
-                            </ul>
-                        </div>
-                        <button
-                            className="self-center m-4 h-16 p-3 rounded-lg bg-accent-dark w-36 text-black transition-all hover:scale-105"
-                            onClick={() => navigate('/session/contracts/create')}
-                        >
-                            Create Contract
-                        </button>
-                    </div>
-                    <div className="flex flex-col rounded-xl h-auto w-full bg-[#F5EBFF] text-left justify-between">
-                        <div>
-                            <h1 className="prose prose-xl m-4 text-black">Disputes</h1>
-                            <ul className="m-4 space-y-3">
-                                {userData.disputes.map((dispute) => {
-                                    return (
-                                        <li key={dispute.disputeName}>
-                                            <div className="flex flex-row justify-between">
-                                                <div className="flex flex-col">
-                                                    <h1 className="prose prose-lg text-black">{dispute.disputeName}</h1>
-                                                    <h3 className="prose prose-md text-black opacity-50">{dispute.duration}</h3>
-                                                </div>
-                                                <div>
-                                                    <h3 className="font-medium text-white bg-accent-dark text-center rounded-full p-3">{dispute.status}</h3>
-                                                </div>
-                                            </div>
-                                            <br></br>
-                                            <hr className="w-full"></hr>
-                                        </li>)
-                                })}
-                            </ul>
-                        </div>
+                <div className={`bg-[#202020] p-3 rounded-xl border-2 border-solid border-accent-dark  h-full m-6`}>
+                    <table className=" w-full h-auto text-sm text-left text-gray-500 dark:text-gray-400">
 
-                        <button
-                            className="self-center m-4 h-16 p-3 rounded-lg bg-accent-dark w-36 text-black transition-all hover:scale-105"
-                            onClick={() => navigate('/session/contracts/create')}
-                        >
-                            Create Contract
-                        </button>
-                    </div>
+                        <tbody>
+                            {userData.contracts.map((contract: Contract, index: number) => {
+                                return (<tr key={contract.id} className={` border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gradient-to-br from-violet-700 via-violet-400 to-violet-500 hover:bg-opacity-50 dark:hover:bg-gray-600`}>
+
+                                    <th scope="row" className="px-6 py-4 font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                        <Link to={`/session/contracts/${contract.id}`}>{index + 1}</Link>
+                                    </th>
+                                    <td className="px-6 py-4 text-center text-white">
+                                        {contract.projectName}
+                                        <br></br>
+                                        {contract.clientName}
+                                    </td>
+                                    <td className="px-6 py-4 text-center text-white">
+                                        {contract.totalValue}
+                                        <br></br>
+                                        {formatDateToReadableString()}
+
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <h3 className="font-medium text-black bg-gray-100 text-center rounded-lg p-1">Draft</h3>
+                                    </td>
+                                    <td><ViewIcon onClick={() => {
+                                        navigate(`/session/contracts/${contract.id}`)
+                                    }} className={''}></ViewIcon></td>
+                                    <td><EditIcon onClick={function (event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
+                                        throw new Error('Function not implemented.');
+                                    }} className={''}></EditIcon></td>
+                                    <td><DeleteIcon onClick={(e) => {
+                                        let data = new FormData();
+                                        data.append('id', contract.id);
+                                        submit(data,
+                                            { method: 'post' });
+                                    }} className={''}></DeleteIcon></td>
+                                    <td><ChatIcon onClick={function (event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
+                                        throw new Error('Function not implemented.');
+                                    }} className={''}></ChatIcon></td>
+                                </tr>)
+                            })}
+
+                        </tbody>
+                    </table>
                 </div>
 
             </div>

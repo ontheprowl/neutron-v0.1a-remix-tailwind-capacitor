@@ -9,7 +9,6 @@ import { getGantt, getGanttSelection, getGanttTimelinePointer, getGanttItemResiz
 
 
 export default function CalendarPage() {
-    return (<ModuleLoader imports={{ "gantt": getGantt, "ganttSelection": getGanttSelection, "ganttTimeline": getGanttTimelinePointer, "ganttItemResizing" : getGanttItemResizing, "ganttItemMovement" : getGanttItemMovement }}>
-        <Outlet></Outlet>
-    </ModuleLoader>)
+    return (
+        <Outlet></Outlet>)
 }
