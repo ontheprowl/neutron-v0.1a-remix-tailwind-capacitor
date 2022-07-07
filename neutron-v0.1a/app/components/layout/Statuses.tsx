@@ -1,4 +1,4 @@
-import { DeliverableStatus } from "~/types/contracts";
+import { DeliverableStatus } from "~/models/contracts";
 
 
 

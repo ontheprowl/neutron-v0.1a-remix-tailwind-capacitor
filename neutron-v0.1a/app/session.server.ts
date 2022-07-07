@@ -1,100 +1,123 @@
-// import { createCookieSessionStorage, redirect } from "@remix-run/node";
-// import invariant from "tiny-invariant";
+import { getSingleDoc } from "~/firebase/queries.server";
+import { createCookieSessionStorage, redirect } from "@remix-run/node";
+import invariant from "tiny-invariant";
 
-// import type { User } from "~/models/user.server";
-// import { getUserById } from "~/models/user.server";
+import type { User } from "~/models/user.server";
+import {
+  adminAuth,
+  getSessionToken,
+  getUserMetadata,
+  sessionTTL,
+} from "./firebase/neutron-config.server";
 
-// invariant(process.env.SESSION_SECRET, "SESSION_SECRET must be set");
+export const sessionStorage = createCookieSessionStorage({
+  cookie: {
+    name: "__session",
+    httpOnly: true,
+    maxAge: 60,
+    path: "/",
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  },
+});
 
-// export const sessionStorage = createCookieSessionStorage({
-//   cookie: {
-//     name: "__session",
-//     httpOnly: true,
-//     maxAge: 0,
-//     path: "/",
-//     sameSite: "lax",
-//     secrets: [process.env.SESSION_SECRET],
-//     secure: process.env.NODE_ENV === "production",
-//   },
-// });
+const USER_SESSION_KEY = "token";
+const USER_METADATA_KEY = "metadata";
 
-// const USER_SESSION_KEY = "userId";
+export async function getSession(request: Request) {
+  const cookie = request.headers.get("Cookie");
+  return sessionStorage.getSession(cookie);
+}
 
-// export async function getSession(request: Request) {
-//   const cookie = request.headers.get("Cookie");
-//   return sessionStorage.getSession(cookie);
-// }
+export async function getUserId(
+  request: Request
+): Promise<User["id"] | undefined> {
+  const session = await getSession(request);
+  const userId = session.get(USER_SESSION_KEY);
+  return userId;
+}
 
-// export async function getUserId(
-//   request: Request
-// ): Promise<User["id"] | undefined> {
-//   const session = await getSession(request);
-//   const userId = session.get(USER_SESSION_KEY);
-//   return userId;
-// }
+export async function requireUserId(
+  request: Request,
+  redirectTo: string = new URL(request.url).pathname
+): Promise<string> {
+  const userId = await getUserId(request);
+  if (!userId) {
+    // const searchParams = new URLSearchParams([["redirectTo", redirectTo]]);
+    return "-1";
+  }
+  return userId;
+}
 
+export async function requireUser(request: Request, autoRedirect?: boolean) {
+  const session = await getUserSession(request, autoRedirect);
+  if (session) return session;
 
-// export async function getUser(request: Request) {
-//   const userId = await getUserId(request);
-//   if (userId === undefined) return null;
+  if (autoRedirect) throw await logout(request);
+  return null;
+}
 
-//   const user = await getUserById(userId);
-//   if (user) return user;
+export async function createUserSession({
+  request,
+  userId,
+  metadata,
+  remember,
+  redirectTo,
+}: {
+  request: Request;
+  userId: string;
+  metadata?: { path: string };
+  remember: boolean;
+  redirectTo: string;
+}) {
+  const token = await getSessionToken(userId);
+  const session = await getSession(request);
+  session.set(USER_SESSION_KEY, token);
+  if (metadata) {
+    session.set(USER_METADATA_KEY, metadata);
+  }
+  return redirect(redirectTo, {
+    headers: {
+      "Set-Cookie": await sessionStorage.commitSession(session, {
+        maxAge: remember
+          ? sessionTTL // 7 days
+          : undefined,
+      }),
+    },
+  });
+}
 
-//   throw await logout(request);
-// }
+export async function getUserSession(request: Request, autoRedirect?: boolean) {
+  const cookie = await sessionStorage.getSession(request.headers.get("Cookie"));
+  const token = cookie.get("token");
 
+  const metadataCookie = cookie.get("metadata");
+  let metadata = undefined;
+  if (metadataCookie) {
+    const path = metadataCookie.path;
+    metadata = await getSingleDoc(path);
+  }
 
-// export async function requireUserId(
-//   request: Request,
-//   redirectTo: string = new URL(request.url).pathname
-// ) {
-//   const userId = await getUserId(request);
-//   if (!userId) {
-//     const searchParams = new URLSearchParams([["redirectTo", redirectTo]]);
-//     throw redirect(`/login?${searchParams}`);
-//   }
-//   return userId;
-// }
+  if (!token) {
+    console.log("No valid token");
+    return null;
+  }
 
-// export async function requireUser(request: Request) {
-//   const userId = await requireUserId(request);
+  try {
+    const tokenUser = await adminAuth.verifySessionCookie(token, true);
 
-//   const user = await getUserById(userId);
-//   if (user) return user;
+    return { token: tokenUser, metadata: metadata ? metadata : undefined };
+  } catch (error) {
+    console.log(error);
+    if (autoRedirect) throw redirect("/login");
+  }
+}
 
-//   throw await logout(request);
-// }
-
-// export async function createUserSession({
-//   request,
-//   userId,
-//   remember,
-//   redirectTo,
-// }: {
-//   request: Request;
-//   userId: string;
-//   remember: boolean;
-//   redirectTo: string;
-// }) {
-//   const session = await getSession(request);
-//   session.set(USER_SESSION_KEY, userId);
-//   return redirect(redirectTo, {
-//     headers: {
-//       "Set-Cookie": await sessionStorage.commitSession(session, {
-//         maxAge: remember
-//           ? 60 * 60 * 24 * 7 // 7 days
-//           : undefined,
-//       }),
-//     },
-//   });
-// }
-
-// export async function logout(request: Request) {
-//   const session = await getSession(request);
-//   return redirect("/", {
-//     headers: {
-//       "Set-Cookie": await sessionStorage.destroySession(session),
-//     },
-//   });
-// }
+export async function logout(request: Request) {
+  const session = await getSession(request);
+  return redirect("/login", {
+    headers: {
+      "Set-Cookie": await sessionStorage.destroySession(session),
+    },
+  });
+}

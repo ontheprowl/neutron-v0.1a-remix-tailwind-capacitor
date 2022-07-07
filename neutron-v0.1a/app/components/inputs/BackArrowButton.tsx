@@ -19,8 +19,6 @@ export default function BackArrowButton({ onClick, className }: { onClick: Mouse
             </defs>
         </svg>
 
-
-
     </button>
     )
 }

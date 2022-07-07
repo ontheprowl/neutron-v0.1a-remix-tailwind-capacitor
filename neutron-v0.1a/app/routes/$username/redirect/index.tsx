@@ -16,6 +16,8 @@ export async function action({ request }: { request: Request }) {
 
 export async function loader({ request }: { request: Request }) {
 
+    //TODO : pull cookie from request, add tokens to session, forward
+
     const url = new URL(request.url);
     const code = url.searchParams.get("code");
     const scope = url.searchParams.get("scope")

@@ -1,8 +1,9 @@
 import { useFormContext } from "react-hook-form";
 import { ContractDataStore } from "~/stores/ContractStores";
-import { ContractCreationStages } from "~/types/contracts";
+import { ContractCreationStages } from "~/models/contracts";
 import FormButton from "../inputs/FormButton";
 import TransparentButton from "../inputs/TransparentButton";
+import AccentedToggle from "../layout/AccentedToggle";
 
 
 
@@ -14,10 +15,11 @@ export default function ContractClientInformation() {
     const { startDate, endDate, redressalWindow } = ContractDataStore.useState();
 
     return (
-        <>
-            <h2 className="prose prose-lg mt-5 text-white"> Client Details </h2>
-            <label htmlFor="simple-search" className="sr-only">Client Name</label>
-            <div className="flex flex-row relative w-auto items-end space-x-10 justify-start align-middle">
+        <div>
+            <AccentedToggle name="isClient" states={{default:'Client',toggled:'Freelancer'}}></AccentedToggle>
+            <h2 className="prose prose-lg mb-5 sm:mb-0 mt-5 text-white"> Counter-Party Details </h2>
+            <label htmlFor="simple-search" className="sr-only">Counter-Party Name</label>
+            <div className="flex flex-col sm:flex-row relative w-auto sm:items-end space-y-5 sm:space-x-10 justify-start align-middle">
                 {/* <div className="relative w-auto ">
                     <div className="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
                         <svg className="w-5 h-5 text-white dark:text-black" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path></svg>
@@ -26,29 +28,29 @@ export default function ContractClientInformation() {
 
                 </div> */}
                 <input type="text" id="client-name" {...formMethods.register('clientName')} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Client Name" required />
-                <div className="flex h-20 w-5 border-l-gray-500 border-l-2"></div>
+                <div className="hidden sm:flex sm:h-20 w-5 border-l-gray-500 border-l-2"></div>
                 <input type="text" id="client-email" {...formMethods.register('clientEmail')}
                     className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Client Email" required />
 
             </div>
             <label htmlFor="simple-search" className="sr-only">Search through contacts</label>
 
-            <hr className="w-full mt-3 border-solid border-gray-500"></hr>
+            <hr className="w-full mt-5 border-solid border-gray-500"></hr>
 
-            <h2 className="prose prose-lg mt-5 text-white"> Basic Details </h2>
-            <div className="relative w-auto mt-5 mb-5 flex flex-col ">
+            <h2 className="prose prose-lg mt-3 text-white"> Basic Details </h2>
+            <div className="relative w-auto mt-2 mb-5 sm:mt-5 sm:mb-5 flex flex-col ">
                 <input type="text" id="project-name"  {...formMethods.register('projectName')}  className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Project Name" required />
-                <div className="flex items-end mt-5 space-x-3 flex-row w-full">
-                    <div className="text-center space-y-3 w-full">
+                <div className="flex items-end mt-5 flex-col space-y-3 sm:space-x-3 sm:flex-row w-full">
+                    <div className="sm:text-center space-y-3 w-full">
                         <span className=" prose prose-md text-white">Contract Start Date</span>
                         <input  {...formMethods.register('startDate')} type="date" placeholder="Contract Start Date" className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
                     </div>
 
-                    <div className="text-center space-y-3 w-full">
+                    <div className="sm:text-center space-y-3 w-full">
                         <span className=" prose prose-md text-white">Contract End Date</span>
                         <input {...formMethods.register('endDate')} type="date" placeholder="Contract Start Date" className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
                     </div>
-                    <div className="flex h-20 w-5 border-l-gray-500 border-l-2"></div>
+                    <div className="hidden sm:flex h-20 w-5 border-l-gray-500 border-l-2"></div>
 
                     <div className="text-left space-y-3 w-full">
                         <span className=" prose prose-md text-white">Redressal Window</span>
@@ -67,5 +69,5 @@ export default function ContractClientInformation() {
                     s.redressalWindow=formMethods.getValues('redressalWindow');
                 });
             }} text="Create Contract"></FormButton>
-        </>);
+        </div>);
 }

@@ -2,7 +2,7 @@ import { useFormContext } from "react-hook-form";
 import { ContractDataStore } from "~/stores/ContractStores";
 
 
-export const formatDateToReadableString = (seconds?: number | undefined, onlyTime?: boolean) => {
+export const formatDateToReadableString = (seconds?: string | undefined, onlyTime?: boolean) => {
 
     let date;
     if (seconds == undefined) {

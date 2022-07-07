@@ -14,6 +14,7 @@ export enum TemplateType {
 
 export enum DeliverableFormat {
   PDF,
+  ZIP,
   JPEG,
   MP4,
 }
@@ -38,6 +39,7 @@ export type Deliverable = {
   isMilestone?: Boolean;
   format: DeliverableFormat;
   attachment: FileList;
+  milestone?:string;
 };
 
 export enum DeliverableStatus { 
@@ -72,8 +74,11 @@ export enum DeliverableType{
 }
 
 export interface Contract {
+  isClient?:boolean;
+  hasMilestones?: boolean;
   status?: string;
   id?:string;
+  isSigned?:boolean;
   projectName?: string;
   basePayCondition?: Condition;
   basePayAmount?: number;

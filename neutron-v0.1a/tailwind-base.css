@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+    @font-face {
+      font-family: 'Gilroy-Regular';
+      src: url("/fonts/GILROY-REGULAR.ttf");
+    }
+ 
+    @font-face {
+        font-family: 'Gilroy-Bold';
+        src: url("/fonts/GILROY-BOLD.ttf");
+    }
+} 
+
+
 * {
     -ms-overflow-style: none;  /* Internet Explorer 10+ */
     scrollbar-width: none;
@@ -17,3 +30,5 @@
 *::-webkit-scrollbar{
     display: none;
 }
+
+

@@ -1,5 +1,5 @@
-import type { Contract, Milestone } from "~/types/contracts";
-import { DeliverableType, MilestoneStatus } from "~/types/contracts";
+import type { Contract, Milestone } from "~/models/contracts";
+import { DeliverableType, MilestoneStatus } from "~/models/contracts";
 import NeutronIcon from '~/assets/images/icon.svg';
 import NeutronGoldIcon from '~/assets/images/iconGold.svg'
 import NeutronWhiteIcon from '~/assets/images/iconWhite.svg'
@@ -7,7 +7,8 @@ import FlagIcon from '~/assets/images/flag.svg'
 import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
 import { formatDateToReadableString } from "~/utils/utils";
 import FormButton from "../inputs/FormButton";
-
+import Accordion from "../layout/Accordion";
+import { motion } from "framer-motion";
 
 
 
@@ -16,7 +17,8 @@ export default function MilestoneStepper({ data }: { data?: Contract }) {
 
 
     return (
-        <div className="flex flex-col w-auto m-3">
+        <motion.div  variants={{ collapsed: { scale: 0.9, opacity:0 }, open: { scale: 1, opacity:1 } }}
+        transition={{ duration: 0.1 }} className="flex flex-col w-auto m-3">
             {data?.signedDate != undefined ? <MilestoneStep name={"Contract has been signed!"} subline={formatDateToReadableString(data.signedDate.getSeconds())} /> : <MilestoneStep status={MilestoneStatus.Current} name={"Contract has not been signed!"} subline={"Current Status"} />}
 
             {data?.milestones?.map((milestone) => {
@@ -31,7 +33,7 @@ export default function MilestoneStepper({ data }: { data?: Contract }) {
             })}
             {data?.signedDate != undefined ? <MilestoneStep name={"Contract has been signed!"} subline={formatDateToReadableString(data.signedDate.getSeconds())} /> : <MilestoneStep status={MilestoneStatus.Current} name={"Contract has not been signed!"} subline={"Current Status"} />}
 
-        </div>)
+        </motion.div>)
 }
 
 

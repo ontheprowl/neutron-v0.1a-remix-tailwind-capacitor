@@ -1,6 +1,6 @@
 import React, { MouseEventHandler, ReactNode } from "react";
 import { ContractDataStore } from "~/stores/ContractStores";
-import { ContractCreationStages } from "~/types/contracts";
+import { ContractCreationStages } from "~/models/contracts";
 
 
 

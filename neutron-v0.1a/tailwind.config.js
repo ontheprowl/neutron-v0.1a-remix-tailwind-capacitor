@@ -3,9 +3,19 @@ module.exports = {
   content: ["./app/**/*.{ts,tsx,jsx,js}"],
   darkMode: 'class',
   theme: {
+
     extend: {
-      backgroundImage:{
-        'gold':`url('/src/assets/images/gold.png')`
+
+      fontFamily: {
+        'gilroy-regular': ['Gilroy-Regular'],
+        'gilroy-bold': ['Gilroy-Bold'],
+        'gilroy-light': ['Gilroy-Light']
+
+      },
+
+
+      backgroundImage: {
+        'gold': `url('/src/assets/images/gold.png')`
       },
       colors: {
         transparent: 'transparent',
@@ -27,7 +37,10 @@ module.exports = {
         'overlay-light': '#5C5C5C',
         'divider-light': '#EBD7FF',
       },
-    }
+      screens: {
+        'mobile': '320px'
+      }
+    },
   },
   plugins: [
     require('@tailwindcss/typography'),

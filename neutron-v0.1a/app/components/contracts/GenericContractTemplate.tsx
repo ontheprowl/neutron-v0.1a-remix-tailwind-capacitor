@@ -1,5 +1,5 @@
 import { ContractDataStore } from "~/stores/ContractStores";
-import { Contract, ContractCreationStages } from "~/types/contracts";
+import { Contract, ContractCreationStages } from "~/models/contracts";
 import { formatDateToReadableString } from "~/utils/utils";
 import ContractEditableLink from "./ContractEditableLink";
 

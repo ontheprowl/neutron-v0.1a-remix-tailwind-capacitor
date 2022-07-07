@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { auth } from "../firebase/neutron-config";
+import { auth } from "../firebase/neutron-config.server";
 import { UIStore } from "../stores/UIStore";
 import { secondaryGradient } from "../utils/neutron-theme-extensions";
 import CalendarButton from "../components/CalendarButton";
@@ -13,6 +13,8 @@ import { logout } from "~/firebase/firebase-utils";
 import { time } from "console";
 import { formatDateToReadableString } from "~/utils/utils";
 import Icon from '../assets/images/icon.svg';
+import PlaceholderDP from '~/assets/images/kartik.png'
+import BottomNav from "~/components/layout/BottomNav";
 
 export default function SessionPage() {
   let tab = UIStore.useState((s) => s.selectedTab);
@@ -23,8 +25,8 @@ export default function SessionPage() {
   let navigate = useNavigate();
 
   return (
-    <div className="flex h-auto w-full flex-row bg-bg-primary-dark">
-      <aside className="h-screen w-auto" aria-label="Sidebar">
+    <div className="flex h-auto w-full flex-col sm:flex-row font-gilroy-regular bg-bg-primary-dark">
+      <aside className="hidden sm:h-screen sm:flex sm:w-auto" aria-label="Sidebar">
         <div className="h-screen rounded ml-4 bg-bg-primary-dark py-4 px-3 dark:bg-gray-800">
           <a
             href="https://neutron.money"
@@ -137,16 +139,31 @@ export default function SessionPage() {
           </div>
         </div>
       </div> */}
-      <div className="flex flex-col w-full h-auto">
+      <div className="flex flex-col w-full h-screen sm:h-auto relative flex-grow">
+        <div className="flex flex-row m-5 mt-8 justify-between items-start sm:hidden">
+          <img
+            src={Icon}
+            className=" transition-all h-8 sm:h-20 w-8 sm:w-20"
+            alt="Neutron Logo"
+          />
+          <div className="flex flex-row items-start">
+            <img alt="profile" src={PlaceholderDP} className="w-8 h-8  bg-[#e5e5e5] border-2 border-solid border-black rounded-full self-center object-contain"></img>
+
+          </div>
+
+        </div>
         <div
           id="content-window"
-          className="h-full w-auto rounded-lg bg-bg-secondary-light"
+          className="h-full w-auto rounded-lg bg-bg-primary-dark "
         >
           <Outlet></Outlet>
         </div>
+        <div className="bottom-0 sm:hidden left-0 fixed w-full h-auto">
+          <BottomNav></BottomNav>
+        </div>
 
       </div>
-      
+
     </div>
   );
 }

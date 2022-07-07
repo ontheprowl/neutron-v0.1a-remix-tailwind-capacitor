@@ -1,62 +1,49 @@
-export {} // import type { Password, User } from "@prisma/client";
-// import bcrypt from "bcryptjs";
+import bcrypt from "bcryptjs";
+import {
+  createUserWithEmailAndPassword,
+  getAdditionalUserInfo,
+  getAuth,
+  signInWithEmailAndPassword,
+  User,
+  UserCredential,
+} from "firebase/auth";
+import { randomUUID } from "crypto";
 
-// import { prisma } from "~/db.server";
+import { auth } from "~/firebase/neutron-config.server";
+import { getSingleDoc } from "~/firebase/queries.server";
+import { json } from "@remix-run/server-runtime";
 
-// export type { User } from "@prisma/client";
-
-// export async function getUserById(id: User["id"]) {
-//   return prisma.user.findUnique({ where: { id } });
+// function generateDefaultUserStateFromFirebaseUser(user: User): UserState {
+//   const state : UserState = {name:user.displayName?user.displayName:'',id:user.uid,profileUrl:user.photoURL,user.userName:''}
 // }
 
-// export async function getUserByEmail(email: User["email"]) {
-//   return prisma.user.findUnique({ where: { email } });
-// }
+export async function signUp(email: string, password: string) {
+  const auth = getAuth();
+  return createUserWithEmailAndPassword(auth, email, password);
+}
 
-// export async function createUser(email: User["email"], password: string) {
-//   const hashedPassword = await bcrypt.hash(password, 10);
+export async function logIn(email: string, password: string) {
+  const auth = getAuth();
+  return signInWithEmailAndPassword(auth, email, password);
+}
 
-//   return prisma.user.create({
-//     data: {
-//       email,
-//       password: {
-//         create: {
-//           hash: hashedPassword,
-//         },
-//       },
-//     },
-//   });
-// }
+export async function signIn(email: string, password: string) {
+  const auth = getAuth();
+  return signInWithEmailAndPassword(
+    auth,
+    email?.toString(),
+    password?.toString()
+  );
+}
 
-// export async function deleteUserByEmail(email: User["email"]) {
-//   return prisma.user.delete({ where: { email } });
-// }
-
-// export async function verifyLogin(
-//   email: User["email"],
-//   password: Password["hash"]
-// ) {
-//   const userWithPassword = await prisma.user.findUnique({
-//     where: { email },
-//     include: {
-//       password: true,
-//     },
-//   });
-
-//   if (!userWithPassword || !userWithPassword.password) {
-//     return null;
-//   }
-
-//   const isValid = await bcrypt.compare(
-//     password,
-//     userWithPassword.password.hash
-//   );
-
-//   if (!isValid) {
-//     return null;
-//   }
-
-//   const { password: _password, ...userWithoutPassword } = userWithPassword;
-
-//   return userWithoutPassword;
-// }
+export async function isViewerOwner(session: any, username: string) {
+  const uidMapping = await getSingleDoc(`/users/${username}`);
+  const requestedUID = uidMapping?.uid;
+  console.log("Current User is ");
+  console.dir(session?.metadata);
+  if (session?.metadata?.id == requestedUID) {
+    return true;
+  } else {
+    return false;
+  }
+}

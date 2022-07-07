@@ -27,6 +27,10 @@ export async function authorizeAndExecute(onSuccess: (value?: any) => any, onFai
     
 }
 
+// export async function authorizeWithProviderAndExecute(onSuccess: (value?: any) => any, onFailure: (value?: any) => any, authGranted?: boolean): Promise<any> {
+    
+// }
+
 export const generateAuthUrl = () => {
     const authURL = oAuth2Client.generateAuthUrl({
         access_type: 'offline',
@@ -45,3 +49,4 @@ oAuth2Client.on('tokens', (creds) => {
     }
     console.log('ACCESS TOKEN : ' + creds.access_token)
 })
+

@@ -45,7 +45,7 @@ export default function ContractProcessStepper() {
 
 
 
-    return (<motion.div id="contract-process-stepper" className="flex flex-row m-6 items-start">
+    return (<motion.div id="contract-process-stepper" className="hidden sm:flex sm:flex-row m-6 items-start">
         <motion.div layout className="space-y-3">
             <motion.div className={`h-9 w-9 bg-[#8364E8] p-2 text-center rounded-full text-white transition-all`}>{stage > 0 ? '✓' : '1'}</motion.div>
             <motion.h2 className="prose prose-md text-white">Client Details</motion.h2>

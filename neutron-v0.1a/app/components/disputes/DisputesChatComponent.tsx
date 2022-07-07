@@ -6,41 +6,25 @@ import { equalTo, get, onValue, orderByChild, orderByKey, push, query, ref, set 
 import { AnimatePresence, motion } from "framer-motion"
 import React from "react"
 import { useAuthState } from "react-firebase-hooks/auth"
-import { auth, db } from "~/firebase/neutron-config"
+import { auth, db } from "~/firebase/neutron-config.server"
 import { formatDateToReadableString } from "~/utils/utils"
 import FormButton from "../inputs/FormButton"
 
 
 
 
-
-export default function DisputesChatComponent({ from, to }: { from: string, to: string }) {
+export default function DisputesChatComponent({ from, to, messages }: { from: string, to: string, messages: Array<any> }) {
 
 
     const actionData = useActionData();
     const submit = useSubmit();
-    const [user, loading, error] = useAuthState(auth)
-    const [messages, setMessages] = React.useState<Array<{ text: string, from: string, to: string, timestamp: string }>>([]);
+    const [chatMessages, setMessages] = React.useState<Array<{ text: string, from: string, to: string, timestamp: string }>>([]);
 
     const [newMessage, setNewMessage] = React.useState('')
 
     React.useEffect(() => {
-
-        const messageQuery = query(ref(db, 'messages/' + btoa((from+to).split('').sort().join(''))));
-
-        onValue(messageQuery, (value) => {
-            const data = value.val();
-            console.log(data)
-
-            let messagesArray: Array<{ text: string, to: string, from: string, timestamp: string }> = []
-            for (const [key, value] of Object.entries(data)) {
-                messagesArray.push(value)
-            }
-            console.log(messagesArray)
-            if (messages.length != messagesArray.length)
-                setMessages(messagesArray)
-        })
-    }, [actionData, from, to])
+        setMessages(messages);
+    }, [messages])
 
     return (
         <div className="m-10 bg-bg-primary-dark border-2 flex flex-col h-auto border-accent-dark rounded-lg items-stretch">
@@ -48,7 +32,7 @@ export default function DisputesChatComponent({ from, to }: { from: string, to: 
             <ul className="h-auto min-h-max max-h-[500px] overflow-scroll m-5 text-white grid grid-cols-1">
                 <AnimatePresence initial={false}>
 
-                    {messages?.map((message, i) => {
+                    {chatMessages?.map((message, i) => {
                         return (
                             <motion.li initial={{ opacity: 0, y: 50, scale: 0.3 }}
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -58,7 +42,7 @@ export default function DisputesChatComponent({ from, to }: { from: string, to: 
                                         stiffness: 700,
                                         damping: 30
                                     }
-                                }} layout key={message.text} className={`${message.from==from ? 'place-self-start text-left':'place-self-end text-right '} w-auto`}>
+                                }} layout key={message.text} className={`${message.from == from ? 'place-self-start text-left' : 'place-self-end text-right '} w-auto`}>
                                 <motion.div>
                                     <motion.h2 className="prose prose-lg text-black block bg-accent-dark p-5 rounded-xl ">{message.text}</motion.h2>
                                     <motion.p className=" text-white text-xs mt-2">{formatDateToReadableString(Date.parse(message.timestamp), true)}</motion.p>

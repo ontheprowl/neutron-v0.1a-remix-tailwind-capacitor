@@ -6,7 +6,7 @@ const config: CapacitorConfig = {
   webDir: "public/build",
   bundledWebRuntime: false,
   server: {
-    url: "http://neutron-alpha.fly.dev",
+    url: "http://test.neutron.money",
     cleartext: true,
   },
   loggingBehavior:'production'

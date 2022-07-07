@@ -1,4 +1,4 @@
-import { Link, useNavigate, useSubmit } from '@remix-run/react';
+import { Link, useFetcher, useNavigate, useSubmit } from '@remix-run/react';
 import * as React from 'react'
 import EscrowSummary from '~/components/escrow/EscrowSummary';
 import { primaryGradientDark, secondaryGradient } from '~/utils/neutron-theme-extensions';
@@ -11,26 +11,42 @@ import { useLoaderData } from '@remix-run/react';
 import PlaceholderDP from "~/assets/images/kartik.png"
 import PlaceholderCover from "~/assets/images/sample_cover.png"
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth, firestore } from '~/firebase/neutron-config';
+import { auth, firestore } from '~/firebase/neutron-config.server';
 import { collection, deleteDoc, doc, getDocs, limit, Query, query, where } from 'firebase/firestore';
-import { Contract } from '~/types/contracts';
+import { Contract } from '~/models/contracts';
 import Accordion from '~/components/layout/Accordion'
 import ViewIcon from '~/components/inputs/ViewIcon';
 import EditIcon from '~/components/inputs/EditIcon';
 import DeleteIcon from '~/components/inputs/DeleteIcon';
 import ChatIcon from '~/components/inputs/ChatIcon';
+import { motion } from 'framer-motion';
+import MobileNavbarPadding from '~/components/layout/MobileNavbarPadding';
+import PurpleWhiteButton from '~/components/inputs/PurpleWhiteButton';
+import { getSingleDoc } from '~/firebase/queries.server';
+import { requireUser } from '~/session.server';
+import { UserState } from '~/models/user';
 
 
 export const loader: LoaderFunction = async ({ request }) => {
 
+    // console.log(auth.currentUser)
+    const session = await requireUser(request,true);
+
+    if(!session){
+        return redirect('/login')
+    }
+    console.log('this is what hte metadata is looking like...')
+    console.dir(session.metadata)
     const contractsQuery = query(collection(firestore, 'contracts'), limit(5));
+    //TODO : Make metadata fetching dynamic
     // const disputesQuery = query(collection(firestore, 'disputes'), limit(5));
     const contractsData = await getDocs(contractsQuery);
     // const disputesData = await getDocs(disputesQuery)
     return json({
         contracts: contractsData.docs.map((document) => {
             return { id: document.id, ...document.data() };
-        }), disputes: []
+        }).sort((a, b) => { return b.startDate - a.startDate }), disputes: [],
+        metadata: session.metadata
     });
 }
 
@@ -50,41 +66,46 @@ export const action: ActionFunction = async ({ request }) => {
 
 export default function Dashboard() {
 
-    const [user, loading, error] = useAuthState(auth);
+    const fetcher = useFetcher();
     const [expanded, setExpanded] = React.useState(false);
     const submit = useSubmit();
-    const userData = useLoaderData();
+    const userData: { contracts: Contract[], disputes: any[], metadata: any } = useLoaderData();
 
     console.log(userData)
+    const currentContract: Contract = userData.contracts[0]
+    const currentUserData : UserState = userData.metadata;
 
 
     let navigate = useNavigate();
 
     return (
-        <div className="flex flex-row h-full">
-            <div id="user-profile-panel" className="w-96 flex flex-col bg-[#202020] justify-evenly">
-                <div className="flex flex-col items-stretch">
+        <div className="flex flex-col sm:flex-row h-full ">
+            <div id="user-profile-panel" className="w-full sm:w-96 flex flex-col bg-bg-primary-dark sm:bg-bg-secondary-dark justify-evenly ">
+                <div className="hidden sm:flex sm:flex-col items-stretch">
                     {/* <img alt="cover" className="w-auto h-auto min-h-48 object-cover rounded-bl-[50px] rounded-br-[50px] rounded-tl-[50px] " src={PlaceholderCover}></img> */}
                     <img alt="profile" src={PlaceholderDP} className="h-32 w-32 mt-16 translate-y-[-50px] bg-[#e5e5e5] border-8 border-solid border-black rounded-full self-center object-contain"></img>
                     <div className='flex flex-col justify-between space-y-5 translate-y-[-28px]'>
-                        <h1 className="prose prose-lg text-white self-center">Harvey Spector</h1>
-                        <p className="prose prose-lg text-white self-center"> UI Designer</p>
+                        <h1 className="prose prose-lg text-white self-center">{currentUserData.name}</h1>
+                        <p className="prose prose-lg text-white self-center"> {currentUserData.designation}</p>
                     </div>
                 </div>
-                <Accordion content={<EscrowSummary expanded={expanded} setExpanded={setExpanded}></EscrowSummary>} expanded={expanded} setExpanded={setExpanded}></Accordion>
-                <ContractStats></ContractStats>
+                <Accordion label={<motion.div className={`rounded-xl text-left p-4`}>
+                    <motion.h2 className='prose prose-lg text-white text-center sm:text-left'>Total Funds</motion.h2>
+                    <motion.h1 className="prose prose-lg text-white text-center sm:text-right"> {currentUserData?.funds?.totalFunds}</motion.h1>
+                </motion.div>} className={`${primaryGradientDark}  h-auto rounded-xl mt-4 text-left p-4`} content={<EscrowSummary funds={currentUserData.funds}></EscrowSummary>} expanded={expanded} setExpanded={setExpanded}></Accordion>
+                <ContractStats clients={currentUserData.clients} contracts={currentUserData.contracts}></ContractStats>
                 <button
-                    className="m-4 h-16 p-3 rounded-lg bg-accent-dark w-auto text-black transition-all hover:scale-105"
+                    className="m-4 h-16 p-3 rounded-full bg-accent-dark w-auto text-black transition-all hover:scale-105"
                     onClick={() => navigate('/session/contracts/create')}
                 >
                     Create Contract
                 </button>
             </div>
             <div id="activity-details-summary" className="flex flex-col w-full bg-bg-primary-dark">
-                <div className='flex flex-row m-6 justify-between'>
+                <div className='hidden sm:flex flex-row m-6 justify-between'>
                     <div className="flex flex-col">
                         <article className="prose">
-                            <h2 className="text-white prose prose-lg">Welcome {user?.email}</h2>
+                            <h2 className="text-white prose prose-lg">Welcome {currentUserData?.email}</h2>
                             <p className="text-white prose prose-sm">{formatDateToReadableString()}</p>
                         </article>
 
@@ -105,29 +126,51 @@ export default function Dashboard() {
                         </div>
                     </div>
                 </div>
-                <div id="current-project-summary" className={`flex flex-row m-6 w-auto rounded-xl h-auto min-h-52 ${primaryGradientDark} justify-between items-center`}>
-                    <div className="flex flex-col m-5 w-auto">
-                        <h2 className="prose prose-xl text-white">
-                            Current Project: Neutron Money UI Design
+                <div id="current-project-summary" className={`flex font-gilroy-regular flex-col sm:flex-row m-6 mt-2 w-auto rounded-xl h-auto min-h-52 ${primaryGradientDark} justify-between items-center`}>
+                    <div className="flex flex-col m-2 p-5 w-auto text-center">
+                        <h2 className="prose prose-xl mb-3 text-white">
+                            Current Project: {currentContract.projectName}
                         </h2>
-                        <p className="prose prose-md text-white">
-                            Perform user research on freelancers and client enterprises to find out optimal Users and create user personas. Then ideate wireframes and map user flows. Once the product wireframes and flows are finalized, Design User Interface and add suible UX to the design.
+                        <p className="prose prose-md text-white sm:text-left">
+                            {currentContract.description}
                         </p>
-                        <h2 className="prose prose-lg text-white"> Current Status : IN PROGRESS </h2>
-                    </div>
-                    <div className={`${secondaryGradient} h-40 w-36 m-6 rounded-xl`}>
+                        <h2 className="prose prose-lg text-white mt-5 sm:text-left"> Current Status : {currentContract.status} </h2>
+                        <PurpleWhiteButton onClick={() => {
+                            // const payload = {
+                            //     customer_details: {
+                            //         customer_id: "hi3",
+                            //         customer_email: "grimmjow2365@gmail.com",
+                            //         customer_phone: "8390608693"
+                            //     },
+                            //     order_id: "1246",
+                            //     // order_meta: {
+                            //     //     return_url: "https://192.168.0.107:3001",
+                            //     //     order_id: '1242',
+                            //     //     order_token: '23123213213'
+                            //     // },
+                            //     order_amount: 222,
+                            //     order_currency: "INR"
+                            // }
+                            // const formData = new FormData();
+                            // formData.append("payload", JSON.stringify(payload))
+                            fetcher.submit({},{ method: 'post', action: "/logout" })
+                        }} text="Pay Contract" />                    </div>
+                    <div className={`${secondaryGradient} hidden sm:flex h-40 w-36 m-6 rounded-xl`}>
                         <div className="flex flex-col m-5 mt-10 text-center">
                             <h1 className="prose prose-sm text-white">Next Milestone</h1>
-                            <h1 className="prose prose-xl text-white"> May 15</h1>
+                            <h1 className="prose prose-md text-white">{currentContract.hasMilestones ? currentContract.milestones : "Project has no milestones"}</h1>
                         </div>
                     </div>
 
                 </div>
-                <div className={`bg-[#202020] p-3 rounded-xl border-2 border-solid border-accent-dark  h-full m-6`}>
+                <MobileNavbarPadding />
+
+                <div className={`bg-[#202020] hidden sm:block p-3 rounded-xl border-2 border-solid border-accent-dark  h-full m-6`}>
                     <table className=" w-full h-auto text-sm text-left text-gray-500 dark:text-gray-400">
 
                         <tbody>
                             {userData.contracts.map((contract: Contract, index: number) => {
+                                console.log()
                                 return (<tr key={contract.id} className={` border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gradient-to-br from-violet-700 via-violet-400 to-violet-500 hover:bg-opacity-50 dark:hover:bg-gray-600`}>
 
                                     <th scope="row" className="px-6 py-4 font-medium text-center text-white dark:text-white whitespace-nowrap">
@@ -141,7 +184,7 @@ export default function Dashboard() {
                                     <td className="px-6 py-4 text-center text-white">
                                         {contract.totalValue}
                                         <br></br>
-                                        {formatDateToReadableString()}
+                                        {contract.isSigned ? formatDateToReadableString(contract.signedDate) : formatDateToReadableString(contract.startDate)}
 
                                     </td>
                                     <td className="px-6 py-4">
@@ -155,9 +198,12 @@ export default function Dashboard() {
                                     }} className={''}></EditIcon></td>
                                     <td><DeleteIcon onClick={(e) => {
                                         let data = new FormData();
-                                        data.append('id', contract.id);
-                                        submit(data,
-                                            { method: 'post' });
+                                        if (contract.id) {
+                                            data.append('id', contract.id);
+                                            submit(data,
+                                                { method: 'post' });
+                                        }
+
                                     }} className={''}></DeleteIcon></td>
                                     <td><ChatIcon onClick={function (event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
                                         throw new Error('Function not implemented.');

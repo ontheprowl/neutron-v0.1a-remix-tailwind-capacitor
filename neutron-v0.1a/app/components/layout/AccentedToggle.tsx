@@ -2,6 +2,7 @@
 import { motion, useAnimation } from 'framer-motion';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
+import { ContractDataStore } from '~/stores/ContractStores';
 
 const spring = {
     type: "spring",
@@ -31,6 +32,7 @@ export default function AccentedToggle({name, states } : {name:string, states:{d
         type: 'spring',
         stiffness: 700,
         damping: 30,
+        duration:0.2
     }
 
     return (
@@ -42,7 +44,7 @@ export default function AccentedToggle({name, states } : {name:string, states:{d
                 transition={spring}
             >
                 {isOn?`${states.default}`: `${states.toggled}`}
-                <input type="checkbox" className='hidden' value={isOn?'true':'false'} {...formMethods.register(name)}></input>
+                <input type="checkbox" className='hidden' value={isOn?'true':'false'} {...formMethods.register(name)} ></input>
             </motion.div>
             
             
