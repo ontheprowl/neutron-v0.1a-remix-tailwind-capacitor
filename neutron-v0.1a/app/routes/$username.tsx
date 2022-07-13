@@ -23,14 +23,14 @@ import { isViewerOwner } from "~/models/user.server";
 export const loader: LoaderFunction = async ({ request, params }) => {
 
     const session = await requireUser(request);
-    const username = params.username
-    console.log("username is :" + username)
-    if (username != "session" && username !="favicon.ico") {
-        const isOwner = await isViewerOwner(session, username);
-        if (!isOwner) {
-            throw new Error("Don't have the privilege to view this page")
-        }
+    const ownerUsername = params.username
+    console.log("username is :" + ownerUsername)
+    const isOwner = await isViewerOwner(session, ownerUsername);
+    console.log(`value of isOwner is ${isOwner}`)
+    if (!isOwner) {
+        throw new Error("Don't have the privilege to view this page")
     }
+
 
 
     return null;
@@ -181,7 +181,7 @@ export default function CustomUserPage() {
                 </div>
                 <div
                     id="content-window"
-                    className="h-full w-auto rounded-lg bg-bg-primary-dark "
+                    className="h-auto sm:h-full w-auto sm:rounded-lg bg-bg-primary-dark "
                 >
                     <Outlet></Outlet>
                 </div>

@@ -28,10 +28,10 @@ export async function getFirebaseDocs(collectionName: string, onlyKeys?: boolean
 
 
 
-export async function addFirestoreDocFromData(data: any, collectionName: string, shouldRedirect?: boolean, redirectTo?: string): Promise<DocumentReference<any>> {
+export async function addFirestoreDocFromData(data: any, collectionName: string, path?: string): Promise<DocumentReference<any>> {
 
     console.log('FULL CONTRACT BEING ADDED (server-side) \n');
-    const docRef = await addDoc(collection(firestore, collectionName), data);
+    const docRef = await addDoc(collection(firestore, `${collectionName}/${path}`), data);
     console.log(`Object added to firestore with id ${docRef}`);
     return docRef
 }

@@ -12,10 +12,9 @@ import { redirect } from "@remix-run/server-runtime";
 
 export async function loader({ request }: { request: Request }) {
 
-  const session = await requireUser(request,true);
+  const session = await requireUser(request, true);
   if (session) {
-    console.log("Session is valid;")
-    return redirect('/session/dashboard')
+    return redirect(`/${session?.metadata?.displayName}/dashboard`)
   } //TODO : Handle all authentication server-side and add cookie-based sessions 
   // Cookie Session flow : 
   // Check cookies for uid

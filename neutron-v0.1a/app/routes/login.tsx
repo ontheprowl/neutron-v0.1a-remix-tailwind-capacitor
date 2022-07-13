@@ -24,7 +24,7 @@ export async function loader({ request }: { request: Request }) {
 
   if(session){
     console.log('Session retrieved from cookies....')
-     return redirect('/session/dashboard')
+     return redirect(`/${session?.metadata?.displayName}/dashboard`)
   }
   
   return null;
@@ -70,7 +70,7 @@ export async function action({ request }: { request: Request }) {
   const ref = doc(firestore, '/metadata/',user.uid);
   console.log(`Current user is : ${user.email}`)
   const token = await user.getIdToken();
-  return createUserSession({ request: request, metadata: { path: ref.path }, userId: token, remember: true, redirectTo: '/session/dashboard' })
+  return createUserSession({ request: request, metadata: { path: ref.path }, userId: token, remember: true, redirectTo: `/${user.displayName}/dashboard` })
 
 }
 

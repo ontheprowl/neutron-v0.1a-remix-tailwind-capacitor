@@ -38,3 +38,16 @@ export const DEFAULT_USER_STATE: UserState = {
 export type Password = {
   hash: string;
 };
+
+export type Beneficiary = {
+  beneId: string,
+  name: string,
+  email: string,
+  phone: string,
+  bankAccount: string,
+  ifsc: string,
+  address1: string,
+  city: string,
+  state: string,
+  pincode: string
+}

@@ -3,18 +3,23 @@ import { redirect } from "@remix-run/server-runtime";
 import { json } from "remix-utils";
 import { credentials, oAuth2Client } from "~/firebase/gapis-config.server";
 import fs from 'fs';
+import { requireUser } from "~/session.server";
 
 const TOKEN_PATH = "tokens.json"
 
 
 export async function action({ request }: { request: Request }) {
+    const session = await requireUser(request, true);
+
     console.log(await request.json());
 
-    return redirect('/session/dashboard')
+    return redirect(`/${session?.metadata?.displayName}/dashboard`)
 
 }
 
 export async function loader({ request }: { request: Request }) {
+
+    const session = await requireUser(request, true);
 
     //TODO : pull cookie from request, add tokens to session, forward
 
@@ -36,7 +41,7 @@ export async function loader({ request }: { request: Request }) {
     }
 
 
-    return redirect('/session/dashboard');
+    return redirect(`/${session?.metadata?.displayName}/dashboard`)
 }
 
 export default function RedirectComponent() {

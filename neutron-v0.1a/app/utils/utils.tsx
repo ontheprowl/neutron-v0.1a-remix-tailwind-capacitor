@@ -28,6 +28,10 @@ export function getRandomInt(max: number) {
     return Math.floor(Math.random() * max);
 }
 
+export const ValidationPatterns = {
+        emailValidationPattern : /^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$/,
+        
+}
 
 
 export function CountrySelect(props: {

@@ -6,7 +6,7 @@ import { json } from "@remix-run/server-runtime";
 const SCOPES = ['https://www.googleapis.com/auth/calendar.readonly'];
 const client_id = '611788892898-9re63jc6gon32vnbhf9598i0fkeda5dd.apps.googleusercontent.com';
 const client_secret = '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';
-const redirect_uris = 'http://localhost:3000/session/redirectHandler'
+const redirect_uris = 'http://localhost:3000/redirectHandler'
 
 
 

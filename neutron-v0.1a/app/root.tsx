@@ -47,11 +47,11 @@ export function ErrorBoundary({ error }) {
   let navigate = useNavigate();
 
 
-  useEffect(() => {
-    setTimeout(() => {
-      navigate('/')
-    }, 1000)
-  })
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     navigate('/')
+  //   }, 2000)
+  // })
 
 
   return (

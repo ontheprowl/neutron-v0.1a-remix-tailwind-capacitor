@@ -24,7 +24,7 @@ const firebaseConfig = {
   storageBucket: "neutron-expo.appspot.com",
   messagingSenderId: "611788892898",
   appId: "1:611788892898:web:8a3948fd6ca9131cbdccbb",
-  measurementId: "G-K6BY8CN4TL"
+  measurementId: "G-K6BY8CN4TL",
 };
 
 export const sessionTTL = 60 * 60 * 24 * 7;

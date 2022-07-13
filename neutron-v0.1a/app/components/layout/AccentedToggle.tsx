@@ -1,6 +1,6 @@
 
 import { motion, useAnimation } from 'framer-motion';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { ContractDataStore } from '~/stores/ContractStores';
 
@@ -21,7 +21,7 @@ const variants = {
 
 
 
-export default function AccentedToggle({name, states } : {name:string, states:{default:string, toggled:string} }) {
+export default function AccentedToggle({name, states, onToggle } : {name:string, states:{default:string, toggled:string}, onToggle?:React.MouseEventHandler }) {
 
     const formMethods = useFormContext();
     const [isOn, setIsOn] = useState(false)
@@ -36,7 +36,10 @@ export default function AccentedToggle({name, states } : {name:string, states:{d
     }
 
     return (
-        <div onClick={toggleSwitch} className={`flex flex-start w-48 bg-bg-primary-dark border-2 cursor-pointer border-accent-dark rounded-full p-1 whitespace-nowrap ${isOn && 'place-content-end'}`}>
+        <div onClick={onToggle?(e)=>{
+            onToggle(e)
+            toggleSwitch()
+        }:toggleSwitch} className={`flex flex-start w-48 bg-bg-primary-dark border-2 cursor-pointer border-accent-dark rounded-full p-1 whitespace-nowrap ${isOn && 'place-content-end'}`}>
 
             <motion.div
                 className="flex items-center justify-center p-3 rounded-full bg-accent-dark"

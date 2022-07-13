@@ -37,7 +37,7 @@ export default function ProfileProfInformationForm() {
             console.log(data);
             form.append('payload', JSON.stringify(data));
 
-            fetcher.submit(form, { method: "post", action: '/session/profile/modify' });
+            fetcher.submit(form, { method: "post", action: `/${userMetadata.displayName}/profile/modify` });
 
         })
     }>

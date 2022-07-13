@@ -5,12 +5,12 @@
 @layer base {
     @font-face {
       font-family: 'Gilroy-Regular';
-      src: url("/fonts/GILROY-REGULAR.ttf");
+      src: url("/Gilroy-Regular.ttf");
     }
  
     @font-face {
         font-family: 'Gilroy-Bold';
-        src: url("/fonts/GILROY-BOLD.ttf");
+        src: url("/Gilroy-Bold.ttf");
     }
 } 
 

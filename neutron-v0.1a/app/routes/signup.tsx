@@ -7,26 +7,29 @@ import { redirect } from "@remix-run/server-runtime";
 import { login, logout } from "~/firebase/firebase-utils";
 import { Response } from "@remix-run/node";
 import { json } from "remix-utils";
-import React from "react";
-import { useForm } from "react-hook-form";
+import React, { useEffect } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import Icon from "~/assets/images/iconFull.svg"
 import { generateAuthUrl, authorizeAndExecute } from "~/firebase/gapis-config.server";
 import useWindowDimensions from "~/hooks/useWindowDimensions";
-import { createUserWithEmailAndPassword, getRedirectResult, GoogleAuthProvider, signInWithEmailAndPassword, signInWithRedirect, User } from "firebase/auth";
+import { createUserWithEmailAndPassword, getRedirectResult, GoogleAuthProvider, signInWithEmailAndPassword, signInWithRedirect, updateProfile, User } from "firebase/auth";
 import { signUp } from "~/models/user.server";
 import { createUserSession, requireUser } from "~/session.server";
-import { addFirestoreDocFromData, setFirestoreDocFromData } from "~/firebase/queries.server";
+import { addFirestoreDocFromData, getFirebaseDocs, setFirestoreDocFromData } from "~/firebase/queries.server";
 import { DEFAULT_USER_STATE } from "~/models/user";
+import { ErrorMessage } from "@hookform/error-message";
+import { ValidationPatterns } from "~/utils/utils";
 
 export async function loader({ request }: { request: Request }) {
 
   const session = await requireUser(request);
 
   if (session) {
-    return redirect('/session/dashboard')
+    return redirect(`/${session?.metadata?.displayName}/dashboard`)
   }
 
-  return null;
+  const usernames = await getFirebaseDocs('userUIDS', true);
+  return json({ usernames: usernames });
   // getRedirectResult(auth)
   //   .then((result) => {
   //     // This gives you a Google Access Token. You can use it to access Google APIs.
@@ -63,43 +66,48 @@ export async function loader({ request }: { request: Request }) {
 export async function action({ request }: { request: Request }) {
 
   const data = await request.formData();
+  const displayName: string = data.get('displayName')
   const email: string = data.get('email');
   const password: string = data.get('password');
   const { user } = await signUp(email, password);
+  await updateProfile(user, {
+    displayName: displayName,
+    photoURL:''
+  })
+  const userUIDRef = await setFirestoreDocFromData({ uid: user.uid }, 'userUIDS', `${displayName}`)
 
-  const ref = await setFirestoreDocFromData({ ...DEFAULT_USER_STATE, email: user.email, id: user.uid }, `metadata`, user.uid);
+  const ref = await setFirestoreDocFromData({ ...DEFAULT_USER_STATE, email: user.email, id: user.uid, displayName: user.displayName }, `metadata`, user.uid);
   // const uidMapRef = await setFirestoreDocFromData({ uid: user.uid }, `metadata`, user.email);
   const token = await user.getIdToken();
-  return createUserSession({ request: request, metadata: { 'path': ref.path }, userId: token, remember: true, redirectTo: '/session/profile' })
+  return createUserSession({ request: request, metadata: { 'path': ref.path }, userId: token, remember: true, redirectTo: `/${displayName}/profile` })
 }
 
 export default function Signup() {
   const data = useLoaderData();
+
   let submit = useSubmit();
   const parsedData = JSON.parse(data);
   console.log(parsedData)
+  const userNames = parsedData.usernames;
   let navigate = useNavigate();
   // const [user, loading, error] = useAuthState(auth);
 
-  const { register, handleSubmit } = useForm();
+  const IsUsernameAvailable = (username: string) => {
+    return userNames.indexOf(username) == -1
+  }
 
-  React.useEffect(() => {
 
+  const { handleSubmit, register, trigger, formState: { errors }, control } = useForm();
 
-    // if (!loading && user && !error) {
-    //   console.log(user);
-    //   setTimeout(() => {
-    //     if (parsedData.gapi_scopes_valid) {
-    //       navigate("/session/dashboard");
-    //     }
-    //     else {
-    //       console.log(parsedData)
+  const displayName = useWatch({ control, name: 'displayName' })
+  const email = useWatch({ control, name: 'email' })
+  const password = useWatch({ control, name: 'password' })
 
-    //       window.location.href = parsedData.authurl;
-    //     }
-    //   }, 1000);
-    // }
-  });
+  useEffect(() => {
+    trigger()
+
+  }, [displayName, email, password, trigger])
+
 
 
   return (
@@ -122,21 +130,45 @@ export default function Signup() {
               <form
                 className="flex flex-col items-center space-y-4"
                 onSubmit={handleSubmit((data) => {
-                  console.log(data.email, data.password);
+                  console.log(data.email, data.password, data.displayName);
                   const form = new FormData();
                   form.append('email', data.email);
                   form.append('password', data.password)
+                  form.append('displayName', data.displayName)
                   submit(form, { replace: true, method: 'post' })
                 })}
               >
                 <div className="sm:text-center space-y-3 w-full">
+                  <span className=" prose prose-md text-white">Username</span>
+                  <input  {...register('displayName', {
+                    required: 'This field is required', validate: (v) => {
+                      return IsUsernameAvailable(v) || 'This username is already taken';
+                    }
+                  })} type="text" placeholder="e.g: name@example.com" defaultValue={''} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
+                  <div className="w-full h-10 mt-3 text-left">
+                    <ErrorMessage errors={errors} name='displayName' render={(data) => {
+                      return <span className="text-red-500 p-2 m-3 z-10">{data.message}</span>
+                    }} />
+                  </div>
+                </div>
+                <div className="sm:text-center space-y-3 w-full">
                   <span className=" prose prose-md text-white">Email</span>
-                  <input  {...register('email')} type="text" placeholder="e.g: name@example.com" className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
+                  <input defaultValue={''}  {...register('email', { required: 'This field is required', pattern: { value: ValidationPatterns.emailValidationPattern, message: 'This is not a valid email ID' } })} type="text" placeholder="e.g: name@example.com" className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
+                  <div className="w-full h-10 mt-3 text-left">
+                    <ErrorMessage errors={errors} name='email' render={(data) => {
+                      return <span className="text-red-500 p-2 m-3 z-10">{data.message}</span>
+                    }} />
+                  </div>
                 </div>
 
                 <div className="sm:text-center space-y-3 w-full">
                   <span className=" prose prose-md text-white">Password</span>
-                  <input {...register('password')} type="password" placeholder="Lets keep it hush hush..." className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
+                  <input  {...register('password', { required: 'This field is required', minLength: { value: 8, message: " Password should at least be 8 characters long" } })} type="password" placeholder="Lets keep it hush hush..." className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
+                  <div className="w-full h-10 mt-3 text-left">
+                    <ErrorMessage errors={errors} name='password' render={(data) => {
+                      return <span className="text-red-500 p-2 m-3 z-10">{data.message}</span>
+                    }} />
+                  </div>
                 </div>
 
 

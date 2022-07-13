@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "@remix-run/react";
+import { Link, useNavigate, useParams } from "@remix-run/react";
 import type { LoaderFunction } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
 import { getDoc, doc } from "firebase/firestore";
@@ -27,7 +27,7 @@ export const loader: LoaderFunction = async ({ params, request }) => {
 
     const contractID = params.contractID;
     console.log('logging fetched object');
-    const currentContract = await getSingleDoc(`contracts/${contractID}`)
+    const currentContract = await getSingleDoc(`users/contracts/${session?.metadata?.id}/${contractID}`)
     return json({ contract: currentContract, metadata: session?.metadata });
 }
 
@@ -41,6 +41,7 @@ export default function DetailedContractView() {
 
     const data = useLoaderData();
     const contractData = data.contract;
+    console.dir(contractData)
     const currentUser = data.metadata
     const overviewStages = [<ContractOverview key={0} loaderData={contractData}></ContractOverview>, <ContractEditScreen loaderData={contractData} key={1} ></ContractEditScreen>]
 
@@ -77,7 +78,7 @@ export default function DetailedContractView() {
                         navigate(-1);
 
                     }} className="scale-75"></BackArrowButton>
-                    <h1 className="prose prose-xl font-gilroy-bold text-white">{contractData.projectName}</h1>
+                    <h1 className="prose prose-xl font-gilroy-bold text-white">{contractData?.projectName}</h1>
                 </div>
                 <div className="hidden sm:flex sm:flex-row space-x-5 w-auto">
                     <TransparentButton onClick={() => {
@@ -88,6 +89,9 @@ export default function DetailedContractView() {
                     <FormButton onClick={() => {
 
                     }} text="Share Deliverables"></FormButton>
+                    <a href={contractData.attachment}>
+                        Download proposal
+                    </a>
                 </div>
                 <div className="sm:hidden flex flex-row space-x-5 w-auto">
                     <ShareButton  ></ShareButton>

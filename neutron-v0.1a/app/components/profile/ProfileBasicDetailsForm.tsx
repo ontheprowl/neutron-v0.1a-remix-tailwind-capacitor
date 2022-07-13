@@ -37,7 +37,7 @@ export default function ProfileBasicDetailsForm() {
             console.log(data);
             form.append('payload', JSON.stringify(data));
 
-            fetcher.submit(form, { method: "post", action: '/session/profile/modify' });
+            fetcher.submit(form, { method: "post", action: `/${userMetadata.displayName}/profile/modify` });
 
         })
     }>
@@ -55,12 +55,12 @@ export default function ProfileBasicDetailsForm() {
                     return <span className="text-red-500 p-2 m-3 z-10">{data.message}</span>
                 }} />
             </div>
-            <div className="flex items-end mt-5 flex-col space-y-3 sm:space-x-3 sm:flex-row w-full">
+            <div className="flex items-end mt-2 flex-col space-y-3 sm:space-x-3 sm:flex-row w-full">
                 <div className="sm:text-center space-y-3 w-full h-auto">
                     <span className=" prose prose-md text-white">First Name</span>
-                    <input  {...register('firstName', { required: true, maxLength: { value: 10, message: 'First name exceeds maximum length' } })} type="text" placeholder="e.g : Harvey" defaultValue={userMetadata.firstName} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg invalid:border-red-500 placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
+                    <input  {...register('firstName', { required: 'This field is required', maxLength: { value: 10, message: 'First name exceeds maximum length' } })} type="text" placeholder="e.g : Harvey" defaultValue={userMetadata.firstName} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg invalid:border-red-500 placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
                     <div className="w-full h-10 mt-3 text-left">
-                        <ErrorMessage errors={errors} name='firstName' message="THIS A PROBLEM SENOR" render={(data) => {
+                        <ErrorMessage errors={errors} name='firstName' render={(data) => {
                             return <span className="text-red-500 p-2 m-3 z-10">{data.message}</span>
                         }} />
                     </div>
@@ -70,9 +70,9 @@ export default function ProfileBasicDetailsForm() {
 
                 <div className="sm:text-center space-y-3 w-full">
                     <span className=" prose prose-md text-white">Last Name</span>
-                    <input {...register('lastName', { required: true, maxLength: { value: 20, message: 'Last name exceeds maximum length' } })} type="text" placeholder="e.g: Spector" defaultValue={userMetadata.lastName} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
+                    <input {...register('lastName', { required: 'This field is required', maxLength: { value: 20, message: 'Last name exceeds maximum length' } })} type="text" placeholder="e.g: Spector" defaultValue={userMetadata.lastName} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
                     <div className="w-full h-10 mt-3 text-left">
-                        <ErrorMessage errors={errors} name='lastName' message="THIS A PROBLEM SENOR" render={(data) => {
+                        <ErrorMessage errors={errors} name='lastName' render={(data) => {
                             return <span className="text-red-500 p-2 m-3 z-10">{data.message}</span>
                         }} />
                     </div>

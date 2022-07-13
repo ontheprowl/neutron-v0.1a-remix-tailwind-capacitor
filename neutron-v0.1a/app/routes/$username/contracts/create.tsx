@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { AnimatePresence, motion } from 'framer-motion';
-import { Form, useActionData, useNavigate, useSubmit } from '@remix-run/react';
+import { Form, useActionData, useLoaderData, useNavigate, useSubmit } from '@remix-run/react';
 import { useForm, FormProvider, useFormContext } from 'react-hook-form';
 import { formatDateToReadableString, getRandomInt } from '~/utils/utils';
 import { ContractDataStore } from '~/stores/ContractStores';
@@ -13,36 +13,76 @@ import ContractEditScreen from '~/components/contracts/ContractEditScreen';
 import { auth, firestore, storage } from '~/firebase/neutron-config.server';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import ContractProcessStepper from '~/components/contracts/ContractProcessStepper';
-import { ActionFunction, redirect } from '@remix-run/server-runtime';
+import { ActionFunction, LoaderFunction, redirect } from '@remix-run/server-runtime';
 import { json } from '@remix-run/server-runtime';
-import { ref, uploadBytes } from 'firebase/storage';
+import { getDownloadURL, ref, uploadBytes, uploadBytesResumable, uploadString, UploadTaskSnapshot } from 'firebase/storage';
 import { addDoc, collection } from 'firebase/firestore';
 import { EventEmitter } from 'stream';
 import MobileNavbarPadding from '~/components/layout/MobileNavbarPadding';
 import { addFirestoreDocFromData } from '~/firebase/queries.server';
+import { requireUser } from '~/session.server';
+import { parseMultipartFormData } from '@remix-run/server-runtime/formData';
+import createFirebaseStorageFileHandler from '~/firebase/FirebaseUploadHandler';
 
 
 
 const stages = [<ContractClientInformation key={0}></ContractClientInformation>, <ContractScopeOfWork key={1}></ContractScopeOfWork>, <ContractPaymentDetails key={3}></ContractPaymentDetails>, <ContractEditScreen key={4}></ContractEditScreen>];
 
+export const loader: LoaderFunction = async ({ request }) => {
+    const session = await requireUser(request, true);
 
+    // const result = await getFirebaseDocs(`users/contracts/${session?.metadata?.id}`)
+    return json(session?.metadata);
+
+}
+
+// TODO -
 export const action: ActionFunction = async ({ request }) => {
+    const session = await requireUser(request, true);
 
     console.log(`from the Action Function`);
-    const dataString = (await request.formData()).get('payload')?.toString();
-    if (dataString != undefined) {
-        const data = JSON.parse(dataString);
-        return await addFirestoreDocFromData(data);
+    const formData = await parseMultipartFormData(request, createFirebaseStorageFileHandler({
+        async uploadRoutine(buffer, session, filename) {
+            console.log("Entered upload Routine")
+            const storageRef = ref(storage, `users/documents/${session.metadata?.id}/${filename}`)
+            console.log("ref generated")
+
+            const snapshot: UploadTaskSnapshot = await uploadBytesResumable(storageRef, buffer.buffer);
+            console.log(snapshot.metadata)
+            console.log('Contract document uploaded to storage....');
+            while (snapshot.state != "success") {
+                console.log("Still running")
+            }
+            return getDownloadURL(snapshot.ref)
+
+        }, session: session
+    }));
+
+    console.log("contract payload")
+    const data = {}
+    for (const key of formData.keys()) {
+        let value = formData.get(key);
+        console.log(`Key : ${key}`)
+        if (value?.toString().includes('[')) {
+            value = JSON.parse(value)
+        }
+        console.dir(`Value : ${value}`)
+        data[key] = value;
     }
+
+    // const finalContractData = { ...data, }
+
+    await addFirestoreDocFromData(data, `users/contracts`, session?.metadata?.id);
+
+    return redirect(`/${session?.metadata?.displayName}/contracts`)
 }
 
 
 export default function ContractCreation() {
 
-    const [user, loading, error] = useAuthState(auth);
-
     const submit = useSubmit();
 
+    const user = useLoaderData();
     const data1 = useActionData();
 
     console.log(data1);
@@ -50,8 +90,8 @@ export default function ContractCreation() {
 
     let navigate = useNavigate();
     const stage = ContractDataStore.useState(s => s.stage);
-    ContractDataStore.update(s=>{
-        s.providerName=user?user.email:'anon';
+    ContractDataStore.update(s => {
+        s.providerName = user ? user.email : 'anon';
     })
     const methods = useForm();
 
@@ -78,32 +118,35 @@ export default function ContractCreation() {
                 <FormProvider {...methods}>
                     <form onSubmit={
                         methods.handleSubmit(async (data) => {
-                            console.log(data);
+                            console.log("This is the contract creation data")
+                            console.dir(data);
                             const formdata = new FormData();
                             data = { ...data, providerName: user?.email }
                             for (const [key, value] of Object.entries(data)) {
+
                                 if (key.includes('attachment')) {
-                                    const file = value.item(0);
-                                    const snapshot = await uploadBytes(ref(storage, `/documents/${file.name}`), file);
-                                    console.log('Contract document uploaded to storage....');
-                                    data[key] = snapshot.ref.fullPath
+                                    data[key] = value.item(0)
                                 }
 
-                                if(key.includes('milestone')){
-                                    for (const milestone of value){
-                                        const file = milestone.attachment.item(0);
-                                        const snapshot = await uploadBytes(ref(storage, `/documents/${file.name}`), file);
-                                        console.log('Contract document uploaded to storage....');
-                                        milestone.attachment= snapshot.ref.fullPath
-                                    }
+                                if(key.includes('deliverable')){
+                                    data[key]=JSON.stringify(value)
                                 }
+
+                                if (key.includes('milestone')) {
+                                    for (const milestone of value) {
+                                        milestone.attachment = milestone.attachment.item(0);
+                                    }
+                                    data[key]=JSON.stringify(value)
+
+                                }
+                                formdata.append(key, data[key]);
                             }
 
-                            console.log('FULL CONTRACT BEING ADDED (client-side) \n');
+                            console.log("This is the contract creation data ( after pre-processing ) ")
                             console.dir(data);
-                            formdata.append('payload', JSON.stringify(data));
 
-                            submit(formdata, { method: "post" });
+
+                            submit(formdata, { method: "post", encType: 'multipart/form-data' });
 
                         })
                     }>
@@ -122,7 +165,7 @@ export default function ContractCreation() {
                     </form>
                 </FormProvider>
             </div>
-            <MobileNavbarPadding/>
+            <MobileNavbarPadding />
 
         </div >
     )

@@ -73,10 +73,17 @@ export enum DeliverableType{
   Delivery
 }
 
+export enum ContractCreator { 
+  IndividualClient,
+  EnterpriseClient,
+  IndividualServiceProvider
+}
+
 export interface Contract {
   isClient?:boolean;
   hasMilestones?: boolean;
   status?: string;
+  creator?:ContractCreator;
   id?:string;
   isSigned?:boolean;
   projectName?: string;
@@ -100,7 +107,7 @@ export interface Contract {
   paymentType?: string;
   workOwnership?: string;
   ownershipType?: boolean;
-  totalValue?: number;
+  totalValue?: string;
   invoiceDate?: Date;
   invoiceCondition?: Condition;
   contractNotice?: number;

@@ -4,6 +4,8 @@ import { json } from "remix-utils";
 
 const appID = '12941442dc7e98be1c7fa15822414921';
 const appSecret = 'TEST9b544dc2c2625964029bd3e5869cff5e6a120ac1';
+const prod_appID = '1785815d5ddb6cf020fdaaf47a185871';
+const prod_appSecret = '4e287021ea5b09522df4324556d21db45071ab83';
 
 
 
@@ -16,11 +18,11 @@ export const action: ActionFunction = async ({ request }) => {
 
     const payload = JSON.parse(payloadString)
 
-    const response = await fetch("https://sandbox.cashfree.com/pg/orders", {
+    const response = await fetch("https://api.cashfree.com/pg/orders", {
         method: "POST",
         headers: {
-            "x-client-id": appID,
-            "x-client-secret": appSecret,
+            "x-client-id": prod_appID,
+            "x-client-secret": prod_appSecret,
             "x-api-version":'2022-01-01',
             'Content-Type':'application/json',
             'Accept':'application/json'

@@ -4,6 +4,10 @@ node_modules
 /public/build
 .env
 
+serviceAccountKey.json
+cp-test-payouts.pem
+cp-production-payouts.pem
+
 /cypress/screenshots
 /cypress/videos
 /prisma/data.db

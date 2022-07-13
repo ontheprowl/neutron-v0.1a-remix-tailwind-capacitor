@@ -21,20 +21,21 @@ import { UserState } from '~/models/user';
 export const loader: LoaderFunction = async ({ request }) => {
     const session = await requireUser(request, true);
 
-    const result = await getFirebaseDocs('contracts')
+    const result = await getFirebaseDocs(`users/contracts/${session?.metadata?.id}`)
     return json({ contracts: result, metadata: session?.metadata });
 
 }
 
 export const action: ActionFunction = async ({ request }) => {
+    const session = await requireUser(request, true);
 
     const data = await request.formData();
     const id = data.get('id');
     console.log(data);
-    const docRef = doc(firestore, `contracts/${id}`);
+    const docRef = doc(firestore, `users/contracts/${session?.metadata?.id}/${id}`);
     await deleteDoc(docRef);
     console.log(`Contract deleted from firestore with id ${id}`);
-    return redirect('/session/contracts')
+    return redirect(`/${session?.metadata?.displayName}/contracts`)
 
 }
 

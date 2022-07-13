@@ -37,10 +37,9 @@ export async function signIn(email: string, password: string) {
 }
 
 export async function isViewerOwner(session: any, username: string) {
-  const uidMapping = await getSingleDoc(`/users/${username}`);
+  const uidMapping = await getSingleDoc(`/userUIDS/${username}`);
   const requestedUID = uidMapping?.uid;
-  console.log("Current User is ");
-  console.dir(session?.metadata);
+
   if (session?.metadata?.id == requestedUID) {
     return true;
   } else {
