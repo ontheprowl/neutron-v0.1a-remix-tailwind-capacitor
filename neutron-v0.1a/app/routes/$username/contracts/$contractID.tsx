@@ -1,10 +1,10 @@
 import { Link, useNavigate, useParams } from "@remix-run/react";
-import type { LoaderFunction } from "@remix-run/server-runtime";
+import { ActionFunction, LoaderFunction, redirect } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
-import { getDoc, doc } from "firebase/firestore";
+import { getDoc, doc, arrayRemove } from "firebase/firestore";
 import { useLoaderData } from "@remix-run/react";
 
-import { auth, firestore } from "~/firebase/neutron-config.server";
+import { auth, firestore, storage } from "~/firebase/neutron-config.server";
 import { primaryGradientDark, primaryGradientLight } from "~/utils/neutron-theme-extensions";
 import { AnimatePresence, motion } from "framer-motion";
 import { ContractDataStore } from "~/stores/ContractStores";
@@ -16,22 +16,94 @@ import BackArrowButton from "~/components/inputs/BackArrowButton";
 import TransparentButton from "~/components/inputs/TransparentButton";
 import FormButton from "~/components/inputs/FormButton";
 import ShareButton from "~/components/inputs/ShareButton";
-import { getSingleDoc } from "~/firebase/queries.server";
+import { fetchEvents, getSingleDoc, sendEvent, updateFirestoreDocFromData } from "~/firebase/queries.server";
 import { requireUser } from "~/session.server";
+import { unstable_parseMultipartFormData as parseMultipartFormData } from "@remix-run/server-runtime";
+import createFirebaseStorageFileHandler from "~/firebase/FirebaseUploadHandler";
+import { getDownloadURL, ref, UploadTaskSnapshot } from "firebase/storage";
+import { generalFilesUploadRoutine } from "~/firebase/firebase-utils";
+import PDFViewer from "~/components/deliverables/PDFViewer.client";
+import { ContractEvent, EventType, NeutronEvent } from "~/models/events";
 
 
-
+/**
+ * Current Contract Loader - Loader Function
+ * 
+ * @param params - The params collected from dynamic URL segments
+ * @param request - The POST request that triggers this action
+ * @returns JSON with the following structure : { contract, metadata , contractEvents, ownerUsername }
+ */
 export const loader: LoaderFunction = async ({ params, request }) => {
 
     const session = await requireUser(request, true);
-
+    const ownerUsername = params.username
     const contractID = params.contractID;
-    console.log('logging fetched object');
-    const currentContract = await getSingleDoc(`users/contracts/${session?.metadata?.id}/${contractID}`)
-    return json({ contract: currentContract, metadata: session?.metadata });
+    const contractOwner = await getSingleDoc(`userUIDS/${ownerUsername}`)
+    const currentContract = await getSingleDoc(`users/contracts/${contractOwner?.uid}/${contractID}`)
+    const currentContractEvents = await fetchEvents(EventType.ContractEvent, contractID)
+    if(session?.metadata?.displayName == ownerUsername){
+        
+    }
+    return json({ contract: { ...currentContract, id: contractID }, metadata: session?.metadata, contractEvents: currentContractEvents, ownerUsername: ownerUsername });
 }
 
 
+/**
+ * Submit Deliverable - Action Function
+ * 
+ * 
+ * @param params - The params collected from dynamic URL segments
+ * @param request - The POST request that triggers this action
+ * @returns A redirect to the current contract page
+ */
+export const action: ActionFunction = async ({ params, request }) => {
+    const session = await requireUser(request, true);
+
+    const contractID = params.contractID;
+
+
+    console.log(`from the Action Function`);
+    const formData = await parseMultipartFormData(request, createFirebaseStorageFileHandler({
+        uploadRoutine: generalFilesUploadRoutine,
+        session: session
+    }));
+
+    console.log("contract payload")
+    const data = {}
+    for (const key of formData.keys()) {
+        let value = formData.get(key);
+        console.log(`Key : ${key}`)
+        if (value?.toString().includes('[') || value?.toString()?.includes('{')) {
+            value = JSON.parse(value)
+        }
+        console.dir(`Value : ${value}`)
+        data[key] = value;
+    }
+
+    const finalDeliverableData = { ...data }
+
+    console.log('Final deliverable data is : ')
+    console.dir(finalDeliverableData)
+
+    const milestonePayload: { [key: string]: any } = {}
+
+    milestonePayload[`milestones.${finalDeliverableData.milestone.name}.submissionPath`] = finalDeliverableData.deliverableFile
+
+
+    await updateFirestoreDocFromData(milestonePayload, `users/contracts/${session?.metadata?.id}`, contractID);
+
+    // await updateFirestoreDocFromData({ deliverables: arrayUn({ name: 'test' }) }, `users/contracts/${session?.metadata?.id}`, contractID);
+    const deliverableSubmissionEvent: NeutronEvent = { event: ContractEvent.ContractMilestoneSubmitted, type: EventType.ContractEvent, payload: { data: { milestone: { ...finalDeliverableData.milestone, submissionPath: finalDeliverableData.deliverableFile }, nextMilestoneIndex: finalDeliverableData.nextMilestoneIndex }, message: 'A contract milestone deliverable was submitted' }, uid: session?.metadata?.id, id: contractID }
+    const eventAdded = await sendEvent(deliverableSubmissionEvent);
+
+    return redirect(`/${session?.metadata?.displayName}/contracts/${contractID}`)
+}
+
+
+/**
+ * 
+ * @returns A view for the contract at the specified URL
+ */
 
 export default function DetailedContractView() {
 
@@ -43,7 +115,7 @@ export default function DetailedContractView() {
     const contractData = data.contract;
     console.dir(contractData)
     const currentUser = data.metadata
-    const overviewStages = [<ContractOverview key={0} loaderData={contractData}></ContractOverview>, <ContractEditScreen loaderData={contractData} key={1} ></ContractEditScreen>]
+    const overviewStages = [<ContractOverview key={0} ></ContractOverview>, <ContractEditScreen viewMode key={1} ></ContractEditScreen>]
 
     const params = useParams();
 
@@ -89,12 +161,18 @@ export default function DetailedContractView() {
                     <FormButton onClick={() => {
 
                     }} text="Share Deliverables"></FormButton>
-                    <a href={contractData.attachment}>
+                    <a href={contractData?.attachment}>
                         Download proposal
                     </a>
                 </div>
-                <div className="sm:hidden flex flex-row space-x-5 w-auto">
-                    <ShareButton  ></ShareButton>
+                {/* Todo - Hide this div on all viewports larger than sm */}
+                <div className="flex flex-row space-x-5 w-auto sm:hidden">
+                    <ShareButton onClick={() => {
+                        ContractDataStore.update(s => {
+                            s.viewStage == 2 ? s.viewStage = 0 : s.viewStage = 2;
+                            2;
+                        })
+                    }}  ></ShareButton>
 
                 </div>
 
@@ -126,6 +204,3 @@ export default function DetailedContractView() {
 
 }
 
-function iconForDeliverableType(type: any): string | undefined {
-    throw new Error("Function not implemented.");
-}

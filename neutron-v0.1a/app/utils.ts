@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import type { User } from "~/models/user.server";
 
 const DEFAULT_REDIRECT = "/";
+export const MULTIPLE_MILESTONES_LOG_PREFIX = '[MULTIPLE MILESTONES TEST] ';
 
 /**
  * This should be used any time the redirect path is user-provided
@@ -68,4 +69,14 @@ export function useUser(): User {
 
 export function validateEmail(email: unknown): email is string {
   return typeof email === "string" && email.length > 3 && email.includes("@");
+}
+
+
+export function generateFromToForDisputes(currentUserEmail : string, contract: Contract){
+  
+  if (currentUserEmail == contract.providerEmail){
+      return []
+  } else {
+
+  }
 }

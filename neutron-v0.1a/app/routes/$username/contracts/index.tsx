@@ -14,7 +14,7 @@ import ChatIcon from '~/components/inputs/ChatIcon';
 import { useState } from 'react';
 import { dataflow } from 'googleapis/build/src/apis/dataflow';
 import MobileNavbarPadding from '~/components/layout/MobileNavbarPadding';
-import { getFirebaseDocs } from '~/firebase/queries.server';
+import { getFirebaseDocs, setFirestoreDocFromData } from '~/firebase/queries.server';
 import { requireUser } from '~/session.server';
 import { UserState } from '~/models/user';
 
@@ -35,6 +35,10 @@ export const action: ActionFunction = async ({ request }) => {
     const docRef = doc(firestore, `users/contracts/${session?.metadata?.id}/${id}`);
     await deleteDoc(docRef);
     console.log(`Contract deleted from firestore with id ${id}`);
+    const numberOfContracts = new Number(session?.metadata?.contracts);
+
+    const metadataRef = await setFirestoreDocFromData({ ...session?.metadata, contracts: numberOfContracts.valueOf() - 1 }, `metadata`, session?.metadata?.id);
+
     return redirect(`/${session?.metadata?.displayName}/contracts`)
 
 }
