@@ -1,6 +1,6 @@
-# fly.toml file generated for neutron-alpha on 2022-06-19T16:04:44+05:30
+# fly.toml file generated for neutron-alpha-v2 on 2022-08-05T13:53:59+05:30
 
-app = "neutron-alpha"
+app = "neutron-alpha-v2"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = []
@@ -49,6 +49,3 @@ processes = []
     interval = "15s"
     restart_limit = 0
     timeout = "2s"
-
-  [[build.args]]
-    DOCKER_BUILDKIT=0

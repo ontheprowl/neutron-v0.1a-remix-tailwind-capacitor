@@ -11,8 +11,7 @@ import { getSingleDoc } from "./queries.server";
 
 require('dotenv').config();
 
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -38,6 +37,8 @@ if (!admin.apps.length) {
 }
 
 export const adminAuth = admin.auth();
+export const adminMessaging = admin.messaging();
+export const adminFirestore = admin.firestore();
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const firestore = getFirestore(app);

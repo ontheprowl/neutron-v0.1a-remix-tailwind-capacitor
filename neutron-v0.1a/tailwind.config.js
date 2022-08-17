@@ -4,12 +4,18 @@ module.exports = {
   darkMode: 'class',
   theme: {
 
+
     extend: {
+      transitionProperty: {
+        'height': 'height'
+      },
 
       fontFamily: {
         'gilroy-regular': ['Gilroy-Regular'],
         'gilroy-bold': ['Gilroy-Bold'],
-        'gilroy-light': ['Gilroy-Light']
+        'gilroy-light': ['Gilroy-Light'],
+        'gilroy-black':['Gilroy-Black'],
+        'gilroy-medium':['Gilroy-Medium']
 
       },
 

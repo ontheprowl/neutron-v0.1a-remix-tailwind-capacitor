@@ -2,7 +2,7 @@ import { Link, useFetcher, useNavigate, useSubmit } from '@remix-run/react';
 import * as React from 'react'
 import EscrowSummary from '~/components/escrow/EscrowSummary';
 import { primaryGradientDark, secondaryGradient } from '~/utils/neutron-theme-extensions';
-import { formatDateToReadableString } from '~/utils/utils';
+import { formatDateToReadableString, structurePayinPayload } from '~/utils/utils';
 import ContractStats from '~/components/contracts/ContractStats';
 import { ActionFunction, LoaderFunction, redirect } from '@remix-run/server-runtime';
 import { json } from '@remix-run/server-runtime';
@@ -13,7 +13,7 @@ import PlaceholderCover from "~/assets/images/sample_cover.png"
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, firestore } from '~/firebase/neutron-config.server';
 import { collection, deleteDoc, doc, getDocs, limit, Query, query, where } from 'firebase/firestore';
-import { Contract } from '~/models/contracts';
+import { Contract, ContractStatus } from '~/models/contracts';
 import Accordion from '~/components/layout/Accordion'
 import ViewIcon from '~/components/inputs/ViewIcon';
 import EditIcon from '~/components/inputs/EditIcon';
@@ -22,15 +22,19 @@ import ChatIcon from '~/components/inputs/ChatIcon';
 import { motion } from 'framer-motion';
 import MobileNavbarPadding from '~/components/layout/MobileNavbarPadding';
 import PurpleWhiteButton from '~/components/inputs/PurpleWhiteButton';
-import { getSingleDoc } from '~/firebase/queries.server';
+import { getSingleDoc, setFirestoreDocFromData } from '~/firebase/queries.server';
 import { requireUser } from '~/session.server';
 import { UserState } from '~/models/user';
+import ContractZeroState from '~/components/layout/ContractZeroState';
+import { ContractDraftedStatus, ContractPublishedStatus, StatusGenerator } from '~/components/layout/Statuses';
 
 
-export const loader: LoaderFunction = async ({ request }) => {
+export const loader: LoaderFunction = async ({ request, params }) => {
 
     // console.log(auth.currentUser)
     const session = await requireUser(request, true);
+
+    const ownerUsername = params.username;
 
     const contractsQuery = query(collection(firestore, `users/contracts/${session?.metadata?.id}`), limit(5));
     //TODO : Make metadata fetching dynamic
@@ -41,7 +45,7 @@ export const loader: LoaderFunction = async ({ request }) => {
         contracts: contractsData.docs.map((document) => {
             return { id: document.id, ...document.data() };
         }).sort((a, b) => { return b.startDate - a.startDate }), disputes: [],
-        metadata: session.metadata
+        metadata: session.metadata, ownerUsername: ownerUsername
     });
 }
 
@@ -53,7 +57,11 @@ export const action: ActionFunction = async ({ request }) => {
     const id = data.get('id');
     console.log(data);
     const docRef = doc(firestore, `users/contracts/${session?.metadata?.id}/${id}`);
+
     await deleteDoc(docRef);
+    const numberOfContracts = new Number(session?.metadata?.contracts);
+
+    const metadataRef = await setFirestoreDocFromData({ ...session?.metadata, contracts: numberOfContracts.valueOf() - 1 }, `metadata`, session?.metadata?.id);
     console.log(`Contract deleted from firestore with id ${id}`);
     return redirect(`${session?.metadata?.displayName}/contracts`)
 
@@ -65,10 +73,10 @@ export default function Dashboard() {
     const fetcher = useFetcher();
     const [expanded, setExpanded] = React.useState(false);
     const submit = useSubmit();
-    const userData: { contracts: Contract[], disputes: any[], metadata: any } = useLoaderData();
-    console.log('this is the loader data')
-    console.log(userData)
+    const userData: { contracts: Contract[], disputes: any[], metadata: any, ownerUsername: string } = useLoaderData();
+
     const currentContract: Contract = userData.contracts[0]
+
     const currentUserData = userData.metadata;
 
 
@@ -76,34 +84,43 @@ export default function Dashboard() {
 
     return (
         <div className="flex flex-col sm:flex-row h-full ">
-            <div id="user-profile-panel" className="w-full sm:w-96 flex flex-col bg-bg-primary-dark sm:bg-bg-secondary-dark justify-evenly ">
+            <div id="user-profile-panel" className="w-full sm:w-96 flex flex-col bg-bg-primary-dark sm:bg-bg-secondary-dark justify-start rounded-l-3xl ">
                 <div className="hidden sm:flex sm:flex-col items-stretch">
                     {/* <img alt="cover" className="w-auto h-auto min-h-48 object-cover rounded-bl-[50px] rounded-br-[50px] rounded-tl-[50px] " src={PlaceholderCover}></img> */}
-                    <img alt="profile" src={currentUserData.photoURL ? currentUserData.photoURL : PlaceholderDP} className="h-32 w-32 mt-16 translate-y-[-50px] bg-[#e5e5e5] border-8 border-solid border-black rounded-full self-center object-contain"></img>
-                    <div className='flex flex-col justify-between space-y-5 translate-y-[-28px]'>
-                        <h1 className="prose prose-lg text-white self-center">{currentUserData.name}</h1>
-                        <p className="prose prose-lg text-white self-center"> {currentUserData.designation}</p>
+                    <img onClick={() => {
+                        navigate(`/${currentUserData.displayName}/profile`)
+                    }} alt="profile" src={currentUserData.photoURL ? currentUserData.photoURL : PlaceholderDP} className="h-32 w-32 mt-16 translate-y-[-50px] bg-[#e5e5e5] border-8 cursor-pointer hover:opacity-50 hover:ring-1 outline-none transition-all hover:ring-[#8364E8] border-solid border-black rounded-full self-start ml-6  object-contain"></img>
+                    <div className='flex flex-col justify-between space-y-4 translate-y-[-28px] p-2 pl-6'>
+                        <h2 className="prose prose-lg text-white self-start font-gilroy-black text-[25px]">{currentUserData.firstName} {currentUserData.lastName} </h2>
+                        <h1 className="prose prose-lg text-[#CDC1F6] self-start font-gilroy-black text-[16px] translate-y-[-20px]">@{currentUserData.displayName}</h1>
+                        <p className="prose prose-lg text-black text-center w-auto min-w-[101px] font-gilroy-bold self-start bg-white p-2 rounded-full text-[14px] translate-y-[-25px]"> {currentUserData.designation}</p>
+                        <div className='flex flex-col w-full rounded-xl space-y-4'>
+                            <h1 className="prose prose-lg text-white self-start font-gilroy-bold text-[16px]">Member Since: <span className="font-gilroy-regular">{currentUserData.creationTime}</span></h1>
+                            <p className="prose prose-lg text-white self-start font-gilroy-bold text-[16px]"> Working Language: <span className="font-gilroy-regular">{currentUserData.language}</span></p>
+                            <h1 className="prose prose-lg text-white self-start font-gilroy-bold text-[16px]">Location: <span className="font-gilroy-regular">{currentUserData.location}</span></h1>
+                            <p className="prose prose-lg text-white self-start font-gilroy-bold text-[16px]">Experience: <span className="font-gilroy-regular">{currentUserData.experience} years</span></p>
+                        </div>
                     </div>
                 </div>
-                <Accordion label={<motion.div className={`rounded-xl text-left p-4`}>
+                {/* <Accordion label={<motion.div onClick={() => setExpanded(!expanded)} className={`rounded-xl text-left p-4 cursor-pointer`}>
                     <motion.h2 className='prose prose-lg text-white text-center sm:text-left'>Total Funds</motion.h2>
                     <motion.h1 className="prose prose-lg text-white text-center sm:text-right"> {currentUserData?.funds?.totalFunds}</motion.h1>
-                </motion.div>} className={`${primaryGradientDark}  h-auto rounded-xl mt-4 text-left p-4`} content={<EscrowSummary funds={currentUserData.funds}></EscrowSummary>} expanded={expanded} setExpanded={setExpanded}></Accordion>
+                </motion.div>} className={`${primaryGradientDark}  h-auto rounded-xl mt-4 text-left p-4`} content={<EscrowSummary funds={currentUserData.funds}></EscrowSummary>} expanded={expanded} setExpanded={setExpanded}></Accordion> */}
                 <ContractStats clients={currentUserData.clients} contracts={currentUserData.contracts}></ContractStats>
                 <button
-                    className="m-4 h-16 p-3 rounded-full bg-accent-dark w-auto text-black transition-all hover:scale-105"
+                    className={`w-40 rounded-lg   p-3 border-2 m-4 h-16 self-center ${primaryGradientDark} border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-white transition-all`}
                     onClick={() => navigate(`/${currentUserData?.displayName}/contracts/create`)}
 
                 >
                     Create Contract
                 </button>
             </div>
-            <div id="activity-details-summary" className="flex flex-col w-full bg-bg-primary-dark">
+            <div id="activity-details-summary" className="flex flex-col w-full bg-bg-primary-dark ">
                 <div className='hidden sm:flex flex-row m-6 justify-between'>
                     <div className="flex flex-col">
-                        <article className="prose">
-                            <h2 className="text-white prose prose-lg">Welcome {currentUserData?.email}</h2>
-                            <p className="text-white prose prose-sm">{formatDateToReadableString()}</p>
+                        <article className="prose ">
+                            <h2 className="text-white font-gilroy-bold text-[24px]">Welcome {currentUserData?.email}</h2>
+                            <p className="text-white font-gilroy-regular text-[12px]">{formatDateToReadableString()}</p>
                         </article>
 
                     </div>
@@ -123,51 +140,34 @@ export default function Dashboard() {
                         </div>
                     </div>
                 </div>
-                <div id="current-project-summary" className={`flex font-gilroy-regular flex-col sm:flex-row m-6 mt-2 w-auto rounded-xl h-auto min-h-52 ${primaryGradientDark} justify-between items-center`}>
+                {currentContract ? <div id="current-project-summary" className={`flex font-gilroy-regular flex-col sm:flex-row m-6 mt-2 w-auto rounded-xl h-auto min-h-52 ${primaryGradientDark} justify-between items-center`}>
                     <div className="flex flex-col m-2 p-5 w-auto text-center">
-                        <h2 className="prose prose-xl mb-3 text-white">
+                        <h2 className="prose prose-xl mb-3 text-white font-gilroy-black text-[24px]">
                             Current Project: {currentContract?.projectName}
                         </h2>
-                        <p className="prose prose-md text-white sm:text-left">
+                        <p className="prose prose-md text-white break-all sm:text-left font-gilroy-medium text-[18px]">
                             {currentContract?.description}
                         </p>
-                        <h2 className="prose prose-lg text-white mt-5 sm:text-left"> Current Status : {currentContract?.status} </h2>
-                        <PurpleWhiteButton onClick={() => {
-                            const value = currentContract?.totalValue?.replace("₹", '')
-                            const totalValue: number = parseInt(value)
-                            const orderId = crypto.randomUUID();
-                            console.log("contract value is ")
-                            console.log(totalValue)
-                            const payload = {
-                                customer_details: {
-                                    customer_id: currentUserData.id,
-                                    customer_email: currentUserData.email,
-                                    customer_phone: "8390608693"
-                                },
-                                order_id: orderId,
-                                order_meta: {
-                                    return_url: 'https://localhost:3000/payment/success?order_id={order_id}&order_token={order_token}',
-                                    order_id: orderId,
-                                    order_token: '232'
-                                },
-                                order_amount: totalValue,
-                                order_currency: "INR"
-                            }
+                        <h2 className="prose prose-lg text-white mt-5 max-w-[200px] text-[14px] sm:text-left"> Current Status : {currentContract?.status == ContractStatus.Draft ? <ContractDraftedStatus></ContractDraftedStatus> : <ContractPublishedStatus></ContractPublishedStatus>}
+                        </h2>
+                        {currentContract?.projectName && currentUserData.email == currentContract.clientEmail ? <PurpleWhiteButton onClick={() => {
+                            const payload = structurePayinPayload(currentContract, userData.ownerUsername, currentUserData);
                             const formData = new FormData();
                             formData.append("payload", JSON.stringify(payload))
-                            fetcher.submit(formData, { method: 'post', action: `${currentUserData?.displayName}/redirect/payment` })
-                        }} text="Pay Contract" />                    </div>
-                    <div className={`${secondaryGradient} hidden sm:flex h-40 w-36 m-6 rounded-xl`}>
+                            fetcher.submit(formData, { method: 'post', action: `${userData.ownerUsername}/handlers/payment` })
+                        }} text="Pay Contract" /> : <></>}
+                    </div>
+                    <div className={`bg-[#E1C773] hidden sm:flex h-40 w-36 m-6 rounded-xl`}>
                         <div className="flex flex-col m-5 mt-10 text-center">
                             <h1 className="prose prose-sm text-white">Next Milestone</h1>
-                            <h1 className="prose prose-md text-white">{currentContract?.hasMilestones ? currentContract?.milestones : "Project has no milestones"}</h1>
+                            <h1 className="prose prose-md text-white">{currentContract?.hasMilestones ? currentContract?.milestones?.workMilestones[0].description : "Project has no milestones"}</h1>
                         </div>
                     </div>
 
-                </div>
+                </div> : <ContractZeroState></ContractZeroState>}
                 <MobileNavbarPadding />
 
-                <div className={`bg-[#202020] hidden sm:block p-3 rounded-xl border-2 border-solid border-accent-dark  h-full m-6`}>
+                {currentContract ? <div className={`bg-[#202020] hidden sm:block p-3 rounded-xl border-2 border-solid border-accent-dark  h-full m-6`}>
                     <table className=" w-full h-auto text-sm text-left text-gray-500 dark:text-gray-400">
 
                         <tbody>
@@ -184,20 +184,20 @@ export default function Dashboard() {
                                         {contract.clientName}
                                     </td>
                                     <td className="px-6 py-4 text-center text-white">
-                                        {contract.totalValue}
+                                        {contract.contractValue}
                                         <br></br>
                                         {contract.isSigned ? formatDateToReadableString(contract.signedDate) : formatDateToReadableString(contract.startDate)}
 
                                     </td>
                                     <td className="px-6 py-4">
-                                        <h3 className="font-medium text-black bg-gray-100 text-center rounded-lg p-1">Draft</h3>
+                                        {contract?.status == ContractStatus.Draft ? <ContractDraftedStatus></ContractDraftedStatus> : <ContractPublishedStatus></ContractPublishedStatus>}
                                     </td>
                                     <td><ViewIcon onClick={() => {
                                         navigate(`/${currentUserData?.displayName}/contracts/${contract.id}`)
                                     }} className={''}></ViewIcon></td>
-                                    <td><EditIcon onClick={function (event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
+                                    {contract.status == ContractStatus.Draft && <td><EditIcon onClick={function (event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
                                         throw new Error('Function not implemented.');
-                                    }} className={''}></EditIcon></td>
+                                    }} className={''}></EditIcon></td>}
                                     <td><DeleteIcon onClick={(e) => {
                                         let data = new FormData();
                                         if (contract.id) {
@@ -215,7 +215,7 @@ export default function Dashboard() {
 
                         </tbody>
                     </table>
-                </div>
+                </div> : <></>}
 
             </div>
         </div>);

@@ -1,16 +1,13 @@
 import { Link, useNavigate, useParams } from "@remix-run/react";
 import { ActionFunction, LoaderFunction, redirect } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
-import { getDoc, doc, arrayRemove } from "firebase/firestore";
 import { useLoaderData } from "@remix-run/react";
 
-import { auth, firestore, storage } from "~/firebase/neutron-config.server";
-import { primaryGradientDark, primaryGradientLight } from "~/utils/neutron-theme-extensions";
+import { db } from "~/firebase/neutron-config.server";
 import { AnimatePresence, motion } from "framer-motion";
 import { ContractDataStore } from "~/stores/ContractStores";
 import ContractOverview from "~/components/contracts/ContractOverview";
 import ContractEditScreen from "~/components/contracts/ContractEditScreen";
-import { useAuthState } from "react-firebase-hooks/auth";
 import { formatDateToReadableString } from "~/utils/utils";
 import BackArrowButton from "~/components/inputs/BackArrowButton";
 import TransparentButton from "~/components/inputs/TransparentButton";
@@ -20,10 +17,12 @@ import { fetchEvents, getSingleDoc, sendEvent, updateFirestoreDocFromData } from
 import { requireUser } from "~/session.server";
 import { unstable_parseMultipartFormData as parseMultipartFormData } from "@remix-run/server-runtime";
 import createFirebaseStorageFileHandler from "~/firebase/FirebaseUploadHandler";
-import { getDownloadURL, ref, UploadTaskSnapshot } from "firebase/storage";
 import { generalFilesUploadRoutine } from "~/firebase/firebase-utils";
-import PDFViewer from "~/components/deliverables/PDFViewer.client";
-import { ContractEvent, EventType, NeutronEvent } from "~/models/events";
+import type { NeutronEvent } from "~/models/events";
+import { ContractEvent, EventType } from "~/models/events";
+import { onValue, query, ref } from "firebase/database";
+import { ContractSidePanelStages } from "~/models/contracts";
+import { sign } from "crypto";
 
 
 /**
@@ -41,10 +40,35 @@ export const loader: LoaderFunction = async ({ params, request }) => {
     const contractOwner = await getSingleDoc(`userUIDS/${ownerUsername}`)
     const currentContract = await getSingleDoc(`users/contracts/${contractOwner?.uid}/${contractID}`)
     const currentContractEvents = await fetchEvents(EventType.ContractEvent, contractID)
-    if(session?.metadata?.displayName == ownerUsername){
-        
+    const from = "kunal";
+    const to = "gaurav";
+
+    let messagesArray: Array<{ text: string, to: string, from: string, timestamp: string }> = []
+
+    if (from && to) {
+        const messageQuery = query(ref(db, 'messages/' + btoa((from + to).split('').sort().join(''))));
+
+
+        onValue(messageQuery, (value) => {
+            const data = value.val();
+            console.log(data)
+            if (data) {
+                for (const [key, value] of Object.entries(data)) {
+                    messagesArray.push(value)
+                }
+                console.log(messagesArray)
+            }
+
+            // if (messages.length != messagesArray.length)
+            //     setMessages(messagesArray)
+        })
+
     }
-    return json({ contract: { ...currentContract, id: contractID }, metadata: session?.metadata, contractEvents: currentContractEvents, ownerUsername: ownerUsername });
+
+    // if(session?.metadata?.displayName == ownerUsername){
+
+    // }
+    return json({ contract: { ...currentContract, id: contractID }, metadata: session?.metadata, contractEvents: currentContractEvents, contractMessages: messagesArray, ownerUsername: ownerUsername });
 }
 
 
@@ -166,11 +190,10 @@ export default function DetailedContractView() {
                     </a>
                 </div>
                 {/* Todo - Hide this div on all viewports larger than sm */}
-                <div className="flex flex-row space-x-5 w-auto sm:hidden">
+                <div className="flex flex-row space-x-5 w-auto">
                     <ShareButton onClick={() => {
                         ContractDataStore.update(s => {
-                            s.viewStage == 2 ? s.viewStage = 0 : s.viewStage = 2;
-                            2;
+                            s.sidePanelStage == ContractSidePanelStages.MilestonesPanel ? s.sidePanelStage = ContractSidePanelStages.ChatsPanel : s.sidePanelStage = ContractSidePanelStages.MilestonesPanel;
                         })
                     }}  ></ShareButton>
 

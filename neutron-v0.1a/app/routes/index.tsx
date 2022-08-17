@@ -15,11 +15,7 @@ export async function loader({ request }: { request: Request }) {
   const session = await requireUser(request, true);
   if (session) {
     return redirect(`/${session?.metadata?.displayName}/dashboard`)
-  } //TODO : Handle all authentication server-side and add cookie-based sessions 
-  // Cookie Session flow : 
-  // Check cookies for uid
-  // If UID exists, retrieve User Info
-  // Else, begin Auth flow
+  } 
 }
 
 export default function Home() {

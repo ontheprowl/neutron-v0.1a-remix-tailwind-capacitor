@@ -19,10 +19,16 @@ import { getDownloadURL, ref, uploadBytes, uploadBytesResumable, uploadString, U
 import { addDoc, collection } from 'firebase/firestore';
 import { EventEmitter } from 'stream';
 import MobileNavbarPadding from '~/components/layout/MobileNavbarPadding';
-import { addFirestoreDocFromData } from '~/firebase/queries.server';
+import { addFirestoreDocFromData, sendEvent, setFirestoreDocFromData } from '~/firebase/queries.server';
 import { requireUser } from '~/session.server';
-import { parseMultipartFormData } from '@remix-run/server-runtime/formData';
+import { unstable_parseMultipartFormData as parseMultipartFormData } from '@remix-run/server-runtime';
 import createFirebaseStorageFileHandler from '~/firebase/FirebaseUploadHandler';
+import { generalFilesUploadRoutine } from '~/firebase/firebase-utils';
+import { ContractEvent, EventType, NeutronEvent } from '~/models/events';
+import { ContractCreator, ContractStatus } from '~/models/contracts';
+import { ToastContainer } from 'react-toastify';
+import { useEffect } from 'react';
+import { injectStyle } from 'react-toastify/dist/inject-style';
 
 
 
@@ -36,26 +42,17 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 }
 
-// TODO -
+/**
+ * 
+ * @param param0 
+ * @returns 
+ */
 export const action: ActionFunction = async ({ request }) => {
     const session = await requireUser(request, true);
 
     console.log(`from the Action Function`);
     const formData = await parseMultipartFormData(request, createFirebaseStorageFileHandler({
-        async uploadRoutine(buffer, session, filename) {
-            console.log("Entered upload Routine")
-            const storageRef = ref(storage, `users/documents/${session.metadata?.id}/${filename}`)
-            console.log("ref generated")
-
-            const snapshot: UploadTaskSnapshot = await uploadBytesResumable(storageRef, buffer.buffer);
-            console.log(snapshot.metadata)
-            console.log('Contract document uploaded to storage....');
-            while (snapshot.state != "success") {
-                console.log("Still running")
-            }
-            return getDownloadURL(snapshot.ref)
-
-        }, session: session
+        uploadRoutine: generalFilesUploadRoutine, session: session
     }));
 
     console.log("contract payload")
@@ -63,16 +60,34 @@ export const action: ActionFunction = async ({ request }) => {
     for (const key of formData.keys()) {
         let value = formData.get(key);
         console.log(`Key : ${key}`)
-        if (value?.toString().includes('[')) {
+        if (value?.toString().includes('[') || value?.toString().includes('{')) {
             value = JSON.parse(value)
+            console.log(`Key : ${key} , Value :`)
+            console.dir(value);
         }
         console.dir(`Value : ${value}`)
         data[key] = value;
     }
 
-    // const finalContractData = { ...data, }
+    const finalContractData = { ...data, }
+    console.dir("FINAL CONTRACT DATA IS : ")
+    console.dir(finalContractData);
 
-    await addFirestoreDocFromData(data, `users/contracts`, session?.metadata?.id);
+    if (finalContractData?.isPublished == "true") {
+        const contractRef = await addFirestoreDocFromData({ ...data, status: ContractStatus.Published }, `users/contracts`, session?.metadata?.id);
+        const numberOfContracts = new Number(session?.metadata?.contracts);
+
+        const contractCreationEvent: NeutronEvent = { event: ContractEvent.ContractPublished, type: EventType.ContractEvent, payload: { data: { ...data }, message: 'A contract was created' }, uid: session?.metadata?.id, id: contractRef.id }
+        const eventPublished = await sendEvent(contractCreationEvent);
+        const metadataRef = await setFirestoreDocFromData({ ...session?.metadata, contracts: numberOfContracts.valueOf() + 1 }, `metadata`, session?.metadata?.id);
+    }
+    else {
+        const contractRef = await addFirestoreDocFromData({ ...data, status: ContractStatus.Draft }, `users/contracts`, session?.metadata?.id);
+
+        const contractDraftEvent: NeutronEvent = { event: ContractEvent.ContractDrafted, type: EventType.ContractEvent, payload: { data: { ...data }, message: 'A contract was drafted' }, uid: session?.metadata?.id, id: contractRef.id }
+        const eventDrafted = await sendEvent(contractDraftEvent);
+    }
+
 
     return redirect(`/${session?.metadata?.displayName}/contracts`)
 }
@@ -88,6 +103,12 @@ export default function ContractCreation() {
     console.log(data1);
 
 
+    const creator = ContractDataStore.useState(s => s.creator);
+
+    useEffect(() => {
+        injectStyle();
+    })
+
     let navigate = useNavigate();
     const stage = ContractDataStore.useState(s => s.stage);
     ContractDataStore.update(s => {
@@ -96,13 +117,12 @@ export default function ContractCreation() {
     const methods = useForm();
 
     return (
-        <div className='flex flex-col space-y-8 bg-bg-primary-dark h-auto'>
+        <div className='flex flex-col space-y-3 bg-bg-primary-dark h-auto transition-height'>
             <div className=" flex flex-col justify-between w-full">
-                <div className='flex flex-row m-6 justify-between'>
+                <div className='flex flex-row m-6 mb-2 justify-between'>
                     <div className="flex flex-col">
                         <article className="prose">
-                            <h2 className="text-white prose prose-lg">Welcome {user?.email}</h2>
-                            <p className="text-white prose prose-sm">{formatDateToReadableString()}</p>
+                            <h2 className="text-white prose prose-lg font-gilroy-bold text-[24px]">Welcome {user?.email}</h2>
                         </article>
                     </div>
                     <div id="user-action-buttons">
@@ -118,36 +138,48 @@ export default function ContractCreation() {
                 <FormProvider {...methods}>
                     <form onSubmit={
                         methods.handleSubmit(async (data) => {
+                            console.log("HANDLE SUBMIT HAS BEEN INVOKED")
                             console.log("This is the contract creation data")
                             console.dir(data);
+                            data = { ...data, isPublished: true }
                             const formdata = new FormData();
-                            data = { ...data, providerName: user?.email }
+
+                            //TODO: Creator specific contract 
+                            // if (creator == ContractCreator.IndividualServiceProvider) {
+                            //     data = { ...data, providerEmail: user?.email }
+                            // }
+                            // else {
+                            //     const actualProviderEmail = data.clientEmail;
+                            //     if (actualProviderEmail) {
+                            //         data = { ...data, providerEmail: actualProviderEmail, clientEmail: user?.email }
+
+                            //     }
+                            // }
                             for (const [key, value] of Object.entries(data)) {
 
                                 if (key.includes('attachment')) {
                                     data[key] = value.item(0)
                                 }
 
-                                if(key.includes('deliverable')){
-                                    data[key]=JSON.stringify(value)
-                                }
-
                                 if (key.includes('milestone')) {
-                                    for (const milestone of value) {
-                                        milestone.attachment = milestone.attachment.item(0);
-                                    }
-                                    data[key]=JSON.stringify(value)
+                                    // for (const [milestoneKey, milestone] of Object.entries(value.workMilestones)) {
+                                    //     console.
+                                    // }
+                                    data[key] = JSON.stringify(value)
 
                                 }
                                 formdata.append(key, data[key]);
+
                             }
 
-                            console.log("This is the contract creation data ( after pre-processing ) ")
+                            console.log("This is the contract creation data ( after pre-processing ) [ SUBMIT EVENT] ")
                             console.dir(data);
 
 
                             submit(formdata, { method: "post", encType: 'multipart/form-data' });
 
+                        }, (errors) => {
+                            console.log(errors)
                         })
                     }>
                         <AnimatePresence exitBeforeEnter>
@@ -156,7 +188,7 @@ export default function ContractCreation() {
                                 animate={{ opacity: 1, x: 0 }}
                                 initial={{ opacity: 0, x: 500 }}
                                 exit={{ opacity: 0, x: -10 }}
-                                transition={{ duration: 0.3 }}
+                                transition={{ duration: 0.2 }}
                                 className="m-2"
                             >
                                 {stages[stage]}
@@ -165,6 +197,18 @@ export default function ContractCreation() {
                     </form>
                 </FormProvider>
             </div>
+            <ToastContainer position="bottom-center"
+                autoClose={2000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                theme="dark"
+                limit={1}
+
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover></ToastContainer>
             <MobileNavbarPadding />
 
         </div >

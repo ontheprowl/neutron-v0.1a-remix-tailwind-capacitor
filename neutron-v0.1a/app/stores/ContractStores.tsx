@@ -1,17 +1,22 @@
 import { Store } from "pullstate";
 import type { Auth } from "firebase/auth";
-import type { Contract} from "~/types/contracts";
+import { Contract, ContractSidePanelStages, ContractStatus } from "~/models/contracts";
 import { ContractCreationStages, ContractCreator, ContractViewStages } from "~/models/contracts";
 import { useAuthState } from "react-firebase-hooks/auth";
 
 
 export const ContractDataStore = new Store<Contract>({
-  stage:ContractCreationStages.ClientInformation,
+  stage: ContractCreationStages.ClientInformation,
   creator: ContractCreator.IndividualServiceProvider,
-  viewStage:ContractViewStages.Overview,
-  deliverablesCount:1,
-  milestonesCount:1,
-  deliverables:[],
-  milestones:[],
-  template:'design'
+  viewStage: ContractViewStages.Overview,
+  sidePanelStage: ContractSidePanelStages.ChatsPanel,
+  status: ContractStatus.Draft,
+
+  deliverablesCount: 1,
+  hasAdvance: false,
+  milestonesCount: 1,
+  deliverables: [],
+  milestones: [],
+  payoutTriggered: false,
+  template: 'design'
 });

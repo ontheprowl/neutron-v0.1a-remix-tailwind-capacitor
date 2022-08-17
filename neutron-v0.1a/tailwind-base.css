@@ -12,6 +12,16 @@
         font-family: 'Gilroy-Bold';
         src: url("/Gilroy-Bold.ttf");
     }
+
+    @font-face {
+        font-family:'Gilroy-Black';
+        src: url("/GILROY-BLACK.TTF");
+    }
+
+    @font-face {
+        font-family:'Gilroy-Medium';
+        src: url("/GILROY-MEDIUM.TTF");
+    }
 } 
 
 

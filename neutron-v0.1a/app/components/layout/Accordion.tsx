@@ -10,7 +10,6 @@ export default function Accordion({ expanded, setExpanded, content, label, class
     return (
         <motion.div
             className={className} initial={false}
-            onClick={() => setExpanded(!isOpen)}
         >
             {label}
             <AnimatePresence initial={false}>

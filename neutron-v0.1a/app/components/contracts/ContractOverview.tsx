@@ -2,13 +2,14 @@ import NeutronIcon from '~/assets/images/icon.svg';
 import IconPDF from '~/assets/images/PDF.png';
 import IconMedia from '~/assets/images/Media.png';
 import IconZIP from '~/assets/images/ZIP.png';
-import ProgressLine from "~/assets/images/progressLineActive.svg"
+import IconGeneric from '~/assets/images/GenericFileIcon.svg';
+import ProgressLine from "~/assets/images/progressLineActive.svg";
 import GradientSeparator from '~/assets/images/gradientLineSeparator.svg'
 import { ContractDataStore } from '~/stores/ContractStores';
-import { Contract, DeliverableFormat } from '~/models/contracts';
+import { Contract, ContractSidePanelStages, ContractStatus, DeliverableFormat } from '~/models/contracts';
 import { primaryGradientDark } from '~/utils/neutron-theme-extensions';
 import MilestoneStepper from '../milestones/MilestoneStepper';
-import { NotSubmittedStatus, StatusGenerator } from '../layout/Statuses';
+import { NotSubmittedStatus, DeliverableStatusGenerator as StatusGenerator, ContractDraftedStatus, ContractPublishedStatus } from '../layout/Statuses';
 import Accordion from '../layout/Accordion';
 import { useState } from 'react';
 import ExpandArrowButton from '../inputs/ExpandArrowButton';
@@ -16,6 +17,7 @@ import { Link, useLoaderData } from '@remix-run/react';
 import { NeutronEvent } from '~/models/events';
 import MobileNavbarPadding from '../layout/MobileNavbarPadding';
 import DisputesChatComponent from '../disputes/DisputesChatComponent';
+import { AnimatePresence, motion } from 'framer-motion';
 
 
 function generateDeliverables(milestones: { [key: string]: any }) {
@@ -26,6 +28,8 @@ function generateDeliverables(milestones: { [key: string]: any }) {
         if (deliverable.name == 'Advance') continue
         if (key == "workMilestones") {
             for (const [milestoneNumber, milestone] of Object.entries(value)) {
+                console.log("The milestone value over here is : ");
+                console.dir(milestone)
                 deliverablesArray.push(
                     <a href={milestone.submissionPath} key={milestone.name}>
                         <div className="flex flex-row m-5 space-x-2 w-auto items-center justify-between">
@@ -64,16 +68,22 @@ export default function ContractOverview() {
     console.dir(loaderData)
     let data = ContractDataStore.useState();
     let events;
+    let messages;
 
-    const [expanded, setExpanded] = useState(false);
+    const stage = ContractDataStore.useState(s => s.sidePanelStage);
+
+    const [expanded, setExpanded] = useState(true);
     if (loaderData) {
         data = loaderData.contract;
         events = loaderData.contractEvents;
+        messages = loaderData.contractMessages;
 
     }
 
 
-    const sidePanelStages = [<MilestoneStepper key={0} ></MilestoneStepper>, <DisputesChatComponent from={} key={1} ></DisputesChatComponent>]
+    const sidePanelStages = [<MilestoneStepper key={0} ></MilestoneStepper>,
+    <DisputesChatComponent key={1} messages={messages} from="kunal" to="gaurav"></DisputesChatComponent>
+    ]
 
 
     const milestones = data.milestones
@@ -88,7 +98,7 @@ Escrow section
             <div className="hidden sm:flex sm:flex-row h-14 space-x-5 mb-10">
                 <div className={`flex flex-row ${primaryGradientDark} w-72 h-full rounded-lg justify-between p-3 items-center`}>
                     <h2 className='prose prose-md text-white'>Total Funds</h2>
-                    <h1 className="prose prose-lg text-white text-right"> {data.totalValue}</h1>
+                    <h1 className="prose prose-lg text-white text-right"> {data.contractValue}</h1>
                 </div>
                 <div className={`flex flex-row bg-bg-primary-dark border-2 border-solid border-accent-dark w-72 h-full rounded-lg justify-between p-3 items-center`}>
                     <h2 className='prose prose-md text-white'>Released Funds</h2>
@@ -96,7 +106,7 @@ Escrow section
                 </div>
                 <div className={`flex flex-row bg-bg-primary-dark border-2 border-solid border-accent-dark w-72 h-full rounded-lg justify-between p-3 items-center`}>
                     <h2 className='prose prose-md text-white'>Milestones</h2>
-                    <h1 className="prose prose-lg text-white text-right"> <span className="text-purple-400">2</span>/4</h1>
+                    <h1 className="prose prose-lg text-white text-right"> <span className="text-purple-400">{data.completedMilestones ? data.completedMilestones : '0'}</span>/{Object.keys(data.milestones?.workMilestones).length}</h1>
                 </div>
             </div>
             <div className="flex flex-col-reverse sm:flex-row w-auto h-full">
@@ -120,20 +130,34 @@ Escrow section
                         {generateDeliverables(milestones)}
                     </div>
                 </div>
-                <div id="contract-milestones" className="flex flex-col sm:basis-1/3 sm:w-auto w-full mb-5 max-h-[600px] overflow-y-scroll sm:m-5 h-full justify-between bg-bg-secondary-dark border-accent-dark border-2 border-solid rounded-xl  text-white">
-
-                    <Accordion label={<div onClick={() => setExpanded(!expanded)}
+                <div id="contract-side-panel-section" className="flex flex-col sm:basis-1/3 sm:w-auto w-full mb-5 max-h-[600px] overflow-y-scroll sm:m-5 h-full justify-between bg-bg-secondary-dark  border-solid rounded-xl  text-white">
+                    <div onClick={() => setExpanded(!expanded)}
                         className="flex flex-row m-5 justify-between">
-                        <h2 className='prose prose-lg text-purple-500'>Current Status</h2>
-                        <p className=" prose prose-sm text-white">{data.status}</p>
+                        <h2 className='prose prose-lg text-purple-500'>{stage==ContractSidePanelStages.ChatsPanel?'Dispute Management' : 'Contract Events'}</h2>
+                        {/* <p className=" prose prose-sm text-white">{data.status === ContractStatus.Draft?<ContractDraftedStatus></ContractDraftedStatus>: <ContractPublishedStatus></ContractPublishedStatus>}</p> */}
                         <ExpandArrowButton expanded={expanded}></ExpandArrowButton>
-                    </div>} expanded={expanded} setExpanded={setExpanded} content={
-                        <MilestoneStepper ></MilestoneStepper>
-                    }></Accordion>
+                    </div>
+                    <AnimatePresence exitBeforeEnter>
+                        <motion.div
+                            key={stage}
+                            animate={{ opacity: 1, x: 0 }}
+                            initial={{ opacity: 0, x: 500 }}
+                            exit={{ opacity: 0, x: -10 }}
+                            transition={{ duration: 0.5 }}
+                            className="h-full m-3"
+                        >
+                            <Accordion expanded={expanded} setExpanded={setExpanded} content={
+                                sidePanelStages[stage]
+                            }></Accordion>
+
+
+                        </motion.div >
+                    </AnimatePresence>
                 </div>
+
             </div>
-            <MobileNavbarPadding size="large"></MobileNavbarPadding>
         </div>
+        <MobileNavbarPadding size="large"></MobileNavbarPadding>
         {/*
 Milestones section
 */}
@@ -152,11 +176,12 @@ function iconForDeliverableType(format: DeliverableFormat): string | undefined {
         case DeliverableFormat.JPEG || DeliverableFormat.MP4:
             return IconMedia
         case DeliverableFormat.PDF:
-            console.log('issa pdf')
-            console.log(IconPDF)
             return IconPDF
         case DeliverableFormat.ZIP:
             return IconZIP
+        default:
+            return IconGeneric
+
 
     }
 }

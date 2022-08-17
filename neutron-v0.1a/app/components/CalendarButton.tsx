@@ -7,7 +7,7 @@ export default function CalendarButton() {
   let navigate = useNavigate();
   return (
     <button
-      className="pl-2 pt-1"
+      className="p-1"
       onClick={() => {
         UIStore.update((s) => {
           s.selectedTab = "Calendar";
@@ -17,8 +17,7 @@ export default function CalendarButton() {
       }}
     >
       <svg
-        width="29"
-        height="29"
+        className="w-full h-full"
         viewBox="0 0 29 29"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"

@@ -1,5 +1,3 @@
-import { Component } from "react";
-
 export type Condition = {
   condition: String;
   negotiable: Boolean;
@@ -9,7 +7,7 @@ export enum TemplateType {
   Generic,
   Design,
   Development,
-  Others
+  Others,
 }
 
 export enum DeliverableFormat {
@@ -24,12 +22,20 @@ export enum ContractCreationStages {
   ScopeOfWork,
   PaymentAndMilestones,
   DraftReview,
-  SignContract
+  SignContract,
 }
 
 export enum ContractViewStages {
   Overview,
-  EditContract
+  EditContract,
+}
+
+export enum ContractSidePanelStages {
+  MilestonesPanel,
+  ChatsPanel,
+
+  PaymentPanel,
+  DeliverablesPanel,
 }
 
 export type Deliverable = {
@@ -39,65 +45,77 @@ export type Deliverable = {
   isMilestone?: Boolean;
   format: DeliverableFormat;
   attachment: FileList;
-  milestone?:string;
+  milestone?: string;
 };
 
-export enum DeliverableStatus { 
+export enum DeliverableStatus {
   NotSubmitted,
   SubmittedForApproval,
   Approved,
-  Rejected
+  Rejected,
 }
 
-export enum MilestoneStatus{
+export enum MilestoneStatus {
   Current,
   CurrentContractSpecific,
   Completed,
   Failed,
-  Upcoming
+  Upcoming,
 }
 
-
 export type Milestone = {
-  expectedDate?:Date;
+  lastMilestone?: boolean;
+  expectedDate?: Date;
   name: string;
   description: string;
   deliverables?: Array<Deliverable>;
-  status?:MilestoneStatus;
-  type?:DeliverableType
+  status?: MilestoneStatus;
 };
 
-
-export enum DeliverableType{
+export enum DeliverableType {
   Advance,
-  Delivery
+  Delivery,
 }
 
-export enum ContractCreator { 
+export enum ContractStatus {
+  Draft,
+  Published,
+}
+
+export enum ContractCreator {
   IndividualClient,
   EnterpriseClient,
-  IndividualServiceProvider
+  IndividualServiceProvider,
 }
 
 export interface Contract {
-  isClient?:boolean;
+  contractValue?: string;
+  clientAddress?: string;
+  payoutTriggered?: boolean;
+  providerEmail: string;
+  isClient?: boolean;
   hasMilestones?: boolean;
-  status?: string;
-  creator?:ContractCreator;
-  id?:string;
-  isSigned?:boolean;
+  status?: ContractStatus;
+  creator?: ContractCreator;
+  id?: string;
+  isSigned?: boolean;
   projectName?: string;
   basePayCondition?: Condition;
   basePayAmount?: number;
   clientName?: string;
   isCompany?: Boolean;
   milestonesCount: number;
-  milestones?: Array<Milestone>;
+  milestones?: {
+    advance: Milestone;
+    workMilestones: { [key: string]: Milestone };
+  };
   providerName?: string;
   country?: string;
   companyName?: string;
   companyRole?: string;
   signedDate?: Date;
+  hasAdvance?: boolean;
+  advancePercentage?: string;
   description?: string;
   supportPolicy?: string;
   startDate?: Date;
@@ -112,14 +130,14 @@ export interface Contract {
   invoiceCondition?: Condition;
   contractNotice?: number;
   stage: number;
-  viewStage:number;
+  viewStage: number;
+  sidePanelStage: number;
   attachment?: FileList;
   template: string;
   clientEmail?: string;
   deliverablesCount: number;
   deliverables?: Array<Deliverable>;
 }
-
 
 // export interface Template  {
 //   type: TemplateType;

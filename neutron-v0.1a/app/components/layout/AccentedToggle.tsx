@@ -3,6 +3,7 @@ import { motion, useAnimation } from 'framer-motion';
 import React, { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { ContractDataStore } from '~/stores/ContractStores';
+import { primaryGradientDark } from '~/utils/neutron-theme-extensions';
 
 const spring = {
     type: "spring",
@@ -21,8 +22,11 @@ const variants = {
 
 
 
-export default function AccentedToggle({name, states, onToggle } : {name:string, states:{default:string, toggled:string}, onToggle?:React.MouseEventHandler }) {
+export default function AccentedToggle({ name, states, onToggle }: { name?: string, states: { default: JSX.Element, toggled: JSX.Element }, onToggle?: React.MouseEventHandler }) {
 
+    if (!name) {
+        name = "dummy"
+    }
     const formMethods = useFormContext();
     const [isOn, setIsOn] = useState(false)
 
@@ -32,26 +36,26 @@ export default function AccentedToggle({name, states, onToggle } : {name:string,
         type: 'spring',
         stiffness: 700,
         damping: 30,
-        duration:0.2
+        duration: 0.2
     }
 
     return (
-        <div onClick={onToggle?(e)=>{
+        <div onClick={onToggle ? (e) => {
             onToggle(e)
             toggleSwitch()
-        }:toggleSwitch} className={`flex flex-start w-48 bg-bg-primary-dark border-2 cursor-pointer border-accent-dark rounded-full p-1 whitespace-nowrap ${isOn && 'place-content-end'}`}>
+        } : toggleSwitch} className={`flex flex-start w-[609px] bg-bg-primary-dark border-2 cursor-pointer border-gray-400 rounded-lg whitespace-nowrap ${isOn && 'place-content-end'}`}>
 
             <motion.div
-                className="flex items-center justify-center p-3 rounded-full bg-accent-dark"
+                className={`flex w-[304px] items-start p-3 rounded-md ${primaryGradientDark}`}
                 layout
                 transition={spring}
             >
-                {isOn?`${states.default}`: `${states.toggled}`}
-                <input type="checkbox" className='hidden' value={isOn?'true':'false'} {...formMethods.register(name)} ></input>
+                {isOn ? states.toggled : states.default}
+                <input type="checkbox" className='hidden' value={isOn ? 'true' : 'false'} {...formMethods.register(name)} ></input>
             </motion.div>
-            
-            
-        </div>
+
+
+        </div >
     )
 
     // <div onClick={() => {

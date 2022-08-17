@@ -8,6 +8,7 @@ import React from "react"
 import { useAuthState } from "react-firebase-hooks/auth"
 import { auth, db } from "~/firebase/neutron-config.server"
 import { formatDateToReadableString } from "~/utils/utils"
+import SendIcon from '~/assets/images/SendIcon.svg'
 import FormButton from "../inputs/FormButton"
 
 
@@ -17,6 +18,7 @@ export default function DisputesChatComponent({ from, to, messages }: { from: st
 
 
     const actionData = useActionData();
+    const loaderData = useLoaderData();
     const submit = useSubmit();
     const [chatMessages, setMessages] = React.useState<Array<{ text: string, from: string, to: string, timestamp: string }>>([]);
 
@@ -26,10 +28,11 @@ export default function DisputesChatComponent({ from, to, messages }: { from: st
         setMessages(messages);
     }, [messages])
 
+    console.dir("MESSAGES are :")
+    console.dir(messages)
     return (
-        <div className="m-10 bg-bg-primary-dark border-2 flex flex-col h-auto border-accent-dark rounded-lg items-stretch">
-            <h1 className="text-white prose prose-xl ml-3"> Comments </h1>
-            <ul className="h-auto min-h-max max-h-[500px] overflow-scroll m-5 text-white grid grid-cols-1">
+        <div className=" bg-bg-secondary-dark flex flex-col h-full rounded-lg items-stretch">
+            <ul className="h-auto min-h-max overflow-scroll m-5 text-white grid grid-cols-1">
                 <AnimatePresence initial={false}>
 
                     {chatMessages?.map((message, i) => {
@@ -44,24 +47,27 @@ export default function DisputesChatComponent({ from, to, messages }: { from: st
                                     }
                                 }} layout key={message.text} className={`${message.from == from ? 'place-self-start text-left' : 'place-self-end text-right '} w-auto`}>
                                 <motion.div>
-                                    <motion.h2 className="prose prose-lg text-black block bg-accent-dark p-5 rounded-xl ">{message.text}</motion.h2>
+                                    <motion.h2 className={`prose prose-lg text-black block bg-accent-dark p-5 ${message.from == from ? 'rounded-r-xl rounded-tl-xl' : 'rounded-l-xl rounded-tr-xl'} `}>{message.text}</motion.h2>
                                     <motion.p className=" text-white text-xs mt-2">{formatDateToReadableString(Date.parse(message.timestamp), true)}</motion.p>
                                 </motion.div>
                             </motion.li>)
                     })}
                 </AnimatePresence>
             </ul>
-            <input type="text" id="new-message" value={newMessage} onChange={(e) => {
-                console.log(newMessage)
-                setNewMessage(e.target.value)
-            }} className="m-6 rounded-lg bg-gray-500 text-white p-3 placeholder:text-white" placeholder="Enter a new message..." ></input >
-            <FormButton onClick={() => {
-                const data = new FormData();
-                data.append('message', newMessage);
-                data.append('from', from);
-                data.append('to', to);
-                submit(data, { method: 'post' });
-                setNewMessage('');
-            }} text="Send message" />
+            <div className="ml-4 mr-4 rounded-full flex-row flex justify-between p-1 bg-[#5C5C5C] text-white placeholder:text-white">
+                <input type="text" id="new-message" className="bg-[#5C5C5C] rounded-full p-3 ring-0 caret-transparent active:decoration-transparent inset-0" value={newMessage} onChange={(e) => {
+                    console.log(newMessage)
+                    setNewMessage(e.target.value)
+                }} placeholder="Enter a new message..." />
+                <button onClick={() => {
+                    const data = new FormData();
+                    data.append('message', newMessage);
+                    data.append('from', from);
+                    data.append('to', to);
+                    submit(data, { method: 'post', action:`/${loaderData.metadata.displayName}/disputes/sendMessage` });
+                    setNewMessage('');
+                }}><img src={SendIcon} alt="sendicon"></img></button>
+            </div>
+
         </div >)
 }

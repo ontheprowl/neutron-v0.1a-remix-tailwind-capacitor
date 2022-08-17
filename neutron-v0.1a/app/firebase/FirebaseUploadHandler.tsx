@@ -47,16 +47,17 @@ export default function createFirebaseStorageFileHandler({
         console.log(buffer)
 
         if (!filename?.includes('.')) {
-            console.log("NON FILE KEY DETECTED")
-            try {
+            console.log("NON FILE KEY DETECTED");
+            if (buffer.toString().includes('[') || buffer.toString().includes('{')) {
+                console.log("JSON DETECTED")
+                console.log("PURE JSON " + buffer.toString())
                 const temp = JSON.parse(buffer.toString())
-                console.log("JSON EXTRACTED FROM BUFFER")
                 console.dir(temp)
                 return JSON.stringify(temp)
-            }
-            catch(e){
-                console.log(`ERROR ENCOUNTERED : ERROR IS : ${e}`)
-                return buffer.toString()
+            } else {
+                console.log(`PLAIN STRING DETECTED`);
+                return buffer.toString();
+
             }
 
         }

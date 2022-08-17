@@ -1,16 +1,32 @@
-import { useFetcher, useLoaderData } from "@remix-run/react";
+import { useFetcher, useLoaderData, useTransition } from "@remix-run/react";
 import { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form"
 import FormButton from "../inputs/FormButton";
 import { ErrorMessage } from '@hookform/error-message'
+import { toast, ToastContainer } from "react-toastify";
+
+import DefaultSpinner from "../layout/DefaultSpinner";
 
 
 
 
 
 export default function ProfileBasicDetailsForm() {
-
     const data = useLoaderData();
+    const fetcher = useFetcher();
+    const saveButtonStates = (state: string) => {
+        switch (state) {
+            case "idle":
+                return (<span> Save Details </span>);
+
+            case "submitting":
+                return (<span> Saving Details ...</span>)
+            case "loading":
+                return (<DefaultSpinner></DefaultSpinner>);
+        }
+    }
+
+
 
     const userMetadata = data.metadata
 
@@ -19,7 +35,8 @@ export default function ProfileBasicDetailsForm() {
     const IsUsernameAvailable = (username: string) => {
         return userNames.indexOf(username) == -1 || username == userMetadata.displayName
     }
-    const fetcher = useFetcher();
+
+
     const { handleSubmit, register, trigger, formState: { errors }, control } = useForm();
 
     const firstName = useWatch({ control, name: 'firstName' })
@@ -28,8 +45,12 @@ export default function ProfileBasicDetailsForm() {
 
     useEffect(() => {
         trigger()
+        if (fetcher.type === "done") {
+            console.log("THE FETCHER TYPE IS " + fetcher.type)
+            toast(<div><h2>Details saved!</h2></div>, { theme: "dark", type: "success" })
+        }
 
-    }, [firstName, lastName, displayName, trigger])
+    }, [firstName, lastName, displayName, trigger, fetcher])
 
     return (<form onSubmit={
         handleSubmit(async (data) => {
@@ -37,7 +58,7 @@ export default function ProfileBasicDetailsForm() {
             console.log(data);
             form.append('payload', JSON.stringify(data));
 
-            fetcher.submit(form, { method: "post", action: `/${userMetadata.displayName}/profile/modify` });
+            fetcher.submit(form, { method: "post" });
 
         })
     }>
@@ -45,7 +66,7 @@ export default function ProfileBasicDetailsForm() {
         <h2 className="prose prose-lg mt-3 text-white"> Basic Details </h2>
         <div className="relative w-auto mt-2 mb-5 sm:mt-5 sm:mb-5 flex flex-col ">
             <span className=" prose prose-md text-white mb-5">Display Name</span>
-            <input type="text" id="project-name"  {...register('displayName', {
+            <input type="text" readOnly id="project-name"  {...register('displayName', {
                 required: 'This field is required', validate: (v) => {
                     return IsUsernameAvailable(v) || 'This username is already taken';
                 }
@@ -80,7 +101,13 @@ export default function ProfileBasicDetailsForm() {
             </div>
 
         </div>
-        <FormButton onClick={() => { }} text="Save" submit></FormButton>
+        <button
+            className="w-40 rounded-lg mt-2 self-start  bg-accent-dark p-3 border-2 border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-black font-gilroy-black font-[18px] transition-all"
+            type="submit"
+        >
+            {saveButtonStates(fetcher.state)}
+        </button>
+
     </form>)
 }
 

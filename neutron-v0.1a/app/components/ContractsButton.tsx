@@ -4,29 +4,9 @@ import { UIStore } from "../stores/UIStore";
 import { useNavigate } from "@remix-run/react";
 
 export default function ContractsButton() {
-  let navigate = useNavigate();
   return (
-    <button
-      className="pl-2 pt-1 pr-3"
-      onClick={() => {
-        UIStore.update((s) => {
-          s.selectedTab = "Contracts";
-        });
-        navigate("contracts");
-      }}
-    >
-      <svg
-        width="29"
-        height="29"
-        viewBox="0 0 29 29"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M4.46216 6.62695C4.46216 4.93558 5.83328 3.56445 7.52466 3.56445H20.6497C22.341 3.56445 23.7122 4.93558 23.7122 6.62695V21.9395C23.7122 22.906 22.9287 23.6895 21.9622 23.6895H6.28684C6.46702 24.1992 6.95319 24.5645 7.52466 24.5645H22.8372C23.3204 24.5645 23.7122 24.9562 23.7122 25.4395C23.7122 25.9227 23.3204 26.3145 22.8372 26.3145H7.52466C5.83328 26.3145 4.46216 24.9433 4.46216 23.252V6.62695ZM18.4622 15.377C18.4622 14.6521 17.8745 14.0645 17.1497 14.0645H11.0247C10.2998 14.0645 9.71216 14.6521 9.71216 15.377V15.8145C9.71216 17.5394 11.3392 19.3145 14.0872 19.3145C16.8351 19.3145 18.4622 17.5394 18.4622 15.8145V15.377ZM16.4934 10.7832C16.4934 9.45427 15.4161 8.37695 14.0872 8.37695C12.7582 8.37695 11.6809 9.45427 11.6809 10.7832C11.6809 12.1122 12.7582 13.1895 14.0872 13.1895C15.4161 13.1895 16.4934 12.1122 16.4934 10.7832Z"
-          fill="white"
-        />
-      </svg>
-    </button>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 17L12 22L22 17M2 12L12 17L22 12M12 2L2 7L12 12L22 7L12 2Z" stroke="#D0D5DD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
   );
 }

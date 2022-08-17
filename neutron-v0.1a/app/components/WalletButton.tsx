@@ -7,7 +7,7 @@ export default function WalletButton() {
 
   let navigate = useNavigate();
   return (
-    <button className="pl-2 pt-1"
+    <button className="p-1 transition-all"
       onClick={() => {
         UIStore.update((s) => {
           s.selectedTab = "Wallet";
@@ -15,8 +15,7 @@ export default function WalletButton() {
         });
       }} >
       <svg
-        width="29"
-        height="29"
+        className='h-full w-full'
         viewBox="0 0 29 29"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"

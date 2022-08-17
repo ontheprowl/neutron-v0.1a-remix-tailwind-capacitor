@@ -27,36 +27,37 @@ export default function BottomNav() {
         <div className="m-5 flex flex-row min-w-fit justify-between rounded-2xl w-auto bg-[#202020]   shadow-lg sm:hidden">
 
             <div
-                className={`rounded-full transition-all m-2 ${tab == "Home"? secondaryGradient: ``}`
-                }
+                className={`rounded-xl p-2 transition-all m-2 ${tab == "Home" ? secondaryGradient : 'hover:opacity-80 transition-all hover:ring-1 hover:ring-accent-dark rounded-lg'}`}
+
             >
                 <HomeButton />
             </div>
 
             <div
-                className={`rounded-lg transition-all m-2 ${tab == "Wallet"? secondaryGradient: ``}`
-            }
+                className={`rounded-xl p-2 transition-all m-2 ${tab == "Wallet" ? secondaryGradient : 'hover:opacity-80 transition-all hover:ring-1 hover:ring-accent-dark rounded-lg'}`}
+
             >
                 <WalletButton />
             </div>
             <div>
-                <CreateContractMobileButton className="transition-all m-2 hover:scale-105 active:scale-105"></CreateContractMobileButton>
+                <CreateContractMobileButton className={`rounded-xl p-2 m-2 hover:opacity-80 transition-all hover:ring-1 hover:ring-accent-dark`}
+                ></CreateContractMobileButton>
             </div>
 
             <div
-                 className={`rounded-lg transition-all m-2 ${tab == "Contracts"? secondaryGradient: ``}`
-                }
+                className={`rounded-xl p-2 transition-all m-2 ${tab == "Contracts" ? secondaryGradient : 'hover:opacity-80 transition-all hover:ring-1 hover:ring-accent-dark rounded-lg'}`}
+
             >
                 <ContractsButton />
             </div>
 
             <div
-                 className={`rounded-lg transition-all m-2 ${tab == "Calendar"? secondaryGradient: ``}`
-                }
+                className={`rounded-xl p-2 transition-all m-2 ${tab == "Calendar" ? secondaryGradient : 'hover:opacity-80 transition-all hover:ring-1 hover:ring-accent-dark rounded-lg'}`}
+
             >
                 <CalendarButton />
             </div>
 
-        </div>
+        </div >
     )
 }

@@ -2,7 +2,7 @@
 
 
 
-export default function MobileNavbarPadding() {
+export default function MobileNavbarPadding({ size }: { size?: "large" }) {
 
-    return (<div className="h-20 w-auto sm:hidden"></div>)
+    return (<div className={`h-${size == "large" ? '40' : '20'} w-auto sm:hidden`}></div>)
 }

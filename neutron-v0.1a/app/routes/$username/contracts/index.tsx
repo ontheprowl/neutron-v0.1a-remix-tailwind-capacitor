@@ -17,6 +17,8 @@ import MobileNavbarPadding from '~/components/layout/MobileNavbarPadding';
 import { getFirebaseDocs, setFirestoreDocFromData } from '~/firebase/queries.server';
 import { requireUser } from '~/session.server';
 import { UserState } from '~/models/user';
+import { ContractStatus } from '~/models/contracts';
+import { ContractDraftedStatus, ContractPublishedStatus } from '~/components/layout/Statuses';
 
 export const loader: LoaderFunction = async ({ request }) => {
     const session = await requireUser(request, true);
@@ -77,10 +79,10 @@ export default function ListContracts() {
                         </div>
                         <div className="flex flex-col  m-2 p-3 justify-between">
                             <h2 className="prose prose-md text-white">
-                                {contract.data.totalValue}
+                                {contract.data.contractValue}
                             </h2>
                             <td>
-                                <h3 className="font-medium text-black bg-gray-100 text-center rounded-lg p-1">Draft</h3>
+                                {contract?.data?.status == ContractStatus.Draft ? <ContractDraftedStatus></ContractDraftedStatus> : <ContractPublishedStatus></ContractPublishedStatus>}
                             </td>
                         </div>
                     </div>
@@ -127,10 +129,10 @@ export default function ListContracts() {
                     </div>
                     <div className="flex flex-col  m-2 p-3 justify-between">
                         <h2 className="prose prose-md text-white">
-                            {contract.data.totalValue}
+                            {contract?.data?.contractValue}
                         </h2>
                         <td>
-                            <h3 className="font-medium text-black bg-gray-100 text-center rounded-lg p-1">Draft</h3>
+                            {contract?.data?.status == ContractStatus.Draft ? <ContractDraftedStatus></ContractDraftedStatus> : <ContractPublishedStatus></ContractPublishedStatus>}
                         </td>
                     </div>
 
@@ -252,14 +254,14 @@ export default function ListContracts() {
                                     {contract.data.clientName}
                                 </td>
                                 <td className="px-6 py-4 text-center text-white">
-                                    {contract.data.totalValue}
+                                    {contract.data.contractValue}
                                 </td>
                                 <td className="px-6 py-4 text-center text-white">
                                     {formatDateToReadableString(contract.data.endDate?.seconds)}
                                 </td>
 
                                 <td className="px-6 py-4">
-                                    <h3 className="font-medium text-black bg-gray-100 text-center rounded-lg p-1">Draft</h3>
+                                    {contract?.data?.status == ContractStatus.Draft ? <ContractDraftedStatus></ContractDraftedStatus> : <ContractPublishedStatus></ContractPublishedStatus>}
                                 </td>
                                 <td><ViewIcon onClick={() => {
                                     navigate(`${contract.id}`)

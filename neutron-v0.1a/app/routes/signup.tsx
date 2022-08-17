@@ -1,30 +1,38 @@
-import { Form, Link, useActionData, useLoaderData, useNavigate, useSubmit } from "@remix-run/react";
+import { Form, Link, useActionData, useLoaderData, useNavigate, useSubmit, useTransition } from "@remix-run/react";
 
 import { useAuthState } from "react-firebase-hooks/auth";
 import { adminAuth, auth, googleProvider } from "../firebase/neutron-config.server";
-import type { ActionFunction, LoaderFunction } from "@remix-run/server-runtime";
+import { ActionFunction, json, LoaderFunction } from "@remix-run/server-runtime";
 import { redirect } from "@remix-run/server-runtime";
 import { login, logout } from "~/firebase/firebase-utils";
+import IconSpinner from '~/assets/images/icon.svg'
 import { Response } from "@remix-run/node";
-import { json } from "remix-utils";
 import React, { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import Icon from "~/assets/images/iconFull.svg"
 import { generateAuthUrl, authorizeAndExecute } from "~/firebase/gapis-config.server";
 import useWindowDimensions from "~/hooks/useWindowDimensions";
-import { createUserWithEmailAndPassword, getRedirectResult, GoogleAuthProvider, signInWithEmailAndPassword, signInWithRedirect, updateProfile, User } from "firebase/auth";
+import { createUserWithEmailAndPassword, getAuth, getRedirectResult, GoogleAuthProvider, sendEmailVerification, signInWithEmailAndPassword, signInWithRedirect, updateProfile, User } from "firebase/auth";
 import { signUp } from "~/models/user.server";
 import { createUserSession, requireUser } from "~/session.server";
 import { addFirestoreDocFromData, getFirebaseDocs, setFirestoreDocFromData } from "~/firebase/queries.server";
 import { DEFAULT_USER_STATE } from "~/models/user";
 import { ErrorMessage } from "@hookform/error-message";
+import GoogleIcon from '~/assets/images/google.svg'
 import { ValidationPatterns } from "~/utils/utils";
+import TransparentButton from "~/components/inputs/TransparentButton";
+import { toast, ToastContainer } from "react-toastify";
+import { NeutronError } from "~/utils/NeutronError";
+import { injectStyle } from "react-toastify/dist/inject-style";
+import DefaultSpinner from "~/components/layout/DefaultSpinner";
+import { motion } from "framer-motion";
+import { env } from "process";
 
 export async function loader({ request }: { request: Request }) {
 
   const session = await requireUser(request);
 
-  if (session) {
+  if (session && getAuth().currentUser?.emailVerified) {
     return redirect(`/${session?.metadata?.displayName}/dashboard`)
   }
 
@@ -65,30 +73,56 @@ export async function loader({ request }: { request: Request }) {
 
 export async function action({ request }: { request: Request }) {
 
-  const data = await request.formData();
-  const displayName: string = data.get('displayName')
-  const email: string = data.get('email');
-  const password: string = data.get('password');
-  const { user } = await signUp(email, password);
-  await updateProfile(user, {
-    displayName: displayName,
-    photoURL:''
-  })
-  const userUIDRef = await setFirestoreDocFromData({ uid: user.uid }, 'userUIDS', `${displayName}`)
+  try {
+    const data = await request.formData();
+    const displayName: string = data.get('displayName')
+    const email: string = data.get('email');
+    const password: string = data.get('password');
+    const { user } = await signUp(email, password);
+    await updateProfile(user, {
+      displayName: displayName,
+      photoURL: '',
+    })
 
-  const ref = await setFirestoreDocFromData({ ...DEFAULT_USER_STATE, email: user.email, id: user.uid, displayName: user.displayName }, `metadata`, user.uid);
-  // const uidMapRef = await setFirestoreDocFromData({ uid: user.uid }, `metadata`, user.email);
-  const token = await user.getIdToken();
-  return createUserSession({ request: request, metadata: { 'path': ref.path }, userId: token, remember: true, redirectTo: `/${displayName}/profile` })
+    await sendEmailVerification(user, { url: `http://${env.NODE_ENV === "development" ? "localhost:3000" : "test.neutron.money"}/auth/verification` });
+    console.log("\n verification email sent \n");
+    const userUIDRef = await setFirestoreDocFromData({ uid: user.uid, email: user.email }, 'userUIDS', `${displayName}`)
+
+    const ref = await setFirestoreDocFromData({
+      ...DEFAULT_USER_STATE, email: user.email, id: user.uid, displayName: user.displayName, creationTime: user.metadata.creationTime, profileComplete: false
+    }, `metadata`, user.uid);
+    // const uidMapRef = await setFirestoreDocFromData({ uid: user.uid }, `metadata`, user.email);
+    const token = await user.getIdToken();
+    return createUserSession({ request: request, metadata: { 'path': ref.path }, userId: token, remember: true, redirectTo: `/login` })
+  } catch (e) {
+    console.log("\n Error during signup form submission being logged : \n ");
+    console.dir(e)
+    const neutronError = new NeutronError(e);
+    return json({ type: neutronError.type, message: neutronError.message });
+  }
 }
+
+
 
 export default function Signup() {
   const data = useLoaderData();
+  const actionData = useActionData();
+
+  const signupButtonStates = (state: string) => {
+    switch (state) {
+      case "idle":
+        return (<span> Sign Up ...</span>);
+      case "submitting":
+        return (<span>Creating User...</span>);
+      case "loading":
+        return (<DefaultSpinner></DefaultSpinner>);
+    }
+  }
 
   let submit = useSubmit();
-  const parsedData = JSON.parse(data);
-  console.log(parsedData)
-  const userNames = parsedData.usernames;
+  const transition = useTransition();
+  const userNames = data.usernames;
+  console.log(userNames)
   let navigate = useNavigate();
   // const [user, loading, error] = useAuthState(auth);
 
@@ -104,31 +138,43 @@ export default function Signup() {
   const password = useWatch({ control, name: 'password' })
 
   useEffect(() => {
-    trigger()
+    injectStyle();
+    trigger();
+    const neutronError = actionData as NeutronError;
+    if (neutronError) {
+      console.log("ERROR DURING LOGIN")
+      console.dir(neutronError);
+      toast(<div><h2>{neutronError.message}</h2></div>, { theme: "dark", type: "error" })
 
-  }, [displayName, email, password, trigger])
 
+
+    }
+    if (transition.type === "actionSubmission") {
+      toast(<div><h2>Please verify your email ID</h2></div>, { theme: "dark", type: "success" })
+    }
+  }, [displayName, email, password, trigger, transition, actionData])
 
 
   return (
-    <div className="h-full w-full justify-center bg-bg-primary-dark align-middle">
-      <div className=" flex flex-col items-center justify-center h-full text-center">
+    <div className="h-screen sm:h-full w-full justify-center bg-bg-primary-dark align-middle p-5 sm:p-10">
+      <div className=" flex flex-col items-center justify-center h-full w-full text-center">
+
         <img
           src={Icon}
-          className="h-auto max-h-28 m-10 max-w-28 snap-center"
+          className="h-auto max-h-28 m-10 sm:mt-10 mt-20 mb-5 sm:mb-5 max-w-28 snap-center"
           alt="hi there"
         ></img>
-        <div className="bg-bg-secondary-dark rounded-lg border-2 border-accent-dark sm:w-[896px]">
+        <div className="bg-bg-primary-dark rounded-lg text-left p-5 sm:w-[1016px]">
           <h1
-            className={`mt-5 bg-gradient-to-tr from-yellow-500 via-orange-100 to-yellow-700 bg-clip-text text-transparent text-center sm:text-left sm:ml-5 font-gilroy-bold`}
+            className={`text-left sm:ml-0 font-gilroy-black text-white text-[40px]`}
           >
             Sign Up
           </h1>
 
-          <div className="mt-2 flex flex-col sm:flex-row items-center space-y-4 p-10 w-full justify-evenly">
-            <div className=" w-full">
+          <div className=" flex flex-col sm:flex-row items-start space-y-2 sm:space-y-0  w-full justify-between">
+            <div className="flex flex-col justify-items-start space-y-2 mt-5 w-full ">
               <form
-                className="flex flex-col items-center space-y-4"
+                className=" space-y-1"
                 onSubmit={handleSubmit((data) => {
                   console.log(data.email, data.password, data.displayName);
                   const form = new FormData();
@@ -138,88 +184,111 @@ export default function Signup() {
                   submit(form, { replace: true, method: 'post' })
                 })}
               >
-                <div className="sm:text-center space-y-3 w-full">
-                  <span className=" prose prose-md text-white">Username</span>
+                <div className="text-left space-y-1 w-full">
+                  <span className=" prose prose-md text-white font-gilroy-black text-[25px]">Username</span>
                   <input  {...register('displayName', {
                     required: 'This field is required', validate: (v) => {
                       return IsUsernameAvailable(v) || 'This username is already taken';
                     }
-                  })} type="text" placeholder="e.g: name@example.com" defaultValue={''} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
-                  <div className="w-full h-10 mt-3 text-left">
+                  })} type="text" placeholder="e.g: name@example.com" defaultValue={''} className=" transition-all bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 caret-bg-accent-dark focus:outline-none focus:border-accent-dark focus:ring-2 focus:ring-accent-dark text-white active:caret-yellow-400 text-sm rounded-lg placeholder-[#C1C1C1] block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white font-gilroy-medium " />
+                  <div className="w-full h-10 mt-1 text-left">
                     <ErrorMessage errors={errors} name='displayName' render={(data) => {
-                      return <span className="text-red-500 p-2 m-3 z-10">{data.message}</span>
+                      return <span className="text-red-500 pl-1 mt-3 z-10 font-gilroy-black text-left">{data.message}</span>
                     }} />
                   </div>
                 </div>
-                <div className="sm:text-center space-y-3 w-full">
-                  <span className=" prose prose-md text-white">Email</span>
-                  <input defaultValue={''}  {...register('email', { required: 'This field is required', pattern: { value: ValidationPatterns.emailValidationPattern, message: 'This is not a valid email ID' } })} type="text" placeholder="e.g: name@example.com" className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
-                  <div className="w-full h-10 mt-3 text-left">
+                <div className="text-left space-y-1 w-full">
+                  <span className=" prose prose-md text-white font-gilroy-black text-[25px]">Email</span>
+                  <input defaultValue={''}  {...register('email', { required: 'This field is required', pattern: { value: ValidationPatterns.emailValidationPattern, message: 'This is not a valid email ID' } })} type="text" placeholder="e.g: name@example.com" className=" transition-all bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 caret-bg-accent-dark focus:outline-none focus:border-accent-dark focus:ring-2 focus:ring-accent-dark text-white active:caret-yellow-400 text-sm rounded-lg placeholder-[#C1C1C1] block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white font-gilroy-medium" />
+                  <div className="w-full h-10 mt-1 text-left">
                     <ErrorMessage errors={errors} name='email' render={(data) => {
-                      return <span className="text-red-500 p-2 m-3 z-10">{data.message}</span>
+                      return <span className="text-red-500 pl-1 mt-3 z-10 font-gilroy-black text-left">{data.message}</span>
                     }} />
                   </div>
                 </div>
 
-                <div className="sm:text-center space-y-3 w-full">
-                  <span className=" prose prose-md text-white">Password</span>
-                  <input  {...register('password', { required: 'This field is required', minLength: { value: 8, message: " Password should at least be 8 characters long" } })} type="password" placeholder="Lets keep it hush hush..." className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
-                  <div className="w-full h-10 mt-3 text-left">
+                <div className="text-left space-y-1 w-full">
+                  <span className=" prose prose-md text-white font-gilroy-black text-[25px]">Password</span>
+                  <input  {...register('password', { required: 'This field is required', minLength: { value: 8, message: " Password should at least be 8 characters long" } })} type="password" placeholder="Lets keep it hush hush..." className="  transition-all bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 caret-bg-accent-dark focus:outline-none focus:border-accent-dark focus:ring-2 focus:ring-accent-dark text-white active:caret-yellow-400 text-sm rounded-lg placeholder-[#C1C1C1] block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white font-gilroy-medium " />
+                  <div className="w-full h-10 mt-1 text-left">
                     <ErrorMessage errors={errors} name='password' render={(data) => {
-                      return <span className="text-red-500 p-2 m-3 z-10">{data.message}</span>
+                      return <span className="text-red-500 pl-1 mt-3 z-10 font-gilroy-black text-left">{data.message}</span>
                     }} />
                   </div>
                 </div>
-
-
-                <button
-                  className="w-40 rounded-lg bg-accent-dark p-3 text-white transition-all hover:scale-105"
-                  type="submit"
-                >
-                  Login
-                </button>
-              </form>
-              <button
-                className="w-40 mt-5 rounded-lg bg-accent-dark p-3 text-white transition-all hover:scale-105"
-              // onClick={() => logout(auth)}
-              >
-                Logout
-              </button>
-            </div>
-            <div className="w-auto ml-10 h-0.5 sm:h-[250px] bg-gray-500 sm:w-0.5" ></div>
-            <div className="w-full">
-              <button className="pointer-auto hover:scale-105 transition-all" onClick={async () => {
-
-                // signInWithRedirect(auth, googleProvider);
-
-                // As this API can be used for sign-in, linking and reauthentication,
-                // check the operationType to determine what triggered this redirect
-                // operation.
-                // const operationType = result.operationType;
-
-              }}>
-
-                <div className="rounded-xl bg-white p-3 flex flex-row space-x-5 w-auto justify-between ">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect width="24" height="24" fill="white" />
-                    <path fill-rule="evenodd" clip-rule="evenodd" d="M23.04 12.2615C23.04 11.446 22.9668 10.6619 22.8309 9.90918H12V14.3576H18.1891C17.9225 15.7951 17.1123 17.013 15.8943 17.8285V20.714H19.6109C21.7855 18.7119 23.04 15.7637 23.04 12.2615Z" fill="#4285F4" />
-                    <path fill-rule="evenodd" clip-rule="evenodd" d="M12 23.5001C15.105 23.5001 17.7081 22.4703 19.6109 20.7139L15.8943 17.8285C14.8645 18.5185 13.5472 18.9262 12 18.9262C9.00474 18.9262 6.46951 16.9032 5.56519 14.1851H1.72314V17.1646C3.61542 20.923 7.50451 23.5001 12 23.5001Z" fill="#34A853" />
-                    <path fill-rule="evenodd" clip-rule="evenodd" d="M5.56523 14.185C5.33523 13.495 5.20455 12.7579 5.20455 12C5.20455 11.242 5.33523 10.505 5.56523 9.81499V6.83545H1.72318C0.944318 8.38795 0.5 10.1443 0.5 12C0.5 13.8557 0.944318 15.612 1.72318 17.1645L5.56523 14.185Z" fill="#FBBC05" />
-                    <path fill-rule="evenodd" clip-rule="evenodd" d="M12 5.07386C13.6884 5.07386 15.2043 5.65409 16.3961 6.79364L19.6945 3.49523C17.7029 1.63955 15.0997 0.5 12 0.5C7.50451 0.5 3.61542 3.07705 1.72314 6.83545L5.56519 9.815C6.46951 7.09682 9.00474 5.07386 12 5.07386Z" fill="#EA4335" />
-                  </svg>
-
-                  <h1>Log In With Google</h1>
+                <div className="flex flex-row justify-start">
+                  <button
+                    className="w-40 rounded-lg mt-2 self-start  bg-accent-dark p-3 border-2 border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-black font-gilroy-black font-[18px] transition-all"
+                    type="submit"
+                  >
+                    {signupButtonStates(transition.state)}
+                  </button>
                 </div>
-              </button>
 
+              </form>
+              <Link to="/login" className="hover:underline decoration-white"><span className="text-white">Already have an account? <span className="font-gilroy-black ">Log In </span></span></Link>
+              {/* <TransparentButton
+                className="w-40 mt-5 rounded-lg self-start bg-accent-dark p-3 text-white transition-all border-2 border-white hover:border-accent-dark outline-none focus:ring-1 focus:ring-white hover:bg-bg-primary-dark"
+                onClick={() => navigate('/signup')}
+                text={"Don't have an account? Sign Up"}
+              /> */}
+              <div className="flex flex-row w-full">
+                <button className="pointer-auto  transition-all outline-none" onClick={async () => {
+
+                  // signInWithRedirect(auth, googleProvider);
+
+                  // As this API can be used for sign-in, linking and reauthentication,
+                  // check the operationType to determine what triggered this redirect
+                  // operation.
+                  // const operationType = result.operationType;
+
+                }}>
+
+                  <div className="rounded-xl bg-white hover:ring-2 hover:ring-accent-dark active:ring-2 outine-none p-3 flex flex-row space-x-5 w-auto justify-between ">
+                    <img src={GoogleIcon} alt="Google Icon" />
+
+                    <h1>Sign Up With Google</h1>
+                  </div>
+                </button>
+
+              </div>
             </div>
+            <div className=" pl-48 items-start hidden sm:flex sm:flex-col">
+              <motion.a
+                animate={{ rotate: [0, 90, 180, 270, 360, 90, 60, 0], }}
+                transition={{ repeat: Infinity, duration: 4, ease: "circInOut" }}
+
+                href="https://neutron.money"
+                className="mb-5 flex items-center"
+              >
+                <img
+                  src={IconSpinner}
+                  className="transition-all h-[496px] w-[428px]"
+                  alt="Neutron Logo"
+                />
+              </motion.a></div>
+
           </div>
 
         </div>
 
       </div>
+      <ToastContainer position="bottom-center"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        theme="dark"
+        limit={1}
+
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover></ToastContainer>
+
     </div>
   );
+
 }
 
 

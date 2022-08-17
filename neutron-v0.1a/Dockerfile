@@ -77,6 +77,10 @@ ADD Gilroy-Bold.ttf Gilroy-Regular.ttf /myapp/
 ADD Gilroy-Bold.ttf Gilroy-Regular.ttf /myapp/public/
 ADD Gilroy-Bold.ttf Gilroy-Regular.ttf /myapp/build/
 ADD Gilroy-Bold.ttf Gilroy-Regular.ttf /myapp/public/build/
+ADD GILROY-BLACK.TTF GILROY-MEDIUM.TTF /myapp/
+ADD GILROY-BLACK.TTF GILROY-MEDIUM.TTF /myapp/public/
+ADD GILROY-BLACK.TTF GILROY-MEDIUM.TTF /myapp/build/
+ADD GILROY-BLACK.TTF GILROY-MEDIUM.TTF /myapp/public/build/
 
 
 COPY --from=build /myapp/public /myapp/public

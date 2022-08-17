@@ -2,247 +2,494 @@ import { ContractDataStore } from "~/stores/ContractStores";
 import { Contract, ContractCreationStages } from "~/models/contracts";
 import { formatDateToReadableString } from "~/utils/utils";
 import ContractEditableLink from "./ContractEditableLink";
+import { useFormContext } from "react-hook-form";
+import { ClientInformationRedirect, PaymentAndMilestonesRedirect, ScopeOfWorkRedirect } from "./InputRedirects";
 
 
+function generateDeliverables(milestones: { [key: string]: any }) {
 
-export default function GenericContractTemplate({ loaderData }: { loaderData: Contract | undefined }) {
+    let deliverablesArray = []
+    for (const [key, value] of Object.entries(milestones)) {
+        const deliverable = { ...value }
+        if (deliverable.name == 'Advance') continue
+        if (key == "workMilestones") {
+            for (const [milestoneNumber, milestone] of Object.entries(value)) {
+                deliverablesArray.push(
+                    <a href={milestone.submissionPath} key={milestone.name}>
+                        <div className="flex flex-row m-5 space-x-2 w-auto items-center justify-between">
+                            <img src={iconForDeliverableType(Number(milestone.submissionFormat))}
+                                className="mr-3 h-7 " alt="progressLineActive">
+                            </img>
+                            <h2>{milestone.name}</h2>
+                            <p>{milestone.description}</p>
+                            {milestone?.status ? StatusGenerator(milestone.status) : <NotSubmittedStatus></NotSubmittedStatus>}
+                        </div>
+                    </a>
+                    // <a key={deliverable.name} href={deliverable.submissionPath ? deliverable.submissionPath : "#"}>
+                    //     <div className="flex flex-row m-5 space-x-2 w-auto items-center justify-between">
+                    //         <img src={iconForDeliverableType(Number(deliverable.submissionFormat))}
+                    //             className="mr-3 h-7 " alt="progressLineActive">
+                    //         </img>
+                    //         <h2>{deliverable.name}</h2>
+                    //         <p>{deliverable.description}</p>
+                    //         <NotSubmittedStatus></NotSubmittedStatus>
+                    //     </div>
+                    // </a>
 
-    let data = ContractDataStore.useState();
-    if (loaderData) {
-        data = loaderData;
+
+                )
+            }
+        }
+
+    }
+    return deliverablesArray
+}
+
+export default function GenericContractTemplate() {
+
+
+    function generateMilestonesForContract(){
+        let milestonesArray = []
+        if (allContractFields?.milestones) {
+            for (const [key, value] of Object.entries(allContractFields?.milestones)) {
+                milestonesArray.push(<li>{value.name}</li>)
+            }
+
+        }
+        return milestonesArray
+
     }
 
+    const { watch } = useFormContext();
+
+
+
+    const allContractFields: Contract = watch();
     console.log('data for the edit screen is')
-    console.log(data)
+    console.log(allContractFields)
 
-    return (<div className="m-5 text-center items-center overflow-y-scroll h-[50vh]"><article className="prose prose-xl max-w-none text-center" >
-        <p>
-            <strong>Independent Contractor Agreement</strong>
-        </p>
-        <p>
-            This Contract is between <ContractEditableLink to={ContractCreationStages.ClientInformation}>{data?.clientName}</ContractEditableLink>  (the "Client") and <ContractEditableLink to={ContractCreationStages.ClientInformation}>{data?.providerName}</ContractEditableLink>, a {data?.isCompany ? `${data?.companyRole} at ${data?.companyName}` : ""} (the "Contractor").
-        </p>
-        <p>
-            The Contract is dated <ContractEditableLink to={ContractCreationStages.ClientInformation}>{data?.signedDate}</ContractEditableLink>.
-        </p>
-        <p>
-            <strong>1. INTERPRETATION.</strong> In this Contract, unless the context otherwise requires, the following expressions shall have the following meanings:
-        </p>
-        <p>
+    return (<div id="contract-container" className="m-5 flex flex-row justify-center text-center overflow-y-scroll h-[70vh] scroll-smooth">
+        <article className="prose prose-xl w-full flex flex-col font-gilroy-regular" >
+            <strong className="font-gilroy-bold text-[25px]">SERVICE AGREEMENT</strong>
 
-            <strong>Completion:</strong> means upon the Freelancer's completion and delivery of the Work Product or part thereof (as applicable, should delivery be in stages) according to Section 2;
-        </p>
-        <p>
 
-            <strong>Business Days:</strong> means a day other than a Saturday, Sunday, or bank or public holiday in India;
-        </p>
-        <p>
+            <p className="break-normal whitespace-pre-wrap">This <span className="font-gilroy-bold">SERVICE AGREEMENT</span> (hereinafter, referred to as “the Agreement”) is entered into on this [insert signingDate here] __day of ___(month), 20	(year) (the “Effective Date”)
 
-            <strong>Force Majeure:</strong> means any event or sequence of events beyond the reasonable control of a party (which could not reasonably have been anticipated and avoided by that party) and occurring without that party's fault or negligence, including but not limited to, acts of God, acts of government, floor, fire, pandemic or epidemic, civil unrest, acts of terror, strikes which prevent or delay that party from performing its obligations under this Contract;
-        </p>
-        <p>
+                <br></br>
+                BY AND BETWEEN
+                <br></br>
+                <ClientInformationRedirect>{allContractFields.clientName}</ClientInformationRedirect>, (Name of Company/Agency/individual) a private limited/ limited company incorporated under the Companies Act, 2013/1956 having its registered office at <ClientInformationRedirect>{allContractFields.clientAddress}</ClientInformationRedirect>	(address of Registered office)/ a sole proprietorship/ an individual being an Indian citizen and not specifically registered as either of the above (hereinafter referred to as the “Employer”), of the FIRST PART;
 
-            <strong>Project:</strong> means the entirety of the scope of work as captured in this Contract;
-        </p>
-        <p>
+                <br></br>
+                AND
+                <br></br>
 
-            <strong>Work Product:</strong> means drafts, notes, materials, mockups, hardware, designs, inventions, patents, code, and anything else that the Freelancer works on—that is, conceives, creates, designs, develops, invents, works on, or reduces to practice—as part of this project, whether before the date of this Contract or after;
-        </p>
-        <p>
-            <strong>2. WORK AND PAYMENT.</strong>
-        </p>
-        <p>
+                <ClientInformationRedirect>{allContractFields.providerName}</ClientInformationRedirect>, residing at <ClientInformationRedirect>{allContractFields.providerAddress}</ClientInformationRedirect>and bearing Permanent Account No. <ClientInformationRedirect>{allContractFields.providerPAN}</ClientInformationRedirect>/(hereinafter referred to as the “Service Provider”) of the SECOND PART;
 
-            <strong>2.1 Project.</strong> The Client is hiring the Contractor to do the following:  <ContractEditableLink to={ContractCreationStages.ScopeOfWork}>{data?.description}</ContractEditableLink>.
-        </p>
-        <p>
+                <br></br>
+                <br></br>
 
-            <strong>2.2 Support.</strong> The Contractor  <ContractEditableLink to={ContractCreationStages.ScopeOfWork}>{data?.supportPolicy}</ContractEditableLink> provide support for any deliverable once the Client accepts it upon Completion, unless otherwise agreed by the Contractor in writing.
-        </p>
-        <p>
+                WHEREAS the Employer is undergoing the business of <ScopeOfWorkRedirect>{allContractFields.workType}</ScopeOfWorkRedirect>;
 
-            <strong>2.3 Schedule of Work.</strong>
-        </p>
-        <p>
+                <br></br>
 
-            <strong>2.3.1 Start Date.</strong> <ContractEditableLink to={ContractCreationStages.ClientInformation}>{data?.startDate}</ContractEditableLink>
-        </p>
-        <p>
+                WHEREAS the Service Provider has expertise in the area of <ScopeOfWorkRedirect>{allContractFields.workType}</ScopeOfWorkRedirect>;
+                <br></br>
 
-            <strong>2.3.2 Duration.</strong> {<ContractEditableLink to={ContractCreationStages.ClientInformation}>{data?.endDate}</ContractEditableLink> || data?.endCondition}, and subject to termination under Section 6 of this Agreement.
-        </p>
-        <p>
+                WHEREAS the Employer has now decided to hire the Service Provider through the Neutron platform (as defined hereunder) to render their services in certain areas of the business where they have established their expertise;
+            </p>
 
-            <strong>2.4 Termination.</strong> This Contract can be ended by either Client or the Contractor at any time, pursuant to Section 6, Term and Termination herein.
-        </p>
-        <p>
-            <strong>3. PAYMENT.</strong>
-        </p>
-        <p>
+            <p className="break-normal whitespace-pre-wrap">
+                NOW, THEREFORE, the Parties hereby agree as follows:
+                <br></br>
 
-            <strong>3.1 Payment.</strong> The Client will pay the Contractor <ContractEditableLink to={ContractCreationStages.PaymentAndMilestones}>{data?.totalValue}</ContractEditableLink>
-        </p>
-        <p>
+                <ol type="1">
+                    <li>
+                        <span className="font-gilroy-bold">DEFINITIONS:</span>
+                        <br></br>
+                        When used in this Agreement (as defined hereunder), the capitalized terms listed in this section shall have the meaning as provided below. Other capitalized terms used in this Agreement shall have the meaning respectively assigned to them elsewhere in this Agreement.
+                        <ol type="a">
+                            <li><span className="font-gilroy-bold">“Agreement”</span> means this Service Agreement, its schedules, exhibits, emails, WhatsApp text messages, chats and messages exchanged over the Neutron platform, social networking communications, non-disclosure agreements together with all amendments as approved in writing by both the Parties from time to time;
+                            </li>
+                            <li>
+                                <span className="font-gilroy-bold">“Service” and/or “Services”</span> is defined as any and all work to be performed by the Service Provider specified herein or in the Engagement, including without limitation all professional, management, labor, and general services, towards provision of a digital service as detailed in <b>‘Exhibit A’</b>;
+                            </li>
+                            <li>
+                                <span className="font-gilroy-bold">“Neutron platform”</span> is defined as the platform for provision of digital services in exchange for money via contracts through which the Employer hires the Service Provider to avail their Services;
 
-            <strong>3.2 Invoices.</strong> The Contractor will invoice the Client {data?.invoiceDate || data?.invoiceCondition}. The Client agrees to automated fund release within <ContractEditableLink to={ContractCreationStages.ClientInformation}>{data?.redressalWindow}</ContractEditableLink>of receiving the invoice.
-        </p>
-        <p>
+                            </li>
+                            <li>
+                                <span className="font-gilroy-bold">“Agency”</span> is defined to mean a registered business entity that arranges for the outsourcing of a Service Provider who is willing and able to provide services as per the Employer’s request, in exchange for a pre-determined commission from the compensation that the Service Provider is entitled to receive;
 
-            <strong>Need to restructure 3.3 according to advance escrow feature requirements</strong>
-        </p>
-        <p>
+                            </li>
+                            <li>
+                                <span className="font-gilroy-bold">“Proof of Work”</span> is defined as any digital medium that can corroborate the completion of a digital service or digital product. This constitutes excerpts/extracts of the final asset, live presentations of completed work over video call, or any other method of verification of work that the Neutron platform allows.
 
-            <strong>3.3 Expenses.</strong> The Client will reimburse the Contractor's expenses. Expenses do not need to be pre-approved by the Client.
-        </p>
-        <p>
-            <strong>4. OWNERSHIP AND LICENSES.</strong>
-        </p>
-        <p>
+                            </li>
+                            <li>
+                                <span className="font-gilroy-bold">Written” or “In Writing” </span> means any communication in a written form, which shall include, without limitation, any communication by telex, facsimile, via the Neutron platform, and electronic e-mail transmission.
 
-            <strong>4.1 {data?.workOwnership}.</strong>
-            {data?.ownershipType ? <>
-                <strong>
-                    As part of this job, the Contractor is creating "work product" for the Client. To avoid confusion, work product is the finished product, as well as drafts, notes, materials, mockups, hardware, designs, inventions, patents, code, and anything else that the Contractor works on—that is, conceives, creates, designs, develops, invents, works on, or reduces to practice—as part of this project, whether before the date of this Contract or after. The Contractor hereby gives the Client this work product once the Client pays for it in full. This means the Contractor is giving the Client all of its rights, titles, and interests in and to the work product (including intellectual property rights), and the Client will be the sole owner of it. The Client can use the work product however it wants or it can decide not to use the work product at all. The Client, for example, can modify, destroy, or sell it, as it sees fit.</strong>
-                <p>
-                    <strong>4.2 Contractor's Use Of Work Product.</strong> Once the Contractor gives the work product to the Client, the Contractor does not have any rights to it, except those that the Client explicitly gives the Contractor here. The Client gives permission to use the work product as part of portfolios and websites, in galleries, and in other media, so long as it is to showcase the work and not for any other purpose. The Client does not give permission to sell or otherwise use the work product to make money or for any other commercial use. The Client is not allowed to take back this license, even after the Contract ends.
-                </p>
-                <p>
-                    <strong>4.3 Contractor's Help Securing Ownership.</strong> In the future, the Client may need the Contractor's help to show that the Client owns the work product or to complete the transfer. The Contractor agrees to help with that. For example, the Contractor may have to sign a patent application. The Client will pay any required expenses for this. If the Client can’t find the Contractor, the Contractor agrees that the Client can act on the Contractor's behalf to accomplish the same thing. The following language gives the Client that right: if the Client can’t find the Contractor after spending reasonable effort trying to do so, the Contractor hereby irrevocably designates and appoints the Client as the Contractor's agent and attorney-in-fact, which appointment is coupled with an interest, to act for the Contractor and on the Contractor's behalf to execute, verify, and file the required documents and to take any other legal action to accomplish the purposes of Clause 4.1 (Client Owns All Work Product). <strong>4.4 Contractor's IP That Is Not Work Product.</strong> During the course of this project, the Contractor might use intellectual property that the Contractor owns or has licensed from a third party, but that does not qualify as "work product." This is called "background IP." Possible examples of background IP are pre-existing code, type fonts, properly-licensed stock photos, and web application tools. The Contractor is not giving the Client this background IP. But, as part of the Contract, the Contractor is giving the Client a right to use and license (with the right to sublicense) the background IP to develop, market, sell, and support the Client’s products and services. The Client may use this background IP worldwide and free of charge, but it cannot transfer its rights to the background IP. The Client cannot sell or license the background IP separately from its products or services. The Contractor cannot take back this grant, and this grant does not end when the Contract is over.
-                </p>
-                <p>
-                    <strong> 4.5 Contractor's Right To Use Client IP.</strong> The Contractor may need to use the Client’s intellectual property to do its job. For example, if the Client is hiring the Contractor to build a website, the Contractor may have to use the Client’s logo. The Client agrees to let the Contractor use the Client’s intellectual property and other intellectual property that the Client controls to the extent reasonably necessary to do the Contractor's job. Beyond that, the Client is not giving the Contractor any intellectual property rights, unless specifically stated otherwise in this Contract.
-                </p></> : ''}
-        </p>
-        <p>
-            <strong>5. REPRESENTATIONS.</strong>
-        </p>
-        <p>
+                            </li>
+                        </ol>
 
-            <strong>5.1 Overview.</strong> This section contains important promises between the parties.
-        </p>
-        <p>
+                    </li>
+                    <li>
+                        <p>
+                            <span className="font-gilroy-bold">ENGAGEMENT AND SERVICES:</span>
+                            <br></br>
 
-            <strong>5.2 Authority To Sign.</strong> Each party promises to the other party that it has the authority to enter into this Contract and to perform all of its obligations under this Contract.
-        </p>
-        <p>
+                            <ol type="a">
+                                <li>
+                                    The Employer hereby agrees that the Service Provider provides the Services as set forth in <b>‘Exhibit A’</b> attached hereto.
+                                </li>
+                                <li>
+                                    All the Services to be provided by the Service Provider shall be performed with promptness and diligence in a manner as so specified by the Employer and as agreed upon by the Parties under Exhibit B (as defined hereunder).
+                                </li>
+                                <li>
+                                    If Proof of Work is not communicated via the Neutron platform, the Neutron platform shall be obligated to furnish documentary evidence of the service agreement and its particulars as detailed in Clause 26 C, to the best of its abilities.
+                                </li>
+                                <li>
+                                    The completeness of the Services and work product shall be determined by the Employer in its sole discretion, and the Service Provider agrees to make a maximum of <ScopeOfWorkRedirect>{allContractFields.revisions}</ScopeOfWorkRedirect> revisions, additions, deletions, or alterations as requested by the Employer.
+                                </li>
+                            </ol>
 
-            <strong>5.3 Contractor Has Right To Give Client Work Product.</strong> The Contractor promises that it owns the work product, that the Contractor is able to give the work product to the Client, and that no other party will claim that it owns the work product. If the Contractor uses employees or subcontractors, the Contractor also promises that these employees and subcontractors have signed contracts with the Contractor giving the Contractor any rights that the employees or subcontractors have related to the Contractor's background IP and work product.
-        </p>
-        <p>
 
-            <strong>5.4 Contractor Will Comply With Laws.</strong> The Contractor promises that the manner it does this job, its work product, and any background IP it uses comply with applicable U.S. and foreign laws and regulations.
-        </p>
-        <p>
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            <span className="font-gilroy-bold">TOOLS, INSTRUMENTS AND EQUIPMENT:</span>
+                            <br></br>
 
-            <strong>5.5 Work Product Does Not Infringe.</strong> The Contractor promises that its work product does not and will not infringe on someone else’s intellectual property rights, that the Contractor has the right to let the Client use the background IP, and that this Contract does not and will not violate any contract that the Contractor has entered into or will enter into with someone else.
-        </p>
-        <p>
+                            The Service Provider undertakes and agrees to provide the Service Provider’s own tools, instruments, equipment and property in furtherance of the provision and performance of the Services.
 
-            <strong>5.6 Client Will Review Work.</strong> The Client promises to review the work product, to be reasonably available to the Contractor if the Contractor has questions regarding this project, and to provide timely feedback and decisions.
-        </p>
-        <p>
+                            If the Service Provider so requires, the Employer shall provide such access to its information, personnel, property, tools, instruments and equipment as may be reasonable, in order to permit the Service Provider to perform and complete their Services.
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            <span className="font-gilroy-bold">REPRESENTATION AND WARRANTY:</span>
+                            <br></br>
 
-            <strong>5.7 Client-Supplied Material Does Not Infringe.</strong> If the Client provides the Contractor with material to incorporate into the work product, the Client promises that this material does not infringe on someone else’s intellectual property rights.
-        </p>
-        <p>
-            <strong>6. TERM AND TERMINATION.</strong> This Contract {data?.endDate || data?.endCondition}. Either party may end this Contract for any reason by filing a cancellation request on Neutron, informing the counterparty that the sender is ending the Contract and that the Contract will end in {data?.contractNotice}. The Contract officially ends once that time has passed. The party that is ending the Contract must provide notice by taking the steps explained in Clause 9.6. The Contractor must immediately stop working as soon as it receives this notice, unless the notice says otherwise. {data?.basePayCondition} The following Sections shall survive the termination of the Contract: 5 (Representations); 7 (Confidential Information); 8 (Liability & Indemnity); and 9 (General).
-        </p>
-        <p>
-            <strong>7. CONFIDENTIAL INFORMATION.</strong>
-        </p>
-        <p>
 
-            <strong>7.1 Overview.</strong> This Contract imposes special restrictions on how the Client and the Contractor must handle confidential information. These obligations are explained in this section.
-        </p>
-        <p>
+                            The Service Provider hereby represents and warrants to the Employer that they are under no contractual duties, obligations, restrictions, or covenants which are inconsistent with the execution of their duties and obligations under this Agreement or which will interfere with the performance of the Services.
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            <span className="font-gilroy-bold">COMPENSATION:</span>
+                            <br></br>
 
-            <strong>7.2 The Client’s Confidential Information.</strong> While working for the Client, the Contractor may come across, or be given, Client information that is confidential. This is information like customer lists, business strategies, research & development notes, statistics about a website, and other information that is private. The Contractor promises to treat this information as if it is the Contractor's own confidential information. The Contractor may use this information to do its job under this Contract, but not for anything else. For example, if the Client lets the Contractor use a customer list to send out a newsletter, the Contractor cannot use those email addresses for any other purpose. The one exception to this is if the Client gives the Contractor written permission to use the information for another purpose, the Contractor may use the information for that purpose, as well. When this Contract ends, the Contractor must give back or destroy all confidential information, and confirm that it has done so. The Contractor promises that it will not share confidential information with a third party, unless the Client gives the Contractor written permission first. The Contractor must continue to follow these obligations, even after the Contract ends. The Contractor's responsibilities only stop if the Contractor can show any of the following: (i) that the information was already public when the Contractor came across it; (ii) the information became public after the Contractor came across it, but not because of anything the Contractor did or didn’t do; (iii) the Contractor already knew the information when the Contractor came across it and the Contractor didn’t have any obligation to keep it secret; (iv) a third party provided the Contractor with the information without requiring that the Contractor keep it a secret; or (v) the Contractor created the information on its own, without using anything belonging to the Client.
-        </p>
-        <p>
+                            The Service Provider shall be entitled to a total compensation amount of   INR <PaymentAndMilestonesRedirect>{allContractFields.totalValue}</PaymentAndMilestonesRedirect>/- (Rupees	) for the   Services so rendered. This total compensation shall either be disbursed in lump sum or in parts upon the successful completion of specific milestones of the Services in the manner as set forth specifically in the Payment and Progress Schedule annexed as ‘Exhibit B’ hereunder. No other fee or expenses shall be paid to the Service Provider unless the Employer has approved such fee or expenses in writing.
 
-            <strong>7.3 Third-Party Confidential Information.</strong> It’s possible the Client and the Contractor each have access to confidential information that belongs to third parties. The Client and the Contractor each promise that it will not share with the other party confidential information that belongs to third parties, unless it is allowed to do so. If the Client or the Contractor is allowed to share confidential information with the other party and does so, the sharing party promises to tell the other party in writing of any special restrictions regarding that information.
-        </p>
-        <p>
-            <strong>8. LIABILITY & INDEMNITY.</strong>
-        </p>
-        <p>
+                            Time is of the essence with respect to payment for the Services and it is an essential condition to this Agreement. The Service Provider shall be entitled to terminate the Agreement upon non-payment for the said Services or for specific milestones, as under Exhibit B, by the Employer.
 
-            <strong>8.1 Liability.</strong> Neither party shall have any liability under or be deemed to be in breach of this Agreement for any delays or failures in performance of this Agreement which result from any event of Force Majeure. The party affected by such an event shall promptly notify the other party in writing as soon as reasonably practicable when such an event causes a delay or failure in performance and when it ceases to do so.
-        </p>
-        <p>
+                            If the Employer disputes any compensation for the Services, the Employer shall notify the Service Provider in writing/email communication/ via the Neutron platform and will submit such dispute to the Service Provider as soon as it is aware of the dispute, but in no event later than fourteen (14) days from when the said compensation for the Services is payable. The Employer agrees to pay the full compensation as under Exhibit B, except for pending the resolution of such dispute. The Service Provider will respond to The Employer’s written dispute within fourteen (14) days of receipt of such dispute and initiate actions as laid down in Clause 26 herein.
 
-            <strong>8.2 Client Indemnity.</strong> In this Contract, the Contractor agrees to indemnify the Client (and its affiliates and their directors, officers, employees, and agents) from and against all liabilities, losses, damages, and expenses (including reasonable attorneys’ fees) related to a third-party claim or proceeding arising out of: (i) the work the Contractor has done under this Contract; (ii) a breach by the Contractor of its obligations under this Contract; or (iii) a breach by the Contractor of the promises it is making in Section 5 (Representations).
-        </p>
-        <p>
+                            The Service Provider acknowledges and agrees that if they fail to adequately complete the work as under Exhibit B and if they fail to address disputes (if any) raised by the Employer, the Employer has the sole right to cancel this Agreement. The Employer must pay Service Provider  [minimum base pay] as specified under Exhibit B, regardless of the proportion of the Services completed till date.
 
-            <strong>8.3 Contractor Indemnity.</strong> In this Contract, the Client agrees to indemnify the Contractor (and its affiliates and their directors, officers, employees, and agents) from and against liabilities, losses, damages, and expenses (including reasonable attorneys’ fees) related to a third-party claim or proceeding arising out of a breach by the Client of its obligations under this Contract.
-        </p>
-        <p>
-            <strong>9. GENERAL.</strong>
-        </p>
-        <p>
+                            If the Service Provider fails to meet the work deadline, they must contact the Employer to request a deadline extension at least 24 hours prior to the due date and the extensions may be granted as under Clause 2(B) of the Agreement.
 
-            <strong>9.1 Dispute Resolution.</strong> If any dispute arises between the parties out of or in connection with this Contract, the matter shall be referred to the authorised representatives of each party who shall use their reasonable endeavors to resolve it within 20 Business Days.
-        </p>
-        <p>
+                            The Service Provider shall be solely responsible for any and all taxes, social security contributions or payments, disability insurance, unemployment taxes, and other payroll type taxes or other legal requirements applicable to such compensation or to the Service Provider.
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            <span className="font-gilroy-bold">RELATIONSHIP BETWEEN THE EMPLOYER AND THE SERVICE PROVIDER:</span>
+                            <br></br>
 
-            <strong>9.2 Mediation.</strong> If the dispute is not resolved after the procedure set out under Clause 9.1 is completed, or if the authorised representative(s) of either or both parties made no attempt to resolve such dispute, the parties shall resolve the matter through mediation in accordance with the Mediation Rules of the Singapore International Mediation Centre for the time being in force.
-        </p>
-        <p>
+                            The Service Provider is an independent contractor as defined above.
+                            The Service Provider is not authorized to act on behalf of the Employer. <br></br> While the Employer is entitled to provide the Service Provider with general guidance to assist the Service Provider in completing the Services to the Employer’s satisfaction, nevertheless the Service Provider is ultimately responsible for directing and controlling the performance of the task comprising the scope of Services, in accordance with the terms and conditions of this Agreement.
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            <span className="font-gilroy-bold">OBLIGATIONS AND WARRANTIES OF SERVICE PROVIDER:</span>
+                            <br></br>
 
-            <strong>9.3 Arbitration.</strong> The seat of the arbitration shall be Singapore. The Tribunal shall consist of one (01) arbitrator, as agreed between parties. The language of arbitration shall be English.
-        </p>
-        <p>
+                            Upon submitting the Services to the Employer, Service Provider represents and warrants that the Services (or any part of it):
+                            <ol type="a">
+                                <li>
+                                    is plagiarism-free and original (is not owned by any third party fully or partially);
+                                </li>
+                                <li>
+                                    complies with all requirements provided by the Employer and as specified in Exhibit A;
+                                </li>
+                                <li>
+                                    has not been obtained by unlawful means;
+                                </li>
+                            </ol>
+                            The Service Provider acknowledges and agrees that the Services must conform to general standards as determined by the Employer.
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            <span className="font-gilroy-bold">OBLIGATIONS AND WARRANTIES OF THE EMPLOYER:</span>
+                            <br></br>
 
-            <strong>9.4 Variation.</strong> No Clause In this Contract may be changed, waived, discharged, or discontinued, except by an instrument in writing signed on behalf of the Parties.
-        </p>
-        <p>
+                            The Employer warrants and undertakes to the Service Provider –
+                            <ol type="a">
+                                <li>
+                                    to provide all such reasonable information required for the provision of Services;
+                                </li>
+                                <li>
+                                    to comply with the referred and undisputed terms of compensation as under Clause 2 of this Agreement;
+                                </li>
+                                <li>
+                                    to duly inform the Service Provider in advance of revisions (if any) to be made in the scope of Services;
+                                </li>
+                                <li>
+                                    destroy all confidential information in relation to the Service Provider, post the termination of this agreement, whatever the reason may be for such termination.
+                                </li>
+                            </ol>
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            <span className="font-gilroy-bold">TERM:</span>
+                            <br></br>
 
-            <strong>9.5 Waiver.</strong> Neither party can waive its rights under this Contract or release the other party from its obligations under this Contract, unless the waiving party acknowledges it is doing so in writing and signs a document that says so.
-        </p>
-        <p>
+                            The Services to be provided under this Agreement shall be for the period commencing with effect from <ClientInformationRedirect>{allContractFields.startDate}</ClientInformationRedirect> to <ClientInformationRedirect>{allContractFields.endDate}</ClientInformationRedirect>, and shall continue in force upto the completion of provision of the Services unless a notice of termination is given by either party as per Clause 10 hereunder.
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            <span className="font-gilroy-bold">TERMINATION:</span>
+                            <br></br>
 
-            <strong>9.6 Notices.</strong>
-        </p>
-        <p>
+                            Either party may apply to the Neutron platform for termination of this Agreement by providing the other party adequate notice communicated via the Neutron platform if the other Party:
+                            <ol type="a">
+                                <li>is in material breach of this Agreement and has failed to acknowledge such breach within fourteen (14) days after its receipt of written notice of such breach provided by the non-breaching Party;</li>
+                                <li>engages in any unlawful business practice related to that Party's performance under the Agreement; or</li>
+                                <li>files a petition for bankruptcy, becomes insolvent, acknowledges its insolvency in any manner, makes an assignment for the benefit of its creditors, or has a receiver, trustee or similar party appointed for its property. In such case, the Parties shall give a notice of 1 (one) month prior to termination.</li>
+                            </ol>
+                            <b>Upon proper verification of the application and cause for termination from both parties, the termination request will be processed by the Neutron platform.</b>
 
-            (a) A notice, demand or other communication shall be deemed to be received (if by email) when despatched and a report indicating successful transmission or receipt to the intended email is received, (if by hand) when left at the address required by this Clause or (if sent by registered post) within 10 Business Days after being sent by registered post to the addressee in each case in the manner set out in this Clause.
-        </p>
-        <p>
+                        </p>
+                    </li>
+                    <li>
+                        <span className="font-gilroy-bold">CONSEQUENCES OF TERMINATION:</span>
+                        <br></br>
 
-            (b) The timing of when a notice is received can be very important. To avoid confusion, a valid notice is considered received as follows: (i) if delivered personally, it is considered received immediately; (ii) if delivered by email, it is considered received upon acknowledgement of receipt; (iii) if delivered by registered or certified mail (postage prepaid, return receipt requested), it is considered received upon receipt as indicated by the date on the signed receipt. If a party refuses to accept notice or if notice cannot be delivered because of a change in address for which no notice was given, then it is considered received when the notice is rejected or unable to be delivered. If the notice is received after 5:00pm on a business day at the location specified in the address for that party, or on a day that is not a business day, then the notice is considered received at 9:00am on the next business day.
-        </p>
-        <p>
+                        In the event the Employer terminates this Agreement prior to the completion of Services and subsequent to the provision of notice as communicated via the Neutron platform, the Neutron platform will release any unprocessed funds back to the Employer. However, the Freelancer will be entitled to receive a minimum amount of compensation as agreed upon by both Parties and as stipulated in Exhibit B.
 
-            (c) If the notice is received after 5:00pm on a business day at the location specified in the address for that party, or on a day that is not a business day, then the notice is considered received at 9:00am on the next business day.
-        </p>
-        <p>
+                        In the event the Freelancer terminates this Agreement prior to the completion of Services and subsequent to provision of notice communicated via the Neutron platform, the Freelancer will be entitled to receive compensation for the Services rendered till such date of termination (if any) as agreed upon by both Parties and as stipulated in Exhibit B.
 
-            <strong>9.7 Severability.</strong> This section deals with what happens if a portion of the Contract is found to be unenforceable. If that’s the case, the unenforceable portion will be changed to the minimum extent necessary to make it enforceable, unless that change is not permitted by law, in which case the portion will be disregarded. If any portion of the Contract is changed or disregarded because it is unenforceable, the rest of the Contract is still enforceable.
-        </p>
-        <p>
+                    </li>
+                    <li>
+                        <span className="font-gilroy-bold">CONFIDENTIAL INFORMATION:</span>
+                        <br></br>
 
-            <strong>9.8 Signatures.</strong> The Client and the Contractor must sign this document using Bonsai's e-signing system. These electronic signatures count as originals for all purposes.
-        </p>
-        <p>
+                        The Employer owns and may develop, compile and own certain proprietary techniques, trade secrets, and confidential information, which are very valuable to the Employer (collectively, “Confidential Information”). Confidential Information includes, but is not limited to, details of customers and business contacts, developments, designs, inventions, software, techniques, know-how, data, marketing, sales or other business information, scripts, costs and resources, tools used; and all derivatives or improvements to any of the above.
 
-            <strong>9.9 Governing Law.</strong> This Agreement and any disputes or claims arising out of or in connection with it or its subject matter or formation shall be governed by and construed in accordance with the laws of the Republic of Singapore, and each Party hereby irrevocably agrees that the courts of the Republic of Singapore shall have the non-exclusive jurisdiction to settle any such disputes or claims.
-        </p>
-        <p>
+                        For the purpose of this section, Confidential Information is any information relating to the Employer that is not accessible by the general public and includes not only information disclosed by the Employer, but also information developed or learned by the Service Provider during the Service Provider's performance of the Services. Employer Information is to be broadly defined and includes all information, which has or could have commercial value or other utility in the business that the Employer is or may be engaged in and the unauthorized disclosure of which could be detrimental to the interests of the Employer, whether or not such information is identified by the Employer. The Employer may also disclose this Confidential Information to the Service Provider during the Service Provider's performance of the Services.
+                    </li>
+                    <li>
+                        <span className="font-gilroy-bold">NON-DISCLOSURE AND PROTECTION:</span>
+                        <br></br>
 
-            <strong>9.10 Entire Contract.</strong> This Contract contains the entire agreement between the Parties and shall supersede and replace any prior written or oral agreements, representations, or understandings between them. Each Party hereby confirms that it has not entered into this Agreement on the basis of any representation that is not expressly incorporated into this Agreement. Nothing in this Agreement excludes liability for fraud.
-        </p>
-        <p>
-            THE PARTIES HERETO AGREE TO THE FOREGOING AS EVIDENCED BY THEIR SIGNATURES BELOW.
-        </p>
-        <p>
-            sdsd
-        </p>
-        <p>
-            {data?.providerName}, Owner
-        </p>
-        <p>
-            {data?.clientName}
-        </p>
-    </article></div>);
+                        The Service Provider agrees that at all times during or subsequent to the performance of the Services, the Service Provider will keep confidential and not disclose or cause to be disclosed, publish, disseminate or otherwise make available or use Confidential Information, except for the Service Provider's own use during the Term of this Agreement and only to the extent necessary to perform the Services. The Service Provider shall not remove or cause to be removed tangible embodiments of, or electronic files containing, Confidential Information from the Employer, without express prior written approval of the Employer.
+
+
+                    </li>
+                    <li>
+                        <span className="font-gilroy-bold">DISCLAIMER:</span>
+                        <br></br>
+
+                        Except as expressly set forth herein, both Parties hereby disclaim all warranties to each other and all third parties with respect to express, implied, statutory warranties including, without limitation, with respect to the services or deliverables (and all portion or components thereof), implied warranties of merchantability, quality, non-infringement, and fitness for a purpose.
+                        This Agreement constitutes a legal, valid, and binding obligation, enforceable against the Parties in accordance with its terms. Save for the representations and warranties set forth in this Agreement, there are no other representations express or implied, and specifically there are no implied representations or warranties of merchantability or fitness for a particular purpose.
+
+                    </li>
+                    <li>
+                        <span className="font-gilroy-bold">REMEDIES:</span>
+                        <br></br>
+
+                        Notwithstanding anything contained herein, the Service Provider acknowledges that a breach of any of the covenants contained in this Agreement could result in injury to the Employer and that, in the event of such a breach or threat thereof, the Employer shall be entitled to obtain remedies available under Applicable Law including but not limited to injunctive relief through any court of competent jurisdiction. The injunctive remedies are cumulative and are in addition to any other rights and remedies that the Employer may have at law or in equity.
+
+                    </li>
+                    <li>
+                        <span className="font-gilroy-bold">SERVICE PROVIDER’S LIMITATION OF LIABILITY:</span>
+                        <br></br>
+
+                        Except for Service Provider’s confidentiality and indemnity obligations, respectively, and except for actions or claims arising from gross negligence or intentional or willful misconduct, the Service Provider’s total liability to Employer shall not exceed the greater of –
+
+                        <ol type="a">
+                            <li>the total compensation value for the Services as agreed upon under Clause 5 of this Agreement; or
+                            </li>
+                            <li>
+                                the amount of recoverable insurance, regardless of whether any action or claim is based upon contract, warranty, tort (including negligence) or strict liability.
+                            </li>
+                        </ol>
+                    </li>
+                    <li>
+                        <span className="font-gilroy-bold">FORCE MAJEURE:</span>
+                        <br></br>
+
+                        No Party shall be liable or responsible to the other Party, nor be deemed to have defaulted under or breached this Agreement, for any failure or delay in fulfilling or performing any term of this Agreement (except for any obligations to make previously owed payments to the other party hereunder) when and to the extent such failure or delay is caused by or results from acts beyond the impacted Party’s (“Impacted Party”) reasonable control, including, without limitation, the following force majeure events (“Force Majeure Event(s)”) that frustrates the purpose of this Agreement: (a) acts of God; (b) flood, fire, earthquake or explosion; (c) war, invasion, hostilities (whether war is declared or not), terrorist threats or acts, riot or other civil unrest; (d) government order or law; (e) actions, embargoes or blockades in effect on or after the date of this Agreement; (f) action by any governmental authority; (g) national or regional emergency; (h) strikes, labor stoppages or slowdowns or other industrial disturbances; (i) epidemic, pandemic or similar influenza or bacterial infection (like COVID or infection that may cause global outbreak, or pandemic, or serious illness); (j) emergency state; (k) shortage of adequate medical supplies and equipment; (l) shortage of power or transportation facilities; and (m) other similar events beyond the reasonable control of the Impacted Party.
+                    </li>
+                    <li>
+                        <span className="font-gilroy-bold">NON-ASSIGNMENT</span>
+                        <br></br>
+
+                        The interests of the Service Provider under this Agreement are not subject to the claims of his creditors and may not be voluntarily or involuntarily assigned, alienated or encumbered.
+                    </li>
+                    <li>
+                        <span className="font-gilroy-bold">INDEMNIFICATION:</span>
+                        <br></br>
+                        <ol type="a">
+                            <li>
+                                The Service Provider shall indemnify the Employer against any and all expenses, including amounts paid upon judgments, counsel fees, environmental penalties and fines, and amounts paid in settlement (before or after suit is commenced), incurred by the employer in connection with his/her defense or settlement of any claim, action, suit or proceeding in which he/she is made a party or which may be asserted against his/her by reason of his/her employment or the performance of duties in this Agreement. Such indemnification shall be in addition to any other rights to which those indemnified may be entitled under any law, by-law, agreement, or otherwise.
+
+                            </li>
+                            <li>
+                                The Employer shall indemnify the Service Provider against any and all expenses, including amounts paid upon judgments, counsel fees, environmental penalties and fines, and amounts paid in settlement (before or after suit is commenced), incurred by the Service Provider in connection with his/her defense or settlement of any claim, action, suit or proceeding in which he/she is made a party or which may be asserted against his/her by reason of his/her employment or the performance of duties in this Agreement. Such indemnification shall be in addition to any other rights to which those indemnified may be entitled under any law, by-law, agreement, or otherwise
+                            </li>
+                        </ol>
+                    </li>
+                    <li>
+                        <span className="font-gilroy-bold">MODIFICATION:</span>
+                        Any modification of this Agreement or additional obligation assumed by either party in connection with this Agreement shall be binding only if evidenced in writing signed by each party or an authorized representative of each party.
+                    </li>
+                    <li>
+                        <span className="font-gilroy-bold">ENTIRE AGREEMENT:</span>
+                        This Agreement constitutes the sole and entire agreement between the parties with respect to the Confidential Information and all restrictions thereon; it supersedes all prior or contemporaneous oral or written agreements except any NDA executed before this agreement, negotiations, communications, understandings and terms, whether express or implied regarding the Confidential Information, and may not be amended except in a writing signed by a duly authorized representative of the respective parties. Any other agreements between the parties, including non-disclosure agreements, will not be affected by this Agreement.
+                    </li>
+                    <li>
+                        <span className="font-gilroy-bold">ELECTRONIC SIGNATURES:</span>
+                        The words “execution,” “execute,” “signed,” “signature,” and words of like import in or related to this Agreement or any other document to be signed in connection with this Agreement and the transactions contemplated hereby shall be deemed to include electronic signatures, the electronic matching of assignment terms and contract formations on electronic platforms or the keeping of records in electronic form. Any signature (including any electronic symbol or process attached to, or associated with, a contract or other record and adopted by a person with the intent to sign, authenticate or accept such contract or record) hereto or to any other certificate, agreement or document related to this transaction, and any contract formation each of which shall be of the same legal effect, validity or enforceability as a manually executed signature or the use of a paper-based recordkeeping system, as the case may be, to the extent and as provided for in any applicable law, including the Information Technology Act, 2000.
+                    </li>
+                    <li>
+                        <span className="font-gilroy-bold">SEVERABILITY:</span>
+                        Each paragraph of this agreement shall be and remain separate from and independent of and severable from all and any other paragraphs herein except where otherwise indicated by the context of the agreement. The decision or declaration that one or more of the paragraphs are null and void shall have no effect on the remaining paragraphs of this agreement.
+                    </li>
+                    <li>
+                        <span className="font-gilroy-bold">NO WAIVER:</span>
+                        The failure of either Party to enforce any right resulting from breach of any provision of this Agreement by the other party will not be deemed a waiver of any right relating to a subsequent breach of such provision or of any other right hereunder.
+                    </li>
+                    <li>
+                        <span className="font-gilroy-bold">SURVIVAL:</span>
+                        Any terms and conditions that by their nature or otherwise reasonably should survive cancellation or termination of this Agreement shall be deemed to survive the cancellation or termination of this Agreement. Such terms and conditions include, but are not limited to, Term and Termination (Clause 9 and Clause 10), Confidentiality Obligations (Clause 12), Limitation of Liability (Clause 16), Governing Law and Jurisdiction (Clause 26), Indemnity (Clause 19 ) and Severability (Clause 23).
+                    </li>
+                    <li id="dispute-resolution">
+                        <span className="font-gilroy-bold">GOVERNING LAW AND DISPUTE RESOLUTION:</span>
+                        <ol>
+                            <li>
+                                This Agreement shall be governed by and construed in accordance with the laws of India. Each party hereby irrevocably submits that this Agreement will be governed by the laws of India without reference to conflict of law principles if any. Any disputes arising from this Agreement shall be subject to the jurisdiction of the courts in Bengaluru, Karnataka.
+                            </li>
+                            <li>
+                                If any dispute arises in connection with this Agreement including its validity, interpretation, execution, or alleged breach of any provision of this Agreement (“Dispute”), the disputing parties hereto shall endeavor to settle such Dispute amicably through the Neutron platform. The attempt to bring about an amicable settlement shall be considered to have failed if not resolved within 14 calendar days from the date of the Dispute.
+                            </li>
+                            <li>
+                                In relation to a Dispute that may arise as aforementioned, the Neutron platform shall assist the Parties towards an amicable settlement and shall further provide all such necessary documentary/digital evidence or proofs as requested by the Parties, in furtherance of amicably settling such Dispute between the Parties.
+                            </li>
+                            <li>
+                                In the event such Dispute is not resolved within a period of six (6) months from the day on which the Dispute arose, this Agreement will be rendered null and void by the Neutron Platform and any and all funds held by the Neutron platform will be returned to the Employer.
+                            </li>
+                            <li>
+                                The Parties shall be entitled to refer any Dispute to arbitration upon the application of any Party, and finally settle such Dispute by a sole arbitrator to be mutually appointed by both Parties. The seat of the arbitration shall be Bengaluru, Republic of India.
+                            </li>
+                            <li>
+                                In case the Parties are unable to agree on a sole arbitrator, each of the Parties shall appoint 1 arbitrator each and the 2 arbitrators so appointed shall appoint a 3rd presiding arbitrator. The arbitration proceedings shall be conducted in English in accordance with the terms of the Arbitration and Conciliation Act, 1996.
+                            </li>
+                        </ol>
+                    </li>
+                    <li>
+                        <span className="font-gilroy-bold">COUNTERPARTS:</span>
+                        The Agreement may be executed in two or more counterparts, any one of which shall be deemed the original without reference to the others.
+                    </li>
+
+                </ol>
+            </p>
+
+
+
+            <span className="font-gilroy-black">IN WITNESS WHEREOF THE PARTIES HAVE HEREUNTO SET THEIR HANDS AND SEALS THE DAY AND YEAR FIRST ABOVE WRITTEN</span>
+
+
+
+            <div className="flex flex-row w-full justify-between">
+                <div className="font-gilroy-bold">
+                    Signed, Sealed and Delivered by:
+                    <br>
+                    </br>
+                    (Service Provider)
+                    <br>
+                    </br>
+                    Name: <span className="font-gilroy-bold text-purple-600"> Service Provider's signature goes here</span>
+                    <br>
+                    </br>
+                    Date:
+                </div>
+                <div className="font-gilroy-bold">
+                    Signed, Sealed and Delivered by:
+                    <br>
+                    </br>
+
+                    (The Employer)
+                    <br>
+                    </br>
+                    Name: <span className="font-gilroy-bold text-purple-600"> Employer's signature goes here</span>
+                    <br>
+                    </br>
+                    Date:
+
+                </div>
+
+            </div>
+
+
+            <p id="scope-of-work">
+                <b>‘EXHIBIT A’</b>
+                <br></br>
+                <span className="font-gilroy-bold">DESCRIPTION OF SERVICES</span>
+                <br>
+                </br>
+                The Service Provider hereby agrees to provide the following services in accordance with the terms defined in this document, pursuant to all aforementioned clauses and any explicitly enforceable claims.
+                <ol>
+                    <ScopeOfWorkRedirect>{allContractFields.description}</ScopeOfWorkRedirect>
+
+                </ol>
+
+                <b>The Service Provider resolves to provide Proof of Work towards the completion of the aforementioned services, within the agreement end date mentioned in Clause 9 OR within the specific milestone end dates as outlined in Exhibit B.</b>
+            </p>
+
+            <p id="exhibit-b">
+                <b>‘EXHIBIT B’</b>
+                <br>
+                </br>
+                <span className="font-gilroy-bold">SCHEDULE FOR COMPENSATION AND PROOF OF WORK</span>
+                <br></br>
+                Compensation for the Services shall be disbursed to the Service Provider by the Employer, in accordance with the terms specified in Clause 3 and will be paid out according in the following manner:
+
+                <ol>
+                    <PaymentAndMilestonesRedirect>{
+                        generateMilestonesForContract()
+                    }</PaymentAndMilestonesRedirect>
+
+                </ol>
+            </p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        </article>
+
+    </div >);
 }

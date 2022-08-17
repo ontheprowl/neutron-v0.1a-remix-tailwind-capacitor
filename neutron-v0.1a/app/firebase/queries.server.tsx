@@ -1,14 +1,14 @@
-import { json, redirect } from "@remix-run/server-runtime";
-import { push, ref, set } from "firebase/database";
+import { equalTo, get, onChildAdded, onValue, orderByChild, push, query, QueryConstraint, ref, set } from "firebase/database";
 
-import { getDocs, collection, DocumentData, addDoc, setDoc, doc, getDoc, DocumentReference, deleteDoc } from "firebase/firestore";
-import { toolresults_v1beta3 } from "googleapis";
+import { getDocs, collection, DocumentData, addDoc, setDoc, doc, getDoc, DocumentReference, deleteDoc, updateDoc } from "firebase/firestore";
+import { Stringifier } from "postcss";
 import { db, firestore } from "~/firebase/neutron-config.server";
+import { EventType, NeutronEvent } from "~/models/events";
 
 
 
-export async function getFirebaseDocs(collectionName: string, onlyKeys?: boolean): Promise<DocumentData[]> {
-    const querySnapshot = await getDocs(collection(firestore, collectionName));
+export async function getFirebaseDocs(collectionName: string, onlyKeys?: boolean, path?: string): Promise<DocumentData[]> {
+    const querySnapshot = await getDocs(collection(firestore, collectionName, path ? path : ''));
     const result: any[] = []
 
     if (onlyKeys) {
@@ -18,7 +18,7 @@ export async function getFirebaseDocs(collectionName: string, onlyKeys?: boolean
     }
     else {
         querySnapshot.forEach((doc) => {
-            result.push({id: doc.id, data: doc.data()});
+            result.push({ id: doc.id, data: doc.data() });
         });
     }
 
@@ -41,7 +41,7 @@ export async function setFirestoreDocFromData(data: any, collectionName: string,
 
     const docRef = doc(firestore, `${collectionName}/${path}`)
     await setDoc(docRef, data);
-    console.log(`Object added to firestore with id ${docRef}`);
+    console.log(`Object added to firestore with id ${docRef.id}`);
     return docRef;
 }
 
@@ -71,4 +71,85 @@ export async function sendChatMessage(message: string, from: string, to: string)
     }
 
 
+}
+
+
+export async function sendEvent(eventData: NeutronEvent) {
+
+    try {
+        const result = await set(push(ref(db, 'events/' + eventData.type)), { ...eventData, timestamp: new Date().toUTCString() })
+        return true
+    }
+    catch (e) {
+        throw e
+    }
+}
+
+export async function fetchEvents(type: EventType, id?: string, byUser?: boolean): Promise<NeutronEvent[]> {
+    let eventsQuery
+    console.log(`THE UID for the fetchEvents call is ${id}`)
+    if (id) {
+        if (byUser) {
+            eventsQuery = query(ref(db, 'events/' + type), orderByChild("uid"), equalTo(id));
+        }
+        else {
+            eventsQuery = query(ref(db, 'events/' + type), orderByChild("id"), equalTo(id));
+        }
+    } else {
+        eventsQuery = query(ref(db, 'events/' + type));
+    }
+    let fetchedEvents: NeutronEvent[] = []
+
+    try {
+        onValue(eventsQuery, (snapshot) => {
+            const events = snapshot.val();
+            if (events) {
+                for (const [key, value] of Object.entries(events)) {
+                    fetchedEvents.push(value)
+                }
+            }
+
+        }, (error) => {
+            console.log("EVENT SUBSCRIPTION FAILED DUE TO :" + error)
+        })
+        // const snapshot = await get(eventsQuery)
+        // const events = snapshot.val();
+        // if (events) {
+        //     for (const [key, value] of Object.entries(events)) {
+        //         fetchedEvents.push(value)
+        //     }
+        // }
+
+        return fetchedEvents;
+    } catch (e) {
+        return []
+    }
+}
+
+
+export async function fetchLatestEvent(type: EventType, uid?: string): Promise<NeutronEvent> {
+    let eventsQuery;
+    if (uid) {
+        eventsQuery = query(ref(db, 'events/' + type), orderByChild("id"), equalTo(uid));
+    }
+    else {
+        eventsQuery = query(ref(db, 'events/' + type));
+    }
+    let fetchedEvent: NeutronEvent;
+    onChildAdded(eventsQuery, (snapshot) => {
+        const event: NeutronEvent = snapshot.val();
+        fetchedEvent = event;
+
+
+    }, (error) => {
+        console.log("EVENT SUBSCRIPTION FAILED DUE TO :" + error)
+    })
+    return fetchedEvent;
+}
+
+
+export async function updateFirestoreDocFromData(data: any, collectionName: string, path: string): Promise<DocumentReference<any>> {
+    const updatedDocRef = doc(firestore, collectionName, path)
+    await updateDoc(updatedDocRef, data)
+    return updatedDocRef
 }
