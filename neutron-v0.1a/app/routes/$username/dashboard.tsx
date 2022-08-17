@@ -27,6 +27,8 @@ import { requireUser } from '~/session.server';
 import { UserState } from '~/models/user';
 import ContractZeroState from '~/components/layout/ContractZeroState';
 import { ContractDraftedStatus, ContractPublishedStatus, StatusGenerator } from '~/components/layout/Statuses';
+import { toast, ToastContainer } from 'react-toastify';
+import { injectStyle } from 'react-toastify/dist/inject-style';
 
 
 export const loader: LoaderFunction = async ({ request, params }) => {
@@ -71,6 +73,10 @@ export const action: ActionFunction = async ({ request }) => {
 export default function Dashboard() {
 
     const fetcher = useFetcher();
+
+    React.useEffect(()=>{
+        injectStyle();
+    })
     const [expanded, setExpanded] = React.useState(false);
     const submit = useSubmit();
     const userData: { contracts: Contract[], disputes: any[], metadata: any, ownerUsername: string } = useLoaderData();
@@ -128,7 +134,7 @@ export default function Dashboard() {
                         <label htmlFor="simple-search" className="sr-only">Search</label>
                         <div className="relative w-full ">
                             <div className="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
-                                <svg className="w-5 h-5 text-white dark:text-black" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path></svg>
+                                <svg className="w-5 h-5 text-white dark:text-black" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd"></path></svg>
                             </div>
                             <input type="text" id="simple-search" className="p-5 bg-bg-primary-dark border border-gray-300 text-gray-900 text-sm rounded-lg placeholder-white block w-full pl-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white " placeholder="Search through contracts" required />
 
@@ -148,8 +154,8 @@ export default function Dashboard() {
                         <p className="prose prose-md text-white break-all sm:text-left font-gilroy-medium text-[18px]">
                             {currentContract?.description}
                         </p>
-                        <h2 className="prose prose-lg text-white mt-5 max-w-[200px] text-[14px] sm:text-left"> Current Status : {currentContract?.status == ContractStatus.Draft ? <ContractDraftedStatus></ContractDraftedStatus> : <ContractPublishedStatus></ContractPublishedStatus>}
-                        </h2>
+                        <span className="prose prose-lg text-white mt-5 max-w-[200px] text-[14px] sm:text-left"> Current Status : {currentContract?.status == ContractStatus.Draft ? <ContractDraftedStatus></ContractDraftedStatus> : <ContractPublishedStatus></ContractPublishedStatus>}
+                        </span>
                         {currentContract?.projectName && currentUserData.email == currentContract.clientEmail ? <PurpleWhiteButton onClick={() => {
                             const payload = structurePayinPayload(currentContract, userData.ownerUsername, currentUserData);
                             const formData = new FormData();
@@ -195,9 +201,9 @@ export default function Dashboard() {
                                     <td><ViewIcon onClick={() => {
                                         navigate(`/${currentUserData?.displayName}/contracts/${contract.id}`)
                                     }} className={''}></ViewIcon></td>
-                                    {contract.status == ContractStatus.Draft && <td><EditIcon onClick={function (event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
+                                    <td><EditIcon onClick={contract.status == ContractStatus.Draft ? () => {
                                         throw new Error('Function not implemented.');
-                                    }} className={''}></EditIcon></td>}
+                                    } : () => { toast("You can't edit a contract once it's published :(", {theme:'dark', type:'info'}) }} className={''}></EditIcon></td>
                                     <td><DeleteIcon onClick={(e) => {
                                         let data = new FormData();
                                         if (contract.id) {
@@ -218,6 +224,19 @@ export default function Dashboard() {
                 </div> : <></>}
 
             </div>
+            <ToastContainer position="bottom-center"
+                autoClose={2000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                theme="dark"
+                limit={1}
+
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover></ToastContainer>
+            <MobileNavbarPadding />
         </div>);
 
 }

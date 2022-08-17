@@ -18,6 +18,7 @@ import { NeutronEvent } from '~/models/events';
 import MobileNavbarPadding from '../layout/MobileNavbarPadding';
 import DisputesChatComponent from '../disputes/DisputesChatComponent';
 import { AnimatePresence, motion } from 'framer-motion';
+import { loader } from '~/routes';
 
 
 function generateDeliverables(milestones: { [key: string]: any }) {
@@ -67,8 +68,7 @@ export default function ContractOverview() {
     console.log("LOADERDATA AT OVERVIEW")
     console.dir(loaderData)
     let data = ContractDataStore.useState();
-    let events;
-    let messages;
+    let events, messages, from, to;
 
     const stage = ContractDataStore.useState(s => s.sidePanelStage);
 
@@ -77,12 +77,13 @@ export default function ContractOverview() {
         data = loaderData.contract;
         events = loaderData.contractEvents;
         messages = loaderData.contractMessages;
-
+        from = loaderData.from;
+        to = loaderData.to;
     }
 
 
     const sidePanelStages = [<MilestoneStepper key={0} ></MilestoneStepper>,
-    <DisputesChatComponent key={1} messages={messages} from="kunal" to="gaurav"></DisputesChatComponent>
+    <DisputesChatComponent key={1} messages={messages} from={from} to={to}></DisputesChatComponent>
     ]
 
 
@@ -95,7 +96,7 @@ export default function ContractOverview() {
             {/*
 Escrow section
 */}
-            <div className="hidden sm:flex sm:flex-row h-14 space-x-5 mb-10">
+            <div className="hidden sm:flex sm:flex-row h-14 space-x-5 mb-6">
                 <div className={`flex flex-row ${primaryGradientDark} w-72 h-full rounded-lg justify-between p-3 items-center`}>
                     <h2 className='prose prose-md text-white'>Total Funds</h2>
                     <h1 className="prose prose-lg text-white text-right"> {data.contractValue}</h1>
@@ -109,7 +110,7 @@ Escrow section
                     <h1 className="prose prose-lg text-white text-right"> <span className="text-purple-400">{data.completedMilestones ? data.completedMilestones : '0'}</span>/{Object.keys(data.milestones?.workMilestones).length}</h1>
                 </div>
             </div>
-            <div className="flex flex-col-reverse sm:flex-row w-auto h-full">
+            <div className="flex flex-col-reverse sm:flex-row w-auto h-full ">
                 <div id="contract-details" className="sm:flex sm:flex-col basis-2/3 w-auto h-auto justify-start rounded-lg bg-bg-primary-dark text-white">
                     <div className="flex flex-row mb-5 sm:justify-start justify-center">
                         <h2>Project Details</h2>
@@ -130,10 +131,10 @@ Escrow section
                         {generateDeliverables(milestones)}
                     </div>
                 </div>
-                <div id="contract-side-panel-section" className="flex flex-col sm:basis-1/3 sm:w-auto w-full mb-5 max-h-[600px] overflow-y-scroll sm:m-5 h-full justify-between bg-bg-secondary-dark  border-solid rounded-xl  text-white">
+                <div id="contract-side-panel-section" className="flex flex-col sm:basis-1/3 sm:w-auto w-full mb-5 max-h-[495px] sm:m-5 sm:mt-0 h-full justify-between bg-bg-secondary-dark  border-solid rounded-xl  text-white">
                     <div onClick={() => setExpanded(!expanded)}
                         className="flex flex-row m-5 justify-between">
-                        <h2 className='prose prose-lg text-purple-500'>{stage==ContractSidePanelStages.ChatsPanel?'Dispute Management' : 'Contract Events'}</h2>
+                        <h2 className='prose prose-lg text-purple-500'>{stage == ContractSidePanelStages.ChatsPanel ? 'Dispute Management' : 'Contract Events'}</h2>
                         {/* <p className=" prose prose-sm text-white">{data.status === ContractStatus.Draft?<ContractDraftedStatus></ContractDraftedStatus>: <ContractPublishedStatus></ContractPublishedStatus>}</p> */}
                         <ExpandArrowButton expanded={expanded}></ExpandArrowButton>
                     </div>

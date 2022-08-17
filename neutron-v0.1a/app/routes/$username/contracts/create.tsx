@@ -10,7 +10,7 @@ import ContractBasicInformation from '~/components/contracts/ContractBasicInform
 import ContractScopeOfWork from '~/components/contracts/ContractScopeOfWork';
 import ContractPaymentDetails from '~/components/contracts/ContractPaymentDetails';
 import ContractEditScreen from '~/components/contracts/ContractEditScreen';
-import { auth, firestore, storage } from '~/firebase/neutron-config.server';
+import { adminAuth, auth, firestore, storage } from '~/firebase/neutron-config.server';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import ContractProcessStepper from '~/components/contracts/ContractProcessStepper';
 import { ActionFunction, LoaderFunction, redirect } from '@remix-run/server-runtime';
@@ -19,7 +19,7 @@ import { getDownloadURL, ref, uploadBytes, uploadBytesResumable, uploadString, U
 import { addDoc, collection } from 'firebase/firestore';
 import { EventEmitter } from 'stream';
 import MobileNavbarPadding from '~/components/layout/MobileNavbarPadding';
-import { addFirestoreDocFromData, sendEvent, setFirestoreDocFromData } from '~/firebase/queries.server';
+import { addFirestoreDocFromData, getFirebaseDocs, sendEvent, setFirestoreDocFromData } from '~/firebase/queries.server';
 import { requireUser } from '~/session.server';
 import { unstable_parseMultipartFormData as parseMultipartFormData } from '@remix-run/server-runtime';
 import createFirebaseStorageFileHandler from '~/firebase/FirebaseUploadHandler';
@@ -36,9 +36,10 @@ const stages = [<ContractClientInformation key={0}></ContractClientInformation>,
 
 export const loader: LoaderFunction = async ({ request }) => {
     const session = await requireUser(request, true);
-
+    const users = await getFirebaseDocs('userUIDS');
+    console.dir(users)
     // const result = await getFirebaseDocs(`users/contracts/${session?.metadata?.id}`)
-    return json(session?.metadata);
+    return json({ metadata: session?.metadata, validEmails: users.map((value) => (value.data.email)), users: users });
 
 }
 
@@ -50,28 +51,20 @@ export const loader: LoaderFunction = async ({ request }) => {
 export const action: ActionFunction = async ({ request }) => {
     const session = await requireUser(request, true);
 
-    console.log(`from the Action Function`);
     const formData = await parseMultipartFormData(request, createFirebaseStorageFileHandler({
         uploadRoutine: generalFilesUploadRoutine, session: session
     }));
 
-    console.log("contract payload")
     const data = {}
     for (const key of formData.keys()) {
         let value = formData.get(key);
-        console.log(`Key : ${key}`)
         if (value?.toString().includes('[') || value?.toString().includes('{')) {
             value = JSON.parse(value)
-            console.log(`Key : ${key} , Value :`)
-            console.dir(value);
         }
-        console.dir(`Value : ${value}`)
         data[key] = value;
     }
 
     const finalContractData = { ...data, }
-    console.dir("FINAL CONTRACT DATA IS : ")
-    console.dir(finalContractData);
 
     if (finalContractData?.isPublished == "true") {
         const contractRef = await addFirestoreDocFromData({ ...data, status: ContractStatus.Published }, `users/contracts`, session?.metadata?.id);
@@ -97,10 +90,12 @@ export default function ContractCreation() {
 
     const submit = useSubmit();
 
-    const user = useLoaderData();
+    const data = useLoaderData();
+
+    const metadata = data.metadata;
+
     const data1 = useActionData();
 
-    console.log(data1);
 
 
     const creator = ContractDataStore.useState(s => s.creator);
@@ -109,11 +104,7 @@ export default function ContractCreation() {
         injectStyle();
     })
 
-    let navigate = useNavigate();
     const stage = ContractDataStore.useState(s => s.stage);
-    ContractDataStore.update(s => {
-        s.providerName = user ? user.email : 'anon';
-    })
     const methods = useForm();
 
     return (
@@ -122,7 +113,7 @@ export default function ContractCreation() {
                 <div className='flex flex-row m-6 mb-2 justify-between'>
                     <div className="flex flex-col">
                         <article className="prose">
-                            <h2 className="text-white prose prose-lg font-gilroy-bold text-[24px]">Welcome {user?.email}</h2>
+                            <h2 className="text-white prose prose-lg font-gilroy-bold text-[24px]">Welcome {metadata?.email}</h2>
                         </article>
                     </div>
                     <div id="user-action-buttons">
@@ -145,16 +136,19 @@ export default function ContractCreation() {
                             const formdata = new FormData();
 
                             //TODO: Creator specific contract 
-                            // if (creator == ContractCreator.IndividualServiceProvider) {
-                            //     data = { ...data, providerEmail: user?.email }
-                            // }
-                            // else {
-                            //     const actualProviderEmail = data.clientEmail;
-                            //     if (actualProviderEmail) {
-                            //         data = { ...data, providerEmail: actualProviderEmail, clientEmail: user?.email }
+                            if (creator == ContractCreator.IndividualServiceProvider) {
+                                console.log("Creator is the service Provider ");
+                                data = { ...data, providerEmail: metadata?.email, providerName: metadata?.firstName + ' ' + metadata?.lastName, creator: creator }
+                                console.dir(data)
 
-                            //     }
-                            // }
+                            }
+                            else {
+                                console.log("The creator is the client ");
+                                data = { ...data, clientEmail: metadata?.email, clientName: metadata?.firstName + ' ' + metadata?.lastName, creator: creator }
+                                console.dir(data)
+
+
+                            }
                             for (const [key, value] of Object.entries(data)) {
 
                                 if (key.includes('attachment')) {

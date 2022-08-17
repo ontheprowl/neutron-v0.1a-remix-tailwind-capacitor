@@ -116,13 +116,10 @@ export default function Login() {
   const data = useLoaderData();
   const actionData = useActionData();
   console.log(actionData)
-  const [rotation, cycleRotation] = useCycle([0, 90, 180, 270, 360]);
   let submit = useSubmit();
   const transition = useTransition();
-  let fetcher = useFetcher();
   const parsedData = JSON.parse(data);
   console.log(parsedData)
-  let navigate = useNavigate();
   // const [user, loading, error] = useAuthState(auth);
 
   const { register, handleSubmit } = useForm();

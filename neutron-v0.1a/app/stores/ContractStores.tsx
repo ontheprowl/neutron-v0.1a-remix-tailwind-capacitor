@@ -7,7 +7,7 @@ import { useAuthState } from "react-firebase-hooks/auth";
 
 export const ContractDataStore = new Store<Contract>({
   stage: ContractCreationStages.ClientInformation,
-  creator: ContractCreator.IndividualServiceProvider,
+  creator: ContractCreator.IndividualClient,
   viewStage: ContractViewStages.Overview,
   sidePanelStage: ContractSidePanelStages.ChatsPanel,
   status: ContractStatus.Draft,

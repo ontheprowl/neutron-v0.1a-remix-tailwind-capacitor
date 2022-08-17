@@ -1,5 +1,5 @@
 import { useFormContext } from "react-hook-form"
-import { Contract, ContractStatus } from "~/models/contracts";
+import { Contract, ContractCreator, ContractStatus } from "~/models/contracts";
 import { animateScroll, Link as ScrollLink } from 'react-scroll';
 import GenericContractTemplate from '~/components/contracts/GenericContractTemplate';
 import TransparentButton from "../inputs/TransparentButton";
@@ -20,6 +20,8 @@ import AccentedToggle from "../layout/AccentedToggleV1";
 export default function ContractEditScreen({ viewMode }: { viewMode?: boolean }) {
     const loaderData = useLoaderData();
     const { username } = useParams();
+
+    const creator = ContractDataStore.useState(s => s.creator);
     let data: Contract = loaderData.contract;
     let events: NeutronEvent[] = loaderData.contractEvents;
 
@@ -37,7 +39,7 @@ export default function ContractEditScreen({ viewMode }: { viewMode?: boolean })
     return (
         <div className="flex flex-col sm:flex-row space-y-5 sm:space-x-10 justify-start">
             <div className="bg-white h-full w-auto basis-2/3 border-2">
-                <GenericContractTemplate></GenericContractTemplate>
+                <GenericContractTemplate viewMode={viewMode}></GenericContractTemplate>
             </div>
             <div className="flex flex-col h-auto w-full basis-1/3 ">
 
@@ -57,7 +59,7 @@ export default function ContractEditScreen({ viewMode }: { viewMode?: boolean })
 
 
                     <div className="flex flex-col space-y-2 w-full">
-                        <div className="flex flex-row space-x-4 items-center">
+                        {!viewMode && <div className="flex flex-row space-x-4 items-center">
                             <AccentedToggle variant="neutron-purple" name={'isPublished'} onToggle={() => {
                                 ContractDataStore.update(s => {
                                     if (s.status == ContractStatus.Draft) {
@@ -74,28 +76,31 @@ export default function ContractEditScreen({ viewMode }: { viewMode?: boolean })
                             </div>
 
 
-                        </div>
+                        </div>}
                         {!viewMode && <FormButton onClick={(e) => {
                             if (e.currentTarget.type != "submit") {
                                 console.log("This contract is being saved to drafts")
                                 console.log("This is the contract creation data")
-                                const data: {
+                                let data: {
                                     [x: string]: any;
                                 } = { ...formMethods.getValues(), isPublished: false };
                                 console.dir(data);
                                 const formdata = new FormData();
 
                                 //TODO: Creator specific contract 
-                                // if (creator == ContractCreator.IndividualServiceProvider) {
-                                //     data = { ...data, providerEmail: user?.email }
-                                // }
-                                // else {
-                                //     const actualProviderEmail = data.clientEmail;
-                                //     if (actualProviderEmail) {
-                                //         data = { ...data, providerEmail: actualProviderEmail, clientEmail: user?.email }
+                                if (creator == ContractCreator.IndividualServiceProvider) {
+                                    console.log("Creator is the service Provider ");
+                                    data = { ...data, providerEmail: metadata?.email, providerName: metadata?.firstName + ' ' + metadata?.lastName, creator: creator }
+                                    console.dir(data)
 
-                                //     }
-                                // }
+                                }
+                                else {
+                                    console.log("The creator is the client ");
+                                    data = { ...data, clientEmail: metadata?.email, clientName: metadata?.firstName + ' ' + metadata?.lastName, creator: creator }
+                                    console.dir(data)
+
+
+                                }
                                 for (const [key, value] of Object.entries(data)) {
 
                                     if (key.includes('attachment')) {
@@ -126,11 +131,11 @@ export default function ContractEditScreen({ viewMode }: { viewMode?: boolean })
 
 
                 </div>
-                {!viewMode && <div className="border-2 border-accent-dark rounded-xl m-5 mt-2">
+                <div className="border-2 border-accent-dark rounded-xl m-5 mt-2">
 
-                    <ContractCustomizationComponent></ContractCustomizationComponent>
+                    <ContractCustomizationComponent viewMode={viewMode}></ContractCustomizationComponent>
 
-                </div>}
+                </div>
                 <MobileNavbarPadding></MobileNavbarPadding>
                 <MobileNavbarPadding></MobileNavbarPadding>
 

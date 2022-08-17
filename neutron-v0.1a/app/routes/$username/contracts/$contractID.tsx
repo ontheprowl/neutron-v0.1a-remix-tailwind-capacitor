@@ -2,7 +2,7 @@ import { Link, useNavigate, useParams } from "@remix-run/react";
 import { ActionFunction, LoaderFunction, redirect } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
 import { useLoaderData } from "@remix-run/react";
-
+import IconDisputesChat from '~/assets/images/Chat2.svg'
 import { db } from "~/firebase/neutron-config.server";
 import { AnimatePresence, motion } from "framer-motion";
 import { ContractDataStore } from "~/stores/ContractStores";
@@ -21,7 +21,7 @@ import { generalFilesUploadRoutine } from "~/firebase/firebase-utils";
 import type { NeutronEvent } from "~/models/events";
 import { ContractEvent, EventType } from "~/models/events";
 import { onValue, query, ref } from "firebase/database";
-import { ContractSidePanelStages } from "~/models/contracts";
+import { ContractCreator, ContractSidePanelStages } from "~/models/contracts";
 import { sign } from "crypto";
 
 
@@ -35,13 +35,33 @@ import { sign } from "crypto";
 export const loader: LoaderFunction = async ({ params, request }) => {
 
     const session = await requireUser(request, true);
+    const viewerUsername = session?.metadata?.displayName;
     const ownerUsername = params.username
     const contractID = params.contractID;
     const contractOwner = await getSingleDoc(`userUIDS/${ownerUsername}`)
     const currentContract = await getSingleDoc(`users/contracts/${contractOwner?.uid}/${contractID}`)
     const currentContractEvents = await fetchEvents(EventType.ContractEvent, contractID)
-    const from = "kunal";
-    const to = "gaurav";
+    let from, to;
+    const creator = parseInt(currentContract?.creator)
+    if (viewerUsername == ownerUsername) {
+        if (creator == ContractCreator.IndividualClient) {
+            from = currentContract?.clientName;
+            to = currentContract?.providerName;
+        } else {
+            from = currentContract?.providerName;
+            to = currentContract?.clientName;
+        }
+
+    }
+    else {
+        if (creator == ContractCreator.IndividualClient) {
+            from = currentContract?.providerName;
+            to = currentContract?.clientName;
+        } else {
+            from = currentContract?.clientName;
+            to = currentContract?.providerName;
+        }
+    }
 
     let messagesArray: Array<{ text: string, to: string, from: string, timestamp: string }> = []
 
@@ -68,7 +88,7 @@ export const loader: LoaderFunction = async ({ params, request }) => {
     // if(session?.metadata?.displayName == ownerUsername){
 
     // }
-    return json({ contract: { ...currentContract, id: contractID }, metadata: session?.metadata, contractEvents: currentContractEvents, contractMessages: messagesArray, ownerUsername: ownerUsername });
+    return json({ contract: { ...currentContract, id: contractID }, metadata: session?.metadata, contractEvents: currentContractEvents, contractMessages: messagesArray, ownerUsername: ownerUsername, from: from, to: to });
 }
 
 
@@ -148,16 +168,16 @@ export default function DetailedContractView() {
             <div className="hidden sm:flex sm:flex-row w-full">
                 <div className='flex flex-row m-6 justify-between w-full space-x-10'>
                     <div className="flex flex-col">
-                        <article className="prose">
-                            <h2 className="text-white prose prose-lg">Welcome {currentUser?.email}</h2>
-                            <p className="text-white prose prose-sm">{formatDateToReadableString()}</p>
+                        <article className="prose ">
+                            <h2 className="text-white font-gilroy-bold text-[24px]">Welcome {currentUser?.email}</h2>
+                            <p className="text-white font-gilroy-regular text-[12px]">{formatDateToReadableString()}</p>
                         </article>
                     </div>
                     <div className="flex items-center w-[692px] ">
                         <label htmlFor="simple-search" className="sr-only">Search</label>
                         <div className="relative w-full ">
                             <div className="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
-                                <svg className="w-5 h-5 text-white dark:text-black" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path></svg>
+                                <svg className="w-5 h-5 text-white dark:text-black" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd"></path></svg>
                             </div>
                             <input type="text" id="simple-search" className="p-5 bg-bg-primary-dark border border-gray-300 text-gray-900 text-sm rounded-lg placeholder-white block w-full pl-10  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white " placeholder="Search through contracts" required />
 
@@ -168,36 +188,31 @@ export default function DetailedContractView() {
 
 
             </div>
-            <div className="flex flex-row m-6 mb-2 space-x-3 justify-between">
+            <div className="flex flex-row m-3 mb-2 space-x-3 justify-between ">
                 <div className="flex flex-row align-middle items-center space-x-3">
                     <BackArrowButton onClick={() => {
                         navigate(-1);
 
-                    }} className="scale-75"></BackArrowButton>
-                    <h1 className="prose prose-xl font-gilroy-bold text-white">{contractData?.projectName}</h1>
+                    }} className="hover:drop-shadow-md hover:bg-bg-secondary-dark transition-all p-2 rounded-full"></BackArrowButton>
+                    <h1 className="prose prose-xl font-gilroy-black text-[25px] text-white">{contractData?.projectName}</h1>
                 </div>
-                <div className="hidden sm:flex sm:flex-row space-x-5 w-auto">
+                <div className="hidden sm:flex sm:flex-row space-x-5 w-auto pr-6 pl-2 ">
                     <TransparentButton onClick={() => {
                         ContractDataStore.update(s => {
                             s.viewStage == 1 ? s.viewStage = 0 : s.viewStage = 1;
                         })
-                    }} text={`${stage == 1 ? 'Back To Overview' : 'Open Contract'}`}></TransparentButton>
+                    }} variant="light" text={`${stage == 1 ? 'Back To Overview' : 'Open Contract'}`} className={`transition-all border-2 text-center sm:w-full text-white prose prose-md rounded-lg active:border-accent-dark whitespace-nowrap   bg-bg-secondary-dark active:bg-bg-secondary-dark  border-transparent hover:border-2  hover:border-accent-dark"}`}></TransparentButton>
                     <FormButton onClick={() => {
 
                     }} text="Share Deliverables"></FormButton>
-                    <a href={contractData?.attachment}>
-                        Download proposal
-                    </a>
-                </div>
-                {/* Todo - Hide this div on all viewports larger than sm */}
-                <div className="flex flex-row space-x-5 w-auto">
-                    <ShareButton onClick={() => {
+
+                    <button onClick={() => {
                         ContractDataStore.update(s => {
                             s.sidePanelStage == ContractSidePanelStages.MilestonesPanel ? s.sidePanelStage = ContractSidePanelStages.ChatsPanel : s.sidePanelStage = ContractSidePanelStages.MilestonesPanel;
                         })
-                    }}  ></ShareButton>
-
+                    }}  ><img src={IconDisputesChat} className="h-20 w-20" alt="Disputes Chat Icon"></img></button>
                 </div>
+                {/* Todo - Hide this div on all viewports larger than sm */}
 
             </div>
             <div className="flex flex-row sm:hidden justify-center w-full">
@@ -215,14 +230,14 @@ export default function DetailedContractView() {
                     initial={{ opacity: 0, x: 500 }}
                     exit={{ opacity: 0, x: -10 }}
                     transition={{ duration: 0.5 }}
-                    className="h-full m-3"
+                    className="h-full m-3 mb-1"
                 >
                     {overviewStages[stage]}
 
 
                 </motion.div >
             </AnimatePresence>
-        </div>
+        </div >
     );
 
 }

@@ -86,7 +86,7 @@ export async function action({ request }: { request: Request }) {
 
     await sendEmailVerification(user, { url: `http://${env.NODE_ENV === "development" ? "localhost:3000" : "test.neutron.money"}/auth/verification` });
     console.log("\n verification email sent \n");
-    const userUIDRef = await setFirestoreDocFromData({ uid: user.uid, email: user.email }, 'userUIDS', `${displayName}`)
+    const userUIDRef = await setFirestoreDocFromData({ uid: user.uid, email: user.email, profileComplete: false }, 'userUIDS', `${displayName}`)
 
     const ref = await setFirestoreDocFromData({
       ...DEFAULT_USER_STATE, email: user.email, id: user.uid, displayName: user.displayName, creationTime: user.metadata.creationTime, profileComplete: false

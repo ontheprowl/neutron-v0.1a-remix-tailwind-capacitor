@@ -4,9 +4,12 @@ import { formatDateToReadableString } from "~/utils/utils";
 import ContractEditableLink from "./ContractEditableLink";
 import { useFormContext } from "react-hook-form";
 import { ClientInformationRedirect, PaymentAndMilestonesRedirect, ScopeOfWorkRedirect } from "./InputRedirects";
+import { useFetcher, useLoaderData } from "@remix-run/react";
+import { useEffect } from "react";
 
 
 function generateDeliverables(milestones: { [key: string]: any }) {
+
 
     let deliverablesArray = []
     for (const [key, value] of Object.entries(milestones)) {
@@ -45,14 +48,24 @@ function generateDeliverables(milestones: { [key: string]: any }) {
     return deliverablesArray
 }
 
-export default function GenericContractTemplate() {
+export default function GenericContractTemplate({ viewMode }: { viewMode?: boolean }) {
 
 
-    function generateMilestonesForContract(){
+    const data = useLoaderData();
+    const contractData = data.contract;
+
+
+    function generateMilestonesForContract() {
         let milestonesArray = []
         if (allContractFields?.milestones) {
             for (const [key, value] of Object.entries(allContractFields?.milestones)) {
-                milestonesArray.push(<li>{value.name}</li>)
+                if (key == "advance") {
+                    milestonesArray.push(<li>{value.name}</li>)
+                } else {
+                    for (const milestone of Object.values(value)) {
+                        milestonesArray.push(<li>{milestone.name}<br></br>{milestone.description}</li>)
+                    }
+                }
             }
 
         }
@@ -60,11 +73,18 @@ export default function GenericContractTemplate() {
 
     }
 
-    const { watch } = useFormContext();
+    const methods = useFormContext();
+
+    let allContractFields: Contract;
+    if (methods) {
+        allContractFields = methods.watch();
+    } else {
+        allContractFields = contractData;
+    }
 
 
 
-    const allContractFields: Contract = watch();
+
     console.log('data for the edit screen is')
     console.log(allContractFields)
 
@@ -78,22 +98,22 @@ export default function GenericContractTemplate() {
                 <br></br>
                 BY AND BETWEEN
                 <br></br>
-                <ClientInformationRedirect>{allContractFields.clientName}</ClientInformationRedirect>, (Name of Company/Agency/individual) a private limited/ limited company incorporated under the Companies Act, 2013/1956 having its registered office at <ClientInformationRedirect>{allContractFields.clientAddress}</ClientInformationRedirect>	(address of Registered office)/ a sole proprietorship/ an individual being an Indian citizen and not specifically registered as either of the above (hereinafter referred to as the “Employer”), of the FIRST PART;
+                <ClientInformationRedirect viewMode={viewMode}>{allContractFields.clientName}</ClientInformationRedirect>, (Name of Company/Agency/individual) a private limited/ limited company incorporated under the Companies Act, 2013/1956 having its registered office at <ClientInformationRedirect viewMode={viewMode}>{allContractFields.clientAddress}</ClientInformationRedirect>	(address of Registered office)/ a sole proprietorship/ an individual being an Indian citizen and not specifically registered as either of the above (hereinafter referred to as the “Employer”), of the FIRST PART;
 
                 <br></br>
                 AND
                 <br></br>
 
-                <ClientInformationRedirect>{allContractFields.providerName}</ClientInformationRedirect>, residing at <ClientInformationRedirect>{allContractFields.providerAddress}</ClientInformationRedirect>and bearing Permanent Account No. <ClientInformationRedirect>{allContractFields.providerPAN}</ClientInformationRedirect>/(hereinafter referred to as the “Service Provider”) of the SECOND PART;
+                <ClientInformationRedirect viewMode={viewMode}>{allContractFields.providerName}</ClientInformationRedirect>, residing at <ClientInformationRedirect viewMode={viewMode}>{allContractFields.providerAddress}</ClientInformationRedirect>and bearing Permanent Account No. <ClientInformationRedirect viewMode={viewMode}>{allContractFields.providerPAN}</ClientInformationRedirect>/(hereinafter referred to as the “Service Provider”) of the SECOND PART;
 
                 <br></br>
                 <br></br>
 
-                WHEREAS the Employer is undergoing the business of <ScopeOfWorkRedirect>{allContractFields.workType}</ScopeOfWorkRedirect>;
+                WHEREAS the Employer is undergoing the business of <ScopeOfWorkRedirect viewMode={viewMode}>{allContractFields.workType}</ScopeOfWorkRedirect>;
 
                 <br></br>
 
-                WHEREAS the Service Provider has expertise in the area of <ScopeOfWorkRedirect>{allContractFields.workType}</ScopeOfWorkRedirect>;
+                WHEREAS the Service Provider has expertise in the area of <ScopeOfWorkRedirect viewMode={viewMode}>{allContractFields.workType}</ScopeOfWorkRedirect>;
                 <br></br>
 
                 WHEREAS the Employer has now decided to hire the Service Provider through the Neutron platform (as defined hereunder) to render their services in certain areas of the business where they have established their expertise;
@@ -149,7 +169,7 @@ export default function GenericContractTemplate() {
                                     If Proof of Work is not communicated via the Neutron platform, the Neutron platform shall be obligated to furnish documentary evidence of the service agreement and its particulars as detailed in Clause 26 C, to the best of its abilities.
                                 </li>
                                 <li>
-                                    The completeness of the Services and work product shall be determined by the Employer in its sole discretion, and the Service Provider agrees to make a maximum of <ScopeOfWorkRedirect>{allContractFields.revisions}</ScopeOfWorkRedirect> revisions, additions, deletions, or alterations as requested by the Employer.
+                                    The completeness of the Services and work product shall be determined by the Employer in its sole discretion, and the Service Provider agrees to make a maximum of <ScopeOfWorkRedirect viewMode={viewMode}>{allContractFields.revisions}</ScopeOfWorkRedirect> revisions, additions, deletions, or alterations as requested by the Employer.
                                 </li>
                             </ol>
 
@@ -180,7 +200,7 @@ export default function GenericContractTemplate() {
                             <span className="font-gilroy-bold">COMPENSATION:</span>
                             <br></br>
 
-                            The Service Provider shall be entitled to a total compensation amount of   INR <PaymentAndMilestonesRedirect>{allContractFields.totalValue}</PaymentAndMilestonesRedirect>/- (Rupees	) for the   Services so rendered. This total compensation shall either be disbursed in lump sum or in parts upon the successful completion of specific milestones of the Services in the manner as set forth specifically in the Payment and Progress Schedule annexed as ‘Exhibit B’ hereunder. No other fee or expenses shall be paid to the Service Provider unless the Employer has approved such fee or expenses in writing.
+                            The Service Provider shall be entitled to a total compensation amount of   INR <PaymentAndMilestonesRedirect viewMode={viewMode}>{allContractFields.totalValue}</PaymentAndMilestonesRedirect>/- (Rupees	) for the   Services so rendered. This total compensation shall either be disbursed in lump sum or in parts upon the successful completion of specific milestones of the Services in the manner as set forth specifically in the Payment and Progress Schedule annexed as ‘Exhibit B’ hereunder. No other fee or expenses shall be paid to the Service Provider unless the Employer has approved such fee or expenses in writing.
 
                             Time is of the essence with respect to payment for the Services and it is an essential condition to this Agreement. The Service Provider shall be entitled to terminate the Agreement upon non-payment for the said Services or for specific milestones, as under Exhibit B, by the Employer.
 
@@ -249,7 +269,7 @@ export default function GenericContractTemplate() {
                             <span className="font-gilroy-bold">TERM:</span>
                             <br></br>
 
-                            The Services to be provided under this Agreement shall be for the period commencing with effect from <ClientInformationRedirect>{allContractFields.startDate}</ClientInformationRedirect> to <ClientInformationRedirect>{allContractFields.endDate}</ClientInformationRedirect>, and shall continue in force upto the completion of provision of the Services unless a notice of termination is given by either party as per Clause 10 hereunder.
+                            The Services to be provided under this Agreement shall be for the period commencing with effect from <ClientInformationRedirect viewMode={viewMode}>{allContractFields.startDate}</ClientInformationRedirect> to <ClientInformationRedirect viewMode={viewMode}>{allContractFields.endDate}</ClientInformationRedirect>, and shall continue in force upto the completion of provision of the Services unless a notice of termination is given by either party as per Clause 10 hereunder.
                         </p>
                     </li>
                     <li>
@@ -446,7 +466,7 @@ export default function GenericContractTemplate() {
                 </br>
                 The Service Provider hereby agrees to provide the following services in accordance with the terms defined in this document, pursuant to all aforementioned clauses and any explicitly enforceable claims.
                 <ol>
-                    <ScopeOfWorkRedirect>{allContractFields.description}</ScopeOfWorkRedirect>
+                    <ScopeOfWorkRedirect viewMode={viewMode}>{allContractFields.description}</ScopeOfWorkRedirect>
 
                 </ol>
 
@@ -462,7 +482,7 @@ export default function GenericContractTemplate() {
                 Compensation for the Services shall be disbursed to the Service Provider by the Employer, in accordance with the terms specified in Clause 3 and will be paid out according in the following manner:
 
                 <ol>
-                    <PaymentAndMilestonesRedirect>{
+                    <PaymentAndMilestonesRedirect viewMode={viewMode}>{
                         generateMilestonesForContract()
                     }</PaymentAndMilestonesRedirect>
 

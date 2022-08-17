@@ -89,7 +89,6 @@ export const loader: LoaderFunction = async ({ request }) => {
 }
 
 export function ErrorBoundary({ error }) {
-  console.error(error);
 
   let navigate = useNavigate();
 
@@ -119,7 +118,7 @@ export function ErrorBoundary({ error }) {
               </div>
               <DefaultSpinner size="large"></DefaultSpinner>
               <span className="font-gilroy-regular prose prose-sm text-[14px] text-gray-300 mt-8"> If you believe you shouldn't be seeing this screen, please get in touch with us at <span className="text-white font-gilroy-bold">connect@neutron.money</span></span>
-              
+
             </div>
             <div id="error-image">
               <svg width="471" height="414" viewBox="0 0 471 414" fill="none" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink">

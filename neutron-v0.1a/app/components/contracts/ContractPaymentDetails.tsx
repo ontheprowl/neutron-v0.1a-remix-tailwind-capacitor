@@ -236,6 +236,7 @@ function paymentBreakdownIsValid(milestones: {
                 sum += milestones.workMilestones[index].value;
             }
         }
+        return sum == totalValue;
     }
-    return sum == totalValue
+    return true;
 }

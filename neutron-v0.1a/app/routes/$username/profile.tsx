@@ -17,7 +17,7 @@ import { toast, ToastContainer } from "react-toastify";
 
 import { downloadGooglePhotosImage } from '~/firebase/gapis-config.server';
 import { storage } from '~/firebase/neutron-config.server';
-import { deleteFirestoreDoc, getFirebaseDocs, setFirestoreDocFromData } from '~/firebase/queries.server';
+import { deleteFirestoreDoc, getFirebaseDocs, setFirestoreDocFromData, updateFirestoreDocFromData } from '~/firebase/queries.server';
 import { requireUser } from '~/session.server';
 import { injectStyle } from 'react-toastify/dist/inject-style';
 
@@ -64,9 +64,12 @@ export const action: ActionFunction = async ({ request }) => {
 
     if (session?.metadata?.displayName && data.displayName && data.displayName != session.metadata.displayName) {
         await deleteFirestoreDoc('userUIDS', `${session.metadata.displayName}`)
-        const userUIDRef = await setFirestoreDocFromData({ uid: session.metadata.id }, 'userUIDS', `${data.displayName}`)
+        const userUIDRef = await setFirestoreDocFromData({ uid: session.metadata.id, email: session?.metadata.email, profileComplete: true }, 'userUIDS', `${data.displayName}`)
 
+    } else {
+        const userUIDRef = await updateFirestoreDocFromData({ uid: session?.metadata?.id, email: session?.metadata?.email, profileComplete: true }, 'userUIDS', `${session?.metadata?.displayName}`);
     }
+
     const metadataRef = await setFirestoreDocFromData({ ...session.metadata, ...data, profileComplete: true }, `metadata`, session?.metadata?.id);
 
 

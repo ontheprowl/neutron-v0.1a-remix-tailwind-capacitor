@@ -97,6 +97,7 @@ export interface Contract {
   hasMilestones?: boolean;
   status?: ContractStatus;
   creator?: ContractCreator;
+  revisions?: number;
   id?: string;
   isSigned?: boolean;
   projectName?: string;
