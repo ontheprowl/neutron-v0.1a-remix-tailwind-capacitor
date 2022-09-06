@@ -11,6 +11,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
     return null;
 }
 
+// ? Examine this signage function : Why is the redirect leading to the signer's contract page instead of the owner's contract page? 
 export const action: ActionFunction = async ({ request, params }) => {
 
     console.log("request received at signage handler")
@@ -22,6 +23,8 @@ export const action: ActionFunction = async ({ request, params }) => {
     const ownerUID = uidMapping?.uid;
     const signerEmail = formData.get('email');
     const isClient = formData.get('isClient');
+
+    
     const contractSignEvent: NeutronEvent = { id: contractID, uid: ownerUID, type: EventType.ContractEvent, event: isClient ? ContractEvent.ContractSignedByBoth : ContractEvent.ContractPendingSignByClient }
     const eventAdded = await sendEvent(contractSignEvent);
 

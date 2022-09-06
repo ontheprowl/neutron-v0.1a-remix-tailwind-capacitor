@@ -127,7 +127,8 @@ export default function CustomUserPage() {
                                         UIStore.update((s) => {
                                             s.selectedTab = "Disputes";
                                         });
-                                        navigate('disputes')
+                                        // TODO: Add logic on disputes parent layout page to redirect to /disputeID of the first active dispute
+                                        navigate('disputes/')
 
                                     }}
                                     className={`rounded-lg transition-all flex hover:ring-1 hover:ring-accent-dark w-36 flex-row align-middle m-2 p-2 text-gray-100 sm:space-x-3 ${tab == "Disputes" ? 'bg-bg-secondary-dark' : ``}

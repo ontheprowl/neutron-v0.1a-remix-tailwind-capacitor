@@ -141,8 +141,6 @@ export default function ContractScopeOfWork() {
                             ContractDataStore.update(s => {
                                 s.stage = ContractCreationStages.PaymentAndMilestones;
                                 s.description = formMethods.getValues('description')
-                                s.deliverables = formMethods.getValues('deliverables');
-                                formMethods.unregister('deliverables');
                             });
                         }
 

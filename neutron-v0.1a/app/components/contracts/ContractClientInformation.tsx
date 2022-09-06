@@ -7,11 +7,12 @@ import AccentedToggle from "../layout/AccentedToggle";
 import { useStoreState } from "pullstate";
 import { ErrorMessage } from "@hookform/error-message";
 import { useEffect, useState } from "react";
-import { ValidationPatterns, minStartDate, minEndDate, isEmpty } from "~/utils/utils";
+import { ValidationPatterns, minStartDate, minEndDate, isEmpty, returnUserUIDAndUsername } from "~/utils/utils";
 import { toast } from "react-toastify";
 import NeutronModal from "../layout/NeutronModal";
 import { useFetcher, useLoaderData } from "@remix-run/react";
 import { useMatchesData } from "~/utils";
+import MandatoryAsterisk from "../layout/MandatoryAsterisk";
 
 
 
@@ -30,14 +31,6 @@ export default function ContractClientInformation() {
     }
 
 
-    function returnUserUID(userEmail: any) {
-        const targetUser = users.find((value) => {
-            return (value.data.email == userEmail)
-        })
-        const uid = targetUser?.data.uid;
-        return uid;
-
-    }
 
 
     let fetcher = useFetcher();
@@ -94,14 +87,14 @@ export default function ContractClientInformation() {
                         ContractDataStore.update((s: Contract) => {
                             s.creator = ContractCreator.IndividualClient
                         })
-                        // formMethods.unregister('providerName');
-                        // formMethods.unregister('providerEmail');
+                        formMethods.unregister('providerName');
+                        formMethods.unregister('providerEmail');
                     } else {
                         ContractDataStore.update((s: Contract) => {
                             s.creator = ContractCreator.IndividualServiceProvider
                         })
-                        // formMethods.unregister('clientName');
-                        // formMethods.unregister('clientEmail');
+                        formMethods.unregister('clientName');
+                        formMethods.unregister('clientEmail');
                     }
                 }}></AccentedToggle>
             </div>
@@ -117,19 +110,19 @@ export default function ContractClientInformation() {
 
                 </div> */}
                 <div className=" space-y-3 w-full">
-                    <span className=" prose prose-md text-white font-gilroy-regular text-[18px]">{creator === ContractCreator.IndividualServiceProvider ? 'Employer Name ' : 'Service Provider Name'}</span>
-                    <input type="text" id="client-name" {...formMethods.register(creator === ContractCreator.IndividualServiceProvider ? 'clientName' : 'providerName', { required: 'This field is required', maxLength: { value: 20, message: 'Client name cannot exceed 20 characters' } })} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="e.g : Acme Corp" required />
+                    <span className=" prose prose-md text-white font-gilroy-regular text-[18px]">{creator === ContractCreator.IndividualServiceProvider ? 'Employer Name ' : 'Service Provider Name'}<MandatoryAsterisk /></span>
+                    <input type="text" id="client-name" {...formMethods.register(creator === ContractCreator.IndividualServiceProvider ? 'clientName' : 'providerName', { required: true, maxLength: { value: 20, message: 'Client name cannot exceed 20 characters' } })} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="e.g : Acme Corp" required />
                     <div className="w-full h-5 mt-3 text-left">
-                        <ErrorMessage errors={errors} name={creator == ContractCreator.IndividualServiceProvider ? 'clientName' : 'providerName'} render={(data) => {
+                        <ErrorMessage errors={errors} name={creator === ContractCreator.IndividualServiceProvider ? 'clientName' : 'providerName'} render={(data) => {
                             return <span className="text-red-500 p-0 m-1 z-10">{data.message}</span>
                         }} />
                     </div>
                 </div>
                 <div className="hidden sm:flex sm:h-20 w-5 border-l-gray-500 border-l-2"></div>
                 <div className=" space-y-3 w-full">
-                    <span className=" prose prose-md text-white font-gilroy-regular text-[18px]">{creator === ContractCreator.IndividualServiceProvider ? 'Employer Email ' : 'Service Provider Email'}</span>
+                    <span className=" prose prose-md text-white font-gilroy-regular text-[18px]">{creator === ContractCreator.IndividualServiceProvider ? 'Employer Email ' : 'Service Provider Email'}<MandatoryAsterisk /></span>
                     <input type="text" id="client-email" {...formMethods.register(creator === ContractCreator.IndividualServiceProvider ? 'clientEmail' : 'providerEmail', {
-                        required: 'This field is required', pattern: {
+                        required: true, pattern: {
                             value: ValidationPatterns.emailValidationPattern,
                             message: 'Not a valid email ID '
                         }, validate: (v) => {
@@ -139,7 +132,7 @@ export default function ContractClientInformation() {
                         className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="e.g : businessman@business.biz" required />
 
                     <div className="w-full h-5 mt-3 text-left">
-                        <ErrorMessage errors={errors} name={creator === ContractCreator.IndividualServiceProvider ? 'providerEmail' : 'clientName'} render={(data) => {
+                        <ErrorMessage errors={errors} name={creator === ContractCreator.IndividualServiceProvider ? 'clientEmail' : 'providerEmail'} render={(data) => {
                             return <span className="text-red-500 p-0 m-1 z-10">{data.message}</span>
                         }} />
                     </div>
@@ -153,9 +146,9 @@ export default function ContractClientInformation() {
             <h2 className="prose prose-lg mt-3 text-white font-gilroy-bold text-[24px]"> Basic Details </h2>
             <div className="relative w-full mt-2 mb-5 sm:mt-5 sm:mb-5 flex flex-col ">
                 <div className=" space-y-3 w-full">
-                    <span className=" prose prose-md text-white w-full font-gilroy-regular text-[18px]"> Project Name </span>
+                    <span className=" prose prose-md text-white w-full font-gilroy-regular text-[18px]"> Project Name <MandatoryAsterisk /> </span>
 
-                    <input type="text" id="project-name"  {...formMethods.register('projectName', { required: 'This field is required', pattern: { value: ValidationPatterns.projectNameValidationPattern, message: 'Project name cannot contain numbers' } })} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Project Name" required />
+                    <input type="text" id="project-name"  {...formMethods.register('projectName', { required: true, pattern: { value: ValidationPatterns.projectNameValidationPattern, message: 'Project name cannot contain numbers' } })} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Project Name" required />
                     <div className="w-full h-5 mt-3 text-left">
                         <ErrorMessage errors={errors} name='projectName' render={(data) => {
                             return <span className="text-red-500 p-0 m-1 z-10">{data.message}</span>
@@ -165,8 +158,8 @@ export default function ContractClientInformation() {
 
                 <div className="flex items-end mt-5 flex-col space-y-3 sm:space-x-3 sm:flex-row w-full">
                     <div className=" space-y-3 w-full">
-                        <span className=" prose prose-md text-white font-gilroy-regular text-[18px]">Contract Start Date</span>
-                        <input  {...formMethods.register('startDate', { required: 'This field is required' })} type="date" min={minStartDate()} placeholder="Contract Start Date" className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
+                        <span className=" prose prose-md text-white font-gilroy-regular text-[18px]">Contract Start Date <MandatoryAsterisk /></span>
+                        <input  {...formMethods.register('startDate', { required: true })} type="date" min={minStartDate()} placeholder="Contract Start Date" className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
                         <div className="w-full h-5  mt-3 text-left">
                             <ErrorMessage errors={errors} name='startDate' render={(data) => {
                                 return <span className="text-red-500 p-0 m-1 z-10">{data.message}</span>
@@ -175,8 +168,8 @@ export default function ContractClientInformation() {
                     </div>
 
                     <div className=" space-y-3 w-full">
-                        <span className=" prose prose-md text-white font-gilroy-regular text-[18px]">Contract End Date</span>
-                        <input {...formMethods.register('endDate', { required: 'This field is required' })} type="date" min={minEndDate(startDate)} placeholder="Contract Start Date" className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
+                        <span className=" prose prose-md text-white font-gilroy-regular text-[18px]">Contract End Date <MandatoryAsterisk /></span>
+                        <input {...formMethods.register('endDate', { required: true })} type="date" min={minEndDate(startDate)} placeholder="Contract Start Date" className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
                         <div className="w-full h-5 mt-3 text-left">
                             <ErrorMessage errors={errors} name='endDate' render={(data) => {
                                 return <span className="text-red-500 p-0 m-1 z-10">{data.message}</span>
@@ -204,15 +197,17 @@ export default function ContractClientInformation() {
                 } else {
                     ContractDataStore.update(s => {
                         s.stage = ContractCreationStages.ScopeOfWork;
-                        s.clientName = formMethods.getValues('clientName');
-                        s.clientEmail = formMethods.getValues('clientEmail')
-                        s.providerName = formMethods.getValues('providerName');
-                        s.providerEmail = formMethods.getValues('providerEmail');
-                        s.projectName = formMethods.getValues('projectName');
-                        s.startDate = formMethods.getValues('startDate');
-                        s.endDate = formMethods.getValues('endDate');
-                        s.revisions = formMethods.getValues('revisions');
+
+                        // s.clientName = formMethods.getValues('clientName');
+                        // s.clientEmail = formMethods.getValues('clientEmail')
+                        // s.providerName = formMethods.getValues('providerName');
+                        // s.providerEmail = formMethods.getValues('providerEmail');
+                        // s.projectName = formMethods.getValues('projectName');
+                        // s.startDate = formMethods.getValues('startDate');
+                        // s.endDate = formMethods.getValues('endDate');
+                        // s.revisions = formMethods.getValues('revisions');
                     });
+                    
                 }
 
             }} text="Create Contract"></FormButton>

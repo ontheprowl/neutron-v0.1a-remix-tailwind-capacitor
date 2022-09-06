@@ -2,7 +2,7 @@ import * as React from 'react'
 import { AnimatePresence, motion } from 'framer-motion';
 import { Form, useActionData, useLoaderData, useNavigate, useSubmit } from '@remix-run/react';
 import { useForm, FormProvider, useFormContext } from 'react-hook-form';
-import { formatDateToReadableString, getRandomInt } from '~/utils/utils';
+import { formatDateToReadableString, getRandomInt, returnUserUIDAndUsername } from '~/utils/utils';
 import { ContractDataStore } from '~/stores/ContractStores';
 import ContractTemplateSelection from '~/components/contracts/ContractTemplateSelection';
 import ContractClientInformation from '~/components/contracts/ContractClientInformation';
@@ -96,6 +96,8 @@ export default function ContractCreation() {
 
     const data1 = useActionData();
 
+    const users = data.users;
+
 
 
     const creator = ContractDataStore.useState(s => s.creator);
@@ -138,6 +140,7 @@ export default function ContractCreation() {
                             //TODO: Creator specific contract 
                             if (creator == ContractCreator.IndividualServiceProvider) {
                                 console.log("Creator is the service Provider ");
+
                                 data = { ...data, providerEmail: metadata?.email, providerName: metadata?.firstName + ' ' + metadata?.lastName, creator: creator }
                                 console.dir(data)
 
@@ -149,12 +152,21 @@ export default function ContractCreation() {
 
 
                             }
+                            const clientAdditionalDetails = returnUserUIDAndUsername(data.clientEmail, users);
+                            const providerAdditionalDetails = returnUserUIDAndUsername(data.providerEmail, users);
+                            data = { ...data, clientID: clientAdditionalDetails.uid, providerID: providerAdditionalDetails.uid, clientUsername: clientAdditionalDetails.username, providerUsername: providerAdditionalDetails.username, externalDeliverables: data.externalDeliverables == "true" ? true : false };
                             for (const [key, value] of Object.entries(data)) {
 
                                 if (key.includes('attachment')) {
                                     data[key] = value.item(0)
                                 }
+                                if (key.includes('deliverable')) {
+                                    // for (const [milestoneKey, milestone] of Object.entries(value.workMilestones)) {
+                                    //     console.
+                                    // }
+                                    data[key] = JSON.stringify(value)
 
+                                }
                                 if (key.includes('milestone')) {
                                     // for (const [milestoneKey, milestone] of Object.entries(value.workMilestones)) {
                                     //     console.
@@ -162,6 +174,7 @@ export default function ContractCreation() {
                                     data[key] = JSON.stringify(value)
 
                                 }
+
                                 formdata.append(key, data[key]);
 
                             }

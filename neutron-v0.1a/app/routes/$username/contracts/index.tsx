@@ -19,6 +19,7 @@ import { requireUser } from '~/session.server';
 import { UserState } from '~/models/user';
 import { ContractStatus } from '~/models/contracts';
 import { ContractDraftedStatus, ContractPublishedStatus } from '~/components/layout/Statuses';
+import { Dispute } from '~/models/disputes';
 
 export const loader: LoaderFunction = async ({ request }) => {
     const session = await requireUser(request, true);
@@ -49,9 +50,10 @@ export default function ListContracts() {
 
 
     const loaderData = JSON.parse(useLoaderData());
-    const disputes = [];
+    const disputes: Dispute[] = [];
     const contracts = loaderData.contracts;
     const currentUser = loaderData.metadata;
+    console.log(contracts)
 
     const [contractsTab, setContractsTab] = useState(true);
     const [currentContract, setCurrentContract] = useState(-1);
@@ -257,7 +259,7 @@ export default function ListContracts() {
                                     {contract.data.contractValue}
                                 </td>
                                 <td className="px-6 py-4 text-center text-white">
-                                    {formatDateToReadableString(contract.data.endDate?.seconds)}
+                                    {contract?.data?.startDate}
                                 </td>
 
                                 <td className="px-6 py-4">

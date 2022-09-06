@@ -10,7 +10,7 @@ export const isEmpty = (obj: {
 }) => (Object.keys(obj).length === 0);
 
 
-export const formatDateToReadableString = (seconds?: string | undefined, onlyTime?: boolean) => {
+export const formatDateToReadableString = (seconds?: string, onlyTime?: boolean, simplified?: boolean) => {
 
     let date;
     if (seconds == undefined) {
@@ -19,16 +19,26 @@ export const formatDateToReadableString = (seconds?: string | undefined, onlyTim
     else {
         date = new Date(seconds);
     }
+    if (simplified) {
+        if (onlyTime) {
+            return date.getHours() + ":" + (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes());
+        }
 
-    if (onlyTime)
-        return date.getHours() + ":" + date.getMinutes();
+        let formattedDate =
+            (date.getDate() >= 10 ? date.getDate() : '0' + date.getDate()) +
+            "-" +
+            (date.getMonth() + 1) +
+            "-" +
+            date.getFullYear()
+            + ' ' + date.getHours() + ":" + (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes());
+        ;
+        return formattedDate;
+    }
 
-    let formattedDate =
-        date.getFullYear() +
-        "-" +
-        (date.getMonth() + 1) +
-        "-" +
-        date.getDate();
+
+
+
+
     return date.toLocaleString(undefined, { timeZone: 'Asia/Kolkata', timeZoneName: 'short' });
 }
 
@@ -48,10 +58,12 @@ export function checkForSpecificEvent(events: NeutronEvent[], specifiedEvent: Co
 
 }
 
-export const structurePayinPayload = (contract: Contract, ownerUsername: string, payingUserData: { id: string, email: string, displayName: string, phoneNumber: string }) => {
+export const structurePayinPayload = (contract: Contract, ownerUsername: string, payingUserData: { id: string, email: string, displayName: string, phoneNumber: string }, environment?: string) => {
     console.log("PAYING USER DATA IS ")
     console.dir(payingUserData)
-    const value = contract?.totalValue?.replace("₹", '').replace(',', '');
+
+    // console.log("ENV IS : " + window.ENV.NODE_ENV);
+    const value = contract?.contractValue?.replace("₹", '').replace(',', '');
     const totalValue: number = parseInt(value);
     const orderId = crypto.randomUUID();
 
@@ -63,7 +75,7 @@ export const structurePayinPayload = (contract: Contract, ownerUsername: string,
         },
         order_id: orderId,
         order_meta: {
-            return_url: `https://test.neutron.money/${ownerUsername}/payment/success/${contract.id}?order_id={order_id}&order_token={order_token}`,
+            return_url: `https://${environment === "development" ? "localhost:3000" : "test.neutron.money"}/${ownerUsername}/payment/success/${contract.id}?order_id={order_id}&order_token={order_token}`,
             order_id: orderId,
             order_token: contract.id,
         },
@@ -83,6 +95,25 @@ export const minEndDate = (startDate: string) => {
     return startDate ? new Date(startDate).toISOString().split("T")[0] : minStartDate();
 }
 
+export const download = async (filePath: string) => {
+
+    var element = document.createElement('a');
+    element.setAttribute('href', filePath);
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+    //document.body.removeChild(element);
+}
+
+
+export function returnUserUIDAndUsername(userEmail: any, users: [{ id: string, data: { [x: string]: any } }]) {
+    const targetUser = users.find((value) => {
+        return (value.data.email == userEmail)
+    })
+    const uid = targetUser?.data.uid;
+    return { uid: uid, username: targetUser?.id };
+
+}
 
 export function CountrySelect({ formFieldName, className, id, defaultValue }: { formFieldName: string, className: string, id: string, defaultValue: () => string }) {
 

@@ -30,7 +30,8 @@ export default function ProfileAccountInformationForm() {
     const IsUsernameAvailable = (username: string) => {
         return userNames.indexOf(username) == -1 || username == userMetadata.displayName
     }
-    const fetcher = useFetcher();
+    const profileUpdationFetcher = useFetcher();
+    const beneficiaryCreationFetcher = useFetcher();
     const { handleSubmit, register, trigger, formState: { errors }, control } = useForm();
 
     const phoneNumber = useWatch({ control, name: 'phoneNumber' })
@@ -44,12 +45,12 @@ export default function ProfileAccountInformationForm() {
 
     useEffect(() => {
         trigger()
-        if (fetcher.type === "done") {
-            console.log("THE FETCHER TYPE IS " + fetcher.type)
+        if (profileUpdationFetcher.type === "done") {
+            console.log("THE FETCHER TYPE IS " + profileUpdationFetcher.type)
             toast(<div><h2>Details saved!</h2></div>, { theme: "dark", type: "success" })
         }
 
-    }, [phoneNumber, bankAccount, ifscCode, address, city, state, pincode, fetcher, trigger])
+    }, [phoneNumber, bankAccount, ifscCode, address, city, state, pincode, profileUpdationFetcher, trigger])
 
     return (<form onSubmit={
         handleSubmit(async (data) => {
@@ -57,7 +58,26 @@ export default function ProfileAccountInformationForm() {
             console.log(data);
             form.append('payload', JSON.stringify(data));
 
-            fetcher.submit(form, { method: "post" });
+            profileUpdationFetcher.submit(form, { method: "post" });
+
+            console.log("profile updated.... moving to beneficiary updation...")
+            //* This block ensures that a corresponsing beneficiary is created in the system for payouts /
+            const beneficiaryUpdateForm = new FormData();
+            const beneficiary = {
+                "beneId": userMetadata.id,
+                "name": userMetadata.firstName,
+                "email": userMetadata.email,
+                "phone": data.phoneNumber,
+                "bankAccount": data.bankAccount,
+                "ifsc": data.ifscCode,
+                "address1": data.address,
+                "city": data.city,
+                "state": data.state,
+                "pincode": data.pincode
+            }
+
+            beneficiaryUpdateForm.append('beneficiary', JSON.stringify(beneficiary));
+            beneficiaryCreationFetcher.submit(beneficiaryUpdateForm, { method: 'post', action: `/${userMetadata.displayName}/profile/beneficiary` });
 
         })
     }>
@@ -147,7 +167,7 @@ export default function ProfileAccountInformationForm() {
             className="w-40 rounded-lg mt-2 self-start  bg-accent-dark p-3 border-2 border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-black font-gilroy-black font-[18px] transition-all"
             type="submit"
         >
-            {saveButtonStates(fetcher.state)}
+            {saveButtonStates(profileUpdationFetcher.state)}
         </button>
 
     </form>)

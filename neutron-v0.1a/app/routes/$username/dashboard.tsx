@@ -1,5 +1,4 @@
 import { Link, useFetcher, useNavigate, useSubmit } from '@remix-run/react';
-import * as React from 'react'
 import EscrowSummary from '~/components/escrow/EscrowSummary';
 import { primaryGradientDark, secondaryGradient } from '~/utils/neutron-theme-extensions';
 import { formatDateToReadableString, structurePayinPayload } from '~/utils/utils';
@@ -26,9 +25,11 @@ import { getSingleDoc, setFirestoreDocFromData } from '~/firebase/queries.server
 import { requireUser } from '~/session.server';
 import { UserState } from '~/models/user';
 import ContractZeroState from '~/components/layout/ContractZeroState';
-import { ContractDraftedStatus, ContractPublishedStatus, StatusGenerator } from '~/components/layout/Statuses';
+import { ContractDraftedStatus, ContractPublishedStatus } from '~/components/layout/Statuses';
 import { toast, ToastContainer } from 'react-toastify';
 import { injectStyle } from 'react-toastify/dist/inject-style';
+import { useEffect, useState } from 'react';
+import NeutronModal from '~/components/layout/NeutronModal';
 
 
 export const loader: LoaderFunction = async ({ request, params }) => {
@@ -65,7 +66,7 @@ export const action: ActionFunction = async ({ request }) => {
 
     const metadataRef = await setFirestoreDocFromData({ ...session?.metadata, contracts: numberOfContracts.valueOf() - 1 }, `metadata`, session?.metadata?.id);
     console.log(`Contract deleted from firestore with id ${id}`);
-    return redirect(`${session?.metadata?.displayName}/contracts`)
+    return redirect(`${session?.metadata?.displayName}/dashboard`)
 
 }
 
@@ -74,14 +75,16 @@ export default function Dashboard() {
 
     const fetcher = useFetcher();
 
-    React.useEffect(()=>{
+    useEffect(() => {
         injectStyle();
     })
-    const [expanded, setExpanded] = React.useState(false);
+    const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
+
     const submit = useSubmit();
     const userData: { contracts: Contract[], disputes: any[], metadata: any, ownerUsername: string } = useLoaderData();
 
     const currentContract: Contract = userData.contracts[0]
+    const [contractSelectedForDeletion, setContractSelectedForDeletion] = useState(currentContract);
 
     const currentUserData = userData.metadata;
 
@@ -113,13 +116,16 @@ export default function Dashboard() {
                     <motion.h1 className="prose prose-lg text-white text-center sm:text-right"> {currentUserData?.funds?.totalFunds}</motion.h1>
                 </motion.div>} className={`${primaryGradientDark}  h-auto rounded-xl mt-4 text-left p-4`} content={<EscrowSummary funds={currentUserData.funds}></EscrowSummary>} expanded={expanded} setExpanded={setExpanded}></Accordion> */}
                 <ContractStats clients={currentUserData.clients} contracts={currentUserData.contracts}></ContractStats>
-                <button
-                    className={`w-40 rounded-lg   p-3 border-2 m-4 h-16 self-center ${primaryGradientDark} border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-white transition-all`}
-                    onClick={() => navigate(`/${currentUserData?.displayName}/contracts/create`)}
+                <div className=' ml-3 mr-3'>
+                    <button
+                        className={`w-full rounded-lg p-3 border-2 h-16 self-start text-left ${primaryGradientDark} border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-white transition-all`}
+                        onClick={() => navigate(`/${currentUserData?.displayName}/contracts/create`)}
 
-                >
-                    Create Contract
-                </button>
+                    >
+                        Create Contract
+                    </button>
+                </div>
+
             </div>
             <div id="activity-details-summary" className="flex flex-col w-full bg-bg-primary-dark ">
                 <div className='hidden sm:flex flex-row m-6 justify-between'>
@@ -136,7 +142,7 @@ export default function Dashboard() {
                             <div className="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
                                 <svg className="w-5 h-5 text-white dark:text-black" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd"></path></svg>
                             </div>
-                            <input type="text" id="simple-search" className="p-5 bg-bg-primary-dark border border-gray-300 text-gray-900 text-sm rounded-lg placeholder-white block w-full pl-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white " placeholder="Search through contracts" required />
+                            <input type="text" id="simple-search" className=" bg-bg-primary-dark border border-gray-300 text-gray-900 text-sm rounded-lg placeholder-white block w-full pl-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white " placeholder="Search through contracts" required />
 
                         </div>
                     </div>
@@ -147,28 +153,30 @@ export default function Dashboard() {
                     </div>
                 </div>
                 {currentContract ? <div id="current-project-summary" className={`flex font-gilroy-regular flex-col sm:flex-row m-6 mt-2 w-auto rounded-xl h-auto min-h-52 ${primaryGradientDark} justify-between items-center`}>
-                    <div className="flex flex-col m-2 p-5 w-auto text-center">
+                    <div className="flex flex-col m-0.5 rounded-xl p-5 w-full text-left bg-bg-secondary-dark">
                         <h2 className="prose prose-xl mb-3 text-white font-gilroy-black text-[24px]">
                             Current Project: {currentContract?.projectName}
                         </h2>
-                        <p className="prose prose-md text-white break-all sm:text-left font-gilroy-medium text-[18px]">
+                        <p className="prose prose-md text-white break-all sm:text-left font-gilroy-regular text-[18px]">
                             {currentContract?.description}
                         </p>
-                        <span className="prose prose-lg text-white mt-5 max-w-[200px] text-[14px] sm:text-left"> Current Status : {currentContract?.status == ContractStatus.Draft ? <ContractDraftedStatus></ContractDraftedStatus> : <ContractPublishedStatus></ContractPublishedStatus>}
-                        </span>
-                        {currentContract?.projectName && currentUserData.email == currentContract.clientEmail ? <PurpleWhiteButton onClick={() => {
+                        {/* <div className="flex flex-col mt-2 text-left">
+                            <h1 className="prose prose-sm text-white">Next Milestone</h1>
+                            <h1 className="prose prose-md text-white">{currentContract?.hasMilestones ? currentContract?.milestones?.workMilestones[0].description : "Project has no milestones"}</h1>
+                        </div> */}
+                        <div className="flex flex-row justify-start space-x-5 items-center prose prose-lg font-gilroy-medium text-white mt-2 whitespace-nowrap max-w-sm mb-5 sm:text-left">
+                            <span className='items-center'>Current Status :</span>
+                            <span className='items-center mb-3'> {currentContract?.status == ContractStatus.Draft ? <ContractDraftedStatus></ContractDraftedStatus> : <ContractPublishedStatus></ContractPublishedStatus>}</span>
+                        </div>
+                        {currentContract?.projectName && currentUserData.email == currentContract.clientEmail && currentContract.isSigned ? <PurpleWhiteButton onClick={() => {
                             const payload = structurePayinPayload(currentContract, userData.ownerUsername, currentUserData);
                             const formData = new FormData();
                             formData.append("payload", JSON.stringify(payload))
                             fetcher.submit(formData, { method: 'post', action: `${userData.ownerUsername}/handlers/payment` })
                         }} text="Pay Contract" /> : <></>}
+
                     </div>
-                    <div className={`bg-[#E1C773] hidden sm:flex h-40 w-36 m-6 rounded-xl`}>
-                        <div className="flex flex-col m-5 mt-10 text-center">
-                            <h1 className="prose prose-sm text-white">Next Milestone</h1>
-                            <h1 className="prose prose-md text-white">{currentContract?.hasMilestones ? currentContract?.milestones?.workMilestones[0].description : "Project has no milestones"}</h1>
-                        </div>
-                    </div>
+
 
                 </div> : <ContractZeroState></ContractZeroState>}
                 <MobileNavbarPadding />
@@ -179,7 +187,7 @@ export default function Dashboard() {
                         <tbody>
                             {userData?.contracts.map((contract: Contract, index: number) => {
                                 console.log()
-                                return (<tr key={contract.id} className={` border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gradient-to-br from-violet-700 via-violet-400 to-violet-500 hover:bg-opacity-50 dark:hover:bg-gray-600`}>
+                                return (<tr key={contract.id} className={` border-b dark:bg-gray-800 dark:border-gray-700 transition-all hover:bg-gradient-to-br from-violet-700 via-violet-400 to-violet-500 hover:bg-opacity-50 hover:border-accent-dark hover:drop-shadow-md dark:hover:bg-gray-600`}>
 
                                     <th scope="row" className="px-6 py-4 font-medium text-center text-white dark:text-white whitespace-nowrap">
                                         <Link to={`/${currentUserData?.displayName}/contracts/${contract.id}`}>{index + 1}</Link>
@@ -192,7 +200,7 @@ export default function Dashboard() {
                                     <td className="px-6 py-4 text-center text-white">
                                         {contract.contractValue}
                                         <br></br>
-                                        {contract.isSigned ? formatDateToReadableString(contract.signedDate) : formatDateToReadableString(contract.startDate)}
+                                        {contract.isSigned ? formatDateToReadableString(contract.signedDate) : contract.startDate}
 
                                     </td>
                                     <td className="px-6 py-4">
@@ -203,19 +211,16 @@ export default function Dashboard() {
                                     }} className={''}></ViewIcon></td>
                                     <td><EditIcon onClick={contract.status == ContractStatus.Draft ? () => {
                                         throw new Error('Function not implemented.');
-                                    } : () => { toast("You can't edit a contract once it's published :(", {theme:'dark', type:'info'}) }} className={''}></EditIcon></td>
-                                    <td><DeleteIcon onClick={(e) => {
-                                        let data = new FormData();
-                                        if (contract.id) {
-                                            data.append('id', contract.id);
-                                            submit(data,
-                                                { method: 'post' });
-                                        }
-
-                                    }} className={''}></DeleteIcon></td>
+                                    } : () => { toast("You can't edit a contract once it's published :(", { theme: 'dark', type: 'info' }) }} className={''}></EditIcon></td>
+                                    <td><DeleteIcon onClick={contract.status == ContractStatus.Published ? () => {
+                                        setContractSelectedForDeletion(contract);
+                                        setDeleteConfirmationModal(!deleteConfirmationModal);
+                                    } : () => { toast("You can't delete a contract once it's published :(") }} className={''}></DeleteIcon></td>
                                     <td><ChatIcon onClick={function (event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
                                         throw new Error('Function not implemented.');
                                     }} className={''}></ChatIcon></td>
+
+
                                 </tr>)
                             })}
 
@@ -224,6 +229,16 @@ export default function Dashboard() {
                 </div> : <></>}
 
             </div>
+            {deleteConfirmationModal && <NeutronModal onConfirm={(e) => {
+
+                let data = new FormData();
+                if (contractSelectedForDeletion.id) {
+                    data.append('id', contractSelectedForDeletion.id);
+                    submit(data,
+                        { method: 'post' });
+                }
+
+            }} body={<p className="text-red-600">You're about to delete a contract</p>} toggleModalFunction={setDeleteConfirmationModal}></NeutronModal>}
             <ToastContainer position="bottom-center"
                 autoClose={2000}
                 hideProgressBar={false}

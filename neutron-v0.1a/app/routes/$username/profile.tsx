@@ -31,18 +31,19 @@ export const loader: LoaderFunction = async ({ request }) => {
         const photoURL: string = session.metadata?.photoURL;
 
         if (photoURL && photoURL != "undefined") {
-            if (photoURL.includes("https://")) {
-                let buffer = Buffer.alloc(10000);
-                let resultString = '';
-                downloadGooglePhotosImage(photoURL, buffer, resultString);
-                console.log("result string is :" + resultString);
-            }
-            else {
+            if (photoURL.includes("firebasestorage")) {
                 console.log('dp is present')
                 const dpStream = getStream(ref(storage, session?.metadata?.photoURL))
                 const result = dpStream.read();
                 console.log(result)
                 session.metadata.profilePicture = result;
+
+            }
+            else {
+                let buffer = Buffer.alloc(10000);
+                let resultString = '';
+                downloadGooglePhotosImage(photoURL, buffer, resultString);
+                console.log("result string is :" + resultString);
             }
 
         }

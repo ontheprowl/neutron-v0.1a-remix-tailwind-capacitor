@@ -38,6 +38,8 @@ export const action: ActionFunction = async ({ request }) => {
         console.log('response body is : ')
         console.log(responseBody)
         if (responseBody["payment_link"]) {
+            console.log("payment link exists....")
+            console.log(responseBody.payment_link)
             return redirect(responseBody["payment_link"]);
         } else {
             return json(responseBody)

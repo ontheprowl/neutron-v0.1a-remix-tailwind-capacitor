@@ -8,10 +8,11 @@ import ContractCustomizationComponent from "./ContractCustomizationComponent";
 import { useFetcher, useLoaderData, useParams } from "@remix-run/react";
 import { ContractDataStore } from "~/stores/ContractStores";
 import { ContractEvent, NeutronEvent } from "~/models/events";
-import { checkForSpecificEvent } from "~/utils/utils";
 import MobileNavbarPadding from "../layout/MobileNavbarPadding";
 import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
 import AccentedToggle from "../layout/AccentedToggleV1";
+import PurpleWhiteButton from "../inputs/PurpleWhiteButton";
+import { returnUserUIDAndUsername } from "~/utils/utils";
 
 
 
@@ -24,6 +25,7 @@ export default function ContractEditScreen({ viewMode }: { viewMode?: boolean })
     const creator = ContractDataStore.useState(s => s.creator);
     let data: Contract = loaderData.contract;
     let events: NeutronEvent[] = loaderData.contractEvents;
+    const users = loaderData.users;
 
     const formMethods = useFormContext();
 
@@ -45,17 +47,18 @@ export default function ContractEditScreen({ viewMode }: { viewMode?: boolean })
 
                 <div className="flex flex-col space-y-3 sm:flex-row sm:space-x-3 m-5 justify-end">
                     {/** TODO: ADD NECESSARY DATA GATHERING FOR SIGNING LOGIC HERE, THEN MIGRATE SIGNING API SUBMISSIONS TO ANOTHER LOCATION */}
-                    {viewMode && events[events.length - 1].event == ContractEvent.ContractPublished && metadata?.email == data.providerEmail ? <TransparentButton className="w-40 mt-5 rounded-lg bg-accent-dark p-3 text-white transition-all border-2 border-white hover:border-accent-dark outline-none focus:ring-1 focus:ring-white hover:bg-bg-primary-dark" text="Sign" onClick={() => {
+                    {viewMode && events[events.length - 1] && events[events.length - 1].event == ContractEvent.ContractPublished && metadata?.email == data.providerEmail ? <PurpleWhiteButton text="Sign ( Service Provider )" onClick={() => {
                         const form = new FormData();
                         form.append('email', data.providerEmail)
-                        fetcher.submit(form, { action: `/${metadata.displayName}/sign/${data.id}`, method: 'post' })
-                    }}></TransparentButton> : <></>}
-                    {viewMode && events[events.length - 1].event == ContractEvent.ContractPendingSignByClient && data.clientEmail && metadata?.email == data.clientEmail ? <TransparentButton className="w-40 mt-5 rounded-lg bg-accent-dark p-3 text-white transition-all border-2 border-white hover:border-accent-dark outline-none focus:ring-1 focus:ring-white hover:bg-bg-primary-dark" text="Sign" onClick={() => {
+                        // E
+                        fetcher.submit(form, { action: `/${username}/sign/${data.id}`, method: 'post' })
+                    }}></PurpleWhiteButton> : <></>}
+                    {viewMode && events[events.length - 1] && events[events.length - 1].event == ContractEvent.ContractPendingSignByClient && data.clientEmail && metadata?.email == data.clientEmail ? <PurpleWhiteButton text="Sign ( Client )" onClick={() => {
                         const form = new FormData();
                         form.append('email', data.clientEmail)
                         form.append('isClient', 'true')
                         fetcher.submit(form, { action: `/${username}/sign/${data.id}`, method: 'post' })
-                    }}></TransparentButton> : <></>}
+                    }}></PurpleWhiteButton> : <></>}
 
 
                     <div className="flex flex-col space-y-2 w-full">
@@ -101,6 +104,10 @@ export default function ContractEditScreen({ viewMode }: { viewMode?: boolean })
 
 
                                 }
+                                const clientAdditionalDetails = returnUserUIDAndUsername(data.clientEmail, users);
+                                const providerAdditionalDetails = returnUserUIDAndUsername(data.providerEmail, users);
+                                data = { ...data, clientID: clientAdditionalDetails.uid, providerID: providerAdditionalDetails.uid, clientUsername: clientAdditionalDetails.username, providerUsername: providerAdditionalDetails.username };
+                               
                                 for (const [key, value] of Object.entries(data)) {
 
                                     if (key.includes('attachment')) {

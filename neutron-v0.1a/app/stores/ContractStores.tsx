@@ -14,7 +14,8 @@ export const ContractDataStore = new Store<Contract>({
 
   deliverablesCount: 1,
   hasAdvance: false,
-  milestonesCount: 1,
+  hasDeliverables:false,
+  milestonesCount: 0,
   deliverables: [],
   milestones: [],
   payoutTriggered: false,

@@ -13,6 +13,7 @@ import { toast } from "react-toastify";
 import NeutronModal from "../layout/NeutronModal";
 import { PAYMENT_BREAKDOWN_VALIDATOR_LOG_PREFIX } from "~/logging/constants";
 import MilestoneFormEntry from "../layout/MilestoneFormEntry";
+import { ErrorMessage } from "@hookform/error-message";
 
 
 
@@ -24,6 +25,7 @@ export default function ContractPaymentDetails() {
 
     const startDate = useWatch({ name: 'startDate' })
     const endDate = useWatch({ name: 'endDate' })
+    const basePay = useWatch({ name: 'basePay' })
 
 
     const advancePercentage: string = useWatch({ name: 'advancePercentage' });
@@ -42,6 +44,7 @@ export default function ContractPaymentDetails() {
 
     const hasAdvance = ContractDataStore.useState(s => s.hasAdvance);
     const hasMilestones = ContractDataStore.useState(s => s.hasMilestones);
+    const externalDeliverables = ContractDataStore.useState(s => s.externalDeliverables);
 
     const deliverables = ContractDataStore.useState(s => s.deliverables);
     const milestones = ContractDataStore.useState(s => s.milestonesCount)
@@ -58,8 +61,11 @@ export default function ContractPaymentDetails() {
     useEffect(() => {
 
         trigger()
-    }, [paymentMode, trigger, hasAdvance])
+    }, [paymentMode, trigger, hasAdvance, basePay, contractValue])
 
+    const IsLessThanContractValue = (v: string) => {
+        return v && contractValueNumber && parseInt(v) < contractValueNumber;
+    }
 
     return (
         <>
@@ -85,6 +91,11 @@ export default function ContractPaymentDetails() {
                         className=" bg-[#4A4A4A] pt-3 pb-3 pl-3 space-x-3 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white "
 
                     />
+                    <div className="w-full h-5 mt-3 text-left">
+                        <ErrorMessage errors={errors} name={'contractValue'} render={(data) => {
+                            return <span className="text-red-500 p-0 m-1 z-10">{data.message}</span>
+                        }} />
+                    </div>
                 </div>
 
 
@@ -97,10 +108,21 @@ export default function ContractPaymentDetails() {
                         id="contract-value-base-pay"
                         placeholder="Minimum compensation for the project"
                         decimalsLimit={2}
-                        {...formMethods.register('basePay')}
+                        {...formMethods.register('basePay', {
+                            validate: (v: string) => {
+                                let value = v.replace("₹", '').replace(',', '')
+                                console.log("Value of v is " + value)
+                                return value.length == 0 || !value || IsLessThanContractValue(value) || "The base pay must be less than the total contract value"
+                            }
+                        })}
                         className=" bg-[#4A4A4A] pt-3 pb-3 pl-3 space-x-3 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white "
 
                     />
+                    <div className="w-full h-5 mt-3 text-left">
+                        <ErrorMessage errors={errors} name={'basePay'} render={(data) => {
+                            return <span className="text-red-500 p-0 m-1 z-10">{data.message}</span>
+                        }} />
+                    </div>
                 </div>
 
             </div>
@@ -123,14 +145,47 @@ export default function ContractPaymentDetails() {
 
                 <div className="flex flex-row space-x-4 items-center">
                     <AccentedToggle variant="neutron-purple" name={'hasMilestones'} onToggle={() => {
-                        ContractDataStore.update(s => {
-                            s.hasMilestones = !hasMilestones
+                        if (hasMilestones === true) {
+                            ContractDataStore.update(s => {
+                                s.hasMilestones = !hasMilestones
+                                s.milestonesCount = 0;
+                            }
+                            )
+
+                        } else {
+                            ContractDataStore.update(s => {
+                                s.hasMilestones = !hasMilestones
+                                s.milestonesCount = 1;
+                            }
+                            );
+
+
                         }
-                        )
                     }}></AccentedToggle>
                     <div className="flex flex-col text-white">
                         <h1 className="font-gilroy-bold text-[18px]">Milestones</h1>
                         <p className="font-gilroy-regular text-[14px] text-gray-300"> Is your project structured in milestones?</p>
+                    </div>
+
+
+                </div>
+            </div>
+            <div className="flex flex-row justify-start space-x-10 mt-5 w-full">
+                <div className="flex flex-row space-x-4 items-center">
+                    <AccentedToggle variant="neutron-purple" name={'externalDeliverables'} onToggle={() => {
+                        if (externalDeliverables === true) {
+                            ContractDataStore.update(s => {
+                                s.externalDeliverables = false;
+                            });
+                        } else {
+                            ContractDataStore.update(s => {
+                                s.externalDeliverables = true;
+                            });
+                        }
+                    }}></AccentedToggle>
+                    <div className="flex flex-col text-white">
+                        <h1 className="font-gilroy-bold text-[18px]">Delivery on Platform</h1>
+                        <p className="font-gilroy-regular text-[14px] text-gray-300"> Are deliverables submitted externally or via the Neutron platform?</p>
                     </div>
 
 
@@ -187,17 +242,28 @@ export default function ContractPaymentDetails() {
                 } = {};
                 if (advancePercentage) {
                     milestonesPayload = {
-                        advance: { name: "advance", description: "This contract requires an advance payment before work begins...", percentage: advancePercentage, value: advancePercentageValue / 100 * contractValueNumber }
+                        advance: { name: "advance", description: "This contract requires an advance payment before work begins", percentage: advancePercentage, value: advancePercentageValue / 100 * contractValueNumber }
                     }
                 }
-                milestonesPayload['workMilestones'] = {}
                 let iter = -1;
-                for (const milestone of formMethods.getValues('milestones')) {
-                    const milestonePercentageNumber = parseInt(milestone.percentage.replace("%", ''));
+                const milestonesFromForm = formMethods.getValues('milestones');
 
-                    milestonesPayload['workMilestones'][++iter] = { ...milestone, value: milestonePercentageNumber / 100 * contractValueNumber, submissionPath: '' }
+                // If milestones defined, construct milestones from inputted milestone details, else construct singleton milestone for overall contract
+                if (milestonesFromForm) {
+                    milestonesPayload['workMilestones'] = {}
+
+                    for (const milestone of milestonesFromForm) {
+                        const milestonePercentageNumber = parseInt(milestone.percentage.replace("%", ''));
+
+                        milestonesPayload['workMilestones'][++iter] = { ...milestone, value: milestonePercentageNumber / 100 * contractValueNumber, submissionPath: '' }
+                    }
+                    milestonesPayload['workMilestones'][iter] = { ...milestonesPayload['workMilestones'][iter], isLastMilestone: true }
+
+                } else {
+                    milestonesPayload['workMilestones'] = {}
+                    milestonesPayload['workMilestones'][0] = { name: "Contract End Milestone", description: "This contract will be paid out in full on the completion of this milestone", percentage: advancePercentageValue ? `${100 - advancePercentageValue}` : '100', value: advancePercentageValue ? (1 - (advancePercentageValue / 100)) * contractValueNumber : contractValueNumber, isLastMilestone: true, submissionPath: '' }
                 }
-                milestonesPayload['workMilestones'][iter] = { ...milestonesPayload['workMilestones'][iter], isLastMilestone: true }
+
                 console.log("This is the milestones data ( after pre-processing ) ")
                 console.dir(milestonesPayload);
 
@@ -211,6 +277,7 @@ export default function ContractPaymentDetails() {
                         s.stage = ContractCreationStages.DraftReview;
                         s.milestones = milestonesPayload;
                         formMethods.setValue('milestones', milestonesPayload);
+                        formMethods.setValue('externalDeliverables', externalDeliverables);
                     });
                 }
 
@@ -240,3 +307,5 @@ function paymentBreakdownIsValid(milestones: {
     }
     return true;
 }
+
+

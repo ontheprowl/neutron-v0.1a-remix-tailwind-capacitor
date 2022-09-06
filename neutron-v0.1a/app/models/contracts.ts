@@ -51,6 +51,8 @@ export type Deliverable = {
 export enum DeliverableStatus {
   NotSubmitted,
   SubmittedForApproval,
+  SubmittedExternally,
+  InFeedback,
   Approved,
   Rejected,
 }
@@ -64,7 +66,7 @@ export enum MilestoneStatus {
 }
 
 export type Milestone = {
-  lastMilestone?: boolean;
+  isLastMilestone?: boolean;
   expectedDate?: Date;
   name: string;
   description: string;
@@ -82,6 +84,11 @@ export enum ContractStatus {
   Published,
 }
 
+export type Revision = {
+  id:string,
+  description:string,
+};
+
 export enum ContractCreator {
   IndividualClient,
   EnterpriseClient,
@@ -91,6 +98,7 @@ export enum ContractCreator {
 export interface Contract {
   contractValue?: string;
   clientAddress?: string;
+  hasDeliverables?: boolean;
   payoutTriggered?: boolean;
   providerEmail: string;
   isClient?: boolean;
@@ -118,6 +126,7 @@ export interface Contract {
   hasAdvance?: boolean;
   advancePercentage?: string;
   description?: string;
+  externalDeliverables? : boolean;
   supportPolicy?: string;
   startDate?: Date;
   redressalWindow?: number;

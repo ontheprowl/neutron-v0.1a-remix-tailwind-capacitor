@@ -12,6 +12,8 @@ export enum ContractEvent {
     ContractSignedByBoth,
     ContractPayinRequested,
     ContractPayinCompleted,
+    ContractAdvancePending,
+    ContractAdvancePayoutCompleted,
     ContractMilestonePending,
     ContractMilestoneSubmitted,
     ContractMilestoneInFeedback,

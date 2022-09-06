@@ -28,6 +28,8 @@ export async function getFirebaseDocs(collectionName: string, onlyKeys?: boolean
 
 
 
+
+
 export async function addFirestoreDocFromData(data: any, collectionName: string, path?: string): Promise<DocumentReference<any>> {
 
     console.log('FULL CONTRACT BEING ADDED (server-side) \n');
@@ -60,10 +62,12 @@ export async function getSingleDoc(docPath: string): Promise<DocumentData | unde
 }
 
 
-export async function sendChatMessage(message: string, from: string, to: string): Promise<Boolean> {
+export async function sendChatMessage(message: string, from: string, to: string, key?: string): Promise<Boolean> {
 
     try {
-        const result = await set(push(ref(db, 'messages/' + btoa((from + to).split('').sort().join('')))), { text: message, to: to, from: from, timestamp: new Date().toUTCString() })
+        const messageKey = key ? from + to + key : from + to;
+        console.log("messageKey is : " + messageKey)
+        const result = await set(push(ref(db, 'messages/' + btoa((messageKey).split('').sort().join('')))), { text: message, to: to, from: from, timestamp: new Date().toUTCString() })
         return true
     }
     catch (e) {
@@ -77,7 +81,7 @@ export async function sendChatMessage(message: string, from: string, to: string)
 export async function sendEvent(eventData: NeutronEvent) {
 
     try {
-        const result = await set(push(ref(db, 'events/' + eventData.type)), { ...eventData, timestamp: new Date().toUTCString() })
+        const result = await set(push(ref(db, 'events/' + eventData.type)), { ...eventData, timestamp: new Date().getTime() })
         return true
     }
     catch (e) {

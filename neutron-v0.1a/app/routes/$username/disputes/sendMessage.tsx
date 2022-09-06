@@ -8,7 +8,9 @@ export async function action({ request }: { request: Request }) {
     const message: string = data.get('message')?.toString();
     const from: string = data.get('from')?.toString();
     const to: string = data.get('to')?.toString();
-    const result = await sendChatMessage(message, from, to)
+    const key = data.get('key')?.toString();
+    console.log('FROM : ' + from + " TO : " + to + " KEY : " + key );
+    const result = await sendChatMessage(message, from, to, key)
     return json({ result: result })
 
 }
