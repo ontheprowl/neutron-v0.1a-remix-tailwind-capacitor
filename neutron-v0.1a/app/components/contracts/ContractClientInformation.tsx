@@ -17,7 +17,7 @@ import MandatoryAsterisk from "../layout/MandatoryAsterisk";
 
 
 
-export default function ContractClientInformation() {
+export default function ContractClientInformation({ editMode }: { editMode?: boolean }) {
 
     const { validEmails, users }: { validEmails: string[], users: [{ id: string, data: { [key: string]: any } }] } = useLoaderData();
 
@@ -99,7 +99,7 @@ export default function ContractClientInformation() {
                 }}></AccentedToggle>
             </div>
 
-            <h2 className="prose prose-lg mb-5 sm:mb-0 mt-5 text-white font-gilroy-bold text-[24px]"> Counter-Party Details </h2>
+            <h2 className="prose prose-lg mb-5 sm:mb-0 mt-5 text-white font-gilroy-black text-[30px]"> Counter-Party Details </h2>
             <label htmlFor="simple-search" className="sr-only">{creator === ContractCreator.IndividualServiceProvider ? 'Employer Name ' : 'Service Provider Name'}</label>
             <div className="flex flex-col sm:flex-row relative w-auto sm:items-end space-y-5 sm:space-x-10 justify-start align-middle">
                 {/* <div className="relative w-auto ">
@@ -111,7 +111,7 @@ export default function ContractClientInformation() {
                 </div> */}
                 <div className=" space-y-3 w-full">
                     <span className=" prose prose-md text-white font-gilroy-regular text-[18px]">{creator === ContractCreator.IndividualServiceProvider ? 'Employer Name ' : 'Service Provider Name'}<MandatoryAsterisk /></span>
-                    <input type="text" id="client-name" {...formMethods.register(creator === ContractCreator.IndividualServiceProvider ? 'clientName' : 'providerName', { required: true, maxLength: { value: 20, message: 'Client name cannot exceed 20 characters' } })} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="e.g : Acme Corp" required />
+                    <input type="text" id="client-name" defaultValue={creator === ContractCreator.IndividualServiceProvider ? clientName : providerName} {...formMethods.register(creator === ContractCreator.IndividualServiceProvider ? 'clientName' : 'providerName', { required: true, maxLength: { value: 20, message: 'Client name cannot exceed 20 characters' } })} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="e.g : Acme Corp" required />
                     <div className="w-full h-5 mt-3 text-left">
                         <ErrorMessage errors={errors} name={creator === ContractCreator.IndividualServiceProvider ? 'clientName' : 'providerName'} render={(data) => {
                             return <span className="text-red-500 p-0 m-1 z-10">{data.message}</span>
@@ -121,7 +121,7 @@ export default function ContractClientInformation() {
                 <div className="hidden sm:flex sm:h-20 w-5 border-l-gray-500 border-l-2"></div>
                 <div className=" space-y-3 w-full">
                     <span className=" prose prose-md text-white font-gilroy-regular text-[18px]">{creator === ContractCreator.IndividualServiceProvider ? 'Employer Email ' : 'Service Provider Email'}<MandatoryAsterisk /></span>
-                    <input type="text" id="client-email" {...formMethods.register(creator === ContractCreator.IndividualServiceProvider ? 'clientEmail' : 'providerEmail', {
+                    <input type="text" id="client-email" defaultValue={creator === ContractCreator.IndividualServiceProvider ? clientEmail : providerEmail} {...formMethods.register(creator === ContractCreator.IndividualServiceProvider ? 'clientEmail' : 'providerEmail', {
                         required: true, pattern: {
                             value: ValidationPatterns.emailValidationPattern,
                             message: 'Not a valid email ID '
@@ -148,7 +148,7 @@ export default function ContractClientInformation() {
                 <div className=" space-y-3 w-full">
                     <span className=" prose prose-md text-white w-full font-gilroy-regular text-[18px]"> Project Name <MandatoryAsterisk /> </span>
 
-                    <input type="text" id="project-name"  {...formMethods.register('projectName', { required: true, pattern: { value: ValidationPatterns.projectNameValidationPattern, message: 'Project name cannot contain numbers' } })} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Project Name" required />
+                    <input type="text" id="project-name" defaultValue={projectName}  {...formMethods.register('projectName', { required: true, pattern: { value: ValidationPatterns.projectNameValidationPattern, message: 'Project name cannot contain special characters ' } })} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Project Name" required />
                     <div className="w-full h-5 mt-3 text-left">
                         <ErrorMessage errors={errors} name='projectName' render={(data) => {
                             return <span className="text-red-500 p-0 m-1 z-10">{data.message}</span>
@@ -159,7 +159,7 @@ export default function ContractClientInformation() {
                 <div className="flex items-end mt-5 flex-col space-y-3 sm:space-x-3 sm:flex-row w-full">
                     <div className=" space-y-3 w-full">
                         <span className=" prose prose-md text-white font-gilroy-regular text-[18px]">Contract Start Date <MandatoryAsterisk /></span>
-                        <input  {...formMethods.register('startDate', { required: true })} type="date" min={minStartDate()} placeholder="Contract Start Date" className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
+                        <input defaultValue={startDate}  {...formMethods.register('startDate', { required: true })} type="date" min={minStartDate()} placeholder="Contract Start Date" className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
                         <div className="w-full h-5  mt-3 text-left">
                             <ErrorMessage errors={errors} name='startDate' render={(data) => {
                                 return <span className="text-red-500 p-0 m-1 z-10">{data.message}</span>
@@ -169,7 +169,7 @@ export default function ContractClientInformation() {
 
                     <div className=" space-y-3 w-full">
                         <span className=" prose prose-md text-white font-gilroy-regular text-[18px]">Contract End Date <MandatoryAsterisk /></span>
-                        <input {...formMethods.register('endDate', { required: true })} type="date" min={minEndDate(startDate)} placeholder="Contract Start Date" className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
+                        <input defaultValue={endDate} {...formMethods.register('endDate', { required: true })} type="date" min={minEndDate(startDate)} placeholder="Contract Start Date" className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
                         <div className="w-full h-5 mt-3 text-left">
                             <ErrorMessage errors={errors} name='endDate' render={(data) => {
                                 return <span className="text-red-500 p-0 m-1 z-10">{data.message}</span>
@@ -180,7 +180,7 @@ export default function ContractClientInformation() {
 
                     <div className="text-left space-y-3 w-full">
                         <span className=" prose prose-md text-white font-gilroy-regular text-[18px]">No. of Revisions </span>
-                        <input {...formMethods.register('revisions')} type="number" min="0" max="30" value={revisions} defaultValue="0" placeholder="e.g : 15 days" className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
+                        <input {...formMethods.register('revisions')} type="number" min="0" max="30" defaultValue={revisions} placeholder="e.g : 1" className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
                         <div className="w-full h-5 mt-3 text-left">
                             <ErrorMessage errors={errors} name='revisions' render={(data) => {
                                 return <span className="text-red-500 p-0 m-1 z-10">{data.message}</span>
@@ -190,7 +190,7 @@ export default function ContractClientInformation() {
                 </div>
 
             </div>
-            <FormButton className="w-40 rounded-lg  bg-accent-dark p-3 border-2 border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-white transition-all" onClick={() => {
+            <FormButton size="small" onClick={() => {
                 if (!isEmpty(errors)) {
 
                     toast("Invalid values detected for contract fields!", { theme: 'dark', type: 'warning' })
@@ -198,20 +198,20 @@ export default function ContractClientInformation() {
                     ContractDataStore.update(s => {
                         s.stage = ContractCreationStages.ScopeOfWork;
 
-                        // s.clientName = formMethods.getValues('clientName');
-                        // s.clientEmail = formMethods.getValues('clientEmail')
-                        // s.providerName = formMethods.getValues('providerName');
-                        // s.providerEmail = formMethods.getValues('providerEmail');
-                        // s.projectName = formMethods.getValues('projectName');
-                        // s.startDate = formMethods.getValues('startDate');
-                        // s.endDate = formMethods.getValues('endDate');
-                        // s.revisions = formMethods.getValues('revisions');
+                        s.clientName = formMethods.getValues('clientName');
+                        s.clientEmail = formMethods.getValues('clientEmail')
+                        s.providerName = formMethods.getValues('providerName');
+                        s.providerEmail = formMethods.getValues('providerEmail');
+                        s.projectName = formMethods.getValues('projectName');
+                        s.startDate = formMethods.getValues('startDate');
+                        s.endDate = formMethods.getValues('endDate');
+                        s.revisions = formMethods.getValues('revisions');
                     });
-                    
+
                 }
 
-            }} text="Create Contract"></FormButton>
-            {showModal && <NeutronModal onConfirm={() => { setShowModal(false) }} heading={<p>Important Notice</p>} body={<p>Neutron provides generic contracts, but it may not contain important clauses for your country.<br></br><br></br> You can use and modify the contracts as you like, but it's provided 'as is' and to be used at your own risk. <br></br> <br></br><span className="text-purple-500 break-normal">Contracts can only be created between two Neutron users whose profiles and KYC have been completed</span> </p>} toggleModalFunction={setShowModal}></NeutronModal>}
+            }} text="Continue"></FormButton>
+            {showModal && !editMode && <NeutronModal onConfirm={() => { setShowModal(false) }} heading={<p>Important Notice</p>} body={<p>Neutron provides generic contracts, but it may not contain important clauses for your country.<br></br><br></br> You can use and modify the contracts as you like, but it's provided 'as is' and to be used at your own risk. <br></br> <br></br><span className="text-purple-500 break-normal">Contracts can only be created between two Neutron users whose profiles and KYC have been completed</span> </p>} toggleModalFunction={setShowModal}></NeutronModal>}
 
         </div >);
 }

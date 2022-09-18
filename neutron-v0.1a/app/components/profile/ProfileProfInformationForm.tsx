@@ -27,7 +27,7 @@ export default function ProfileProfInformationForm() {
                 return (<DefaultSpinner></DefaultSpinner>);
         }
     }
-   
+
 
     const userNames: string[] = data.usernames;
 
@@ -41,6 +41,7 @@ export default function ProfileProfInformationForm() {
     const experience = useWatch({ control, name: 'experience' })
     const location = useWatch({ control, name: 'location' })
     const language = useWatch({ control, name: 'language' })
+    const businessType = useWatch({ control, name: 'businessType' })
 
 
     useEffect(() => {
@@ -75,7 +76,7 @@ export default function ProfileProfInformationForm() {
                 }} />
             </div>
             <div className="flex items-end mt-2 flex-col space-y-2 sm:space-x-3 sm:flex-row w-full">
-                <div className="sm:text-center space-y-3 w-full h-auto">
+                <div className=" space-y-3 w-full h-auto">
                     <span className=" prose prose-md text-white">Experience ( in years )</span>
                     <input  {...register('experience', { required: 'This field is required', maxLength: { value: 3, message: 'Please enter a number of years less than a human life-span' } })} type="number" placeholder="e.g : 5 years" defaultValue={userMetadata.experience} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg invalid:border-red-500 placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
                     <div className="w-full h-10 mt-3 text-left">
@@ -87,7 +88,7 @@ export default function ProfileProfInformationForm() {
                 </div>
 
 
-                <div className="sm:text-center space-y-3 w-full">
+                <div className=" space-y-3 w-full">
                     <span className=" prose prose-md text-white">Location</span>
                     <input  {...register('location', { required: 'This field is required', maxLength: { value: 20, message: 'Location exceeds maximum length of 20' } })} type="text" placeholder="e.g : Mumbai, India" defaultValue={userMetadata.location} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg invalid:border-red-500 placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
                     {/* <CountrySelect formFieldName="location" defaultValue={() => 'India'} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " id={""} /> */}
@@ -97,7 +98,7 @@ export default function ProfileProfInformationForm() {
                         }} />
                     </div>
                 </div>
-                <div className="sm:text-center space-y-3 w-full h-auto">
+                <div className=" space-y-3 w-full h-auto">
                     <span className=" prose prose-md text-white">Working Language</span>
                     <input  {...register('language', { required: 'This field is required', maxLength: { value: 10, message: 'Language name exceeds maximum length of 10' } })} type="text" placeholder="e.g : English" defaultValue={userMetadata.language} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg invalid:border-red-500 placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
                     <div className="w-full h-10 mt-3 text-left">
@@ -107,8 +108,85 @@ export default function ProfileProfInformationForm() {
                     </div>
 
                 </div>
-            </div>
 
+            </div>
+            <div className="flex flex-row w-full space-x-4">
+                <div className="flex flex-col justify-start space-y-2 mt-3">
+                    <h2 className="prose prose-md text-white  text-[16px]"> Type of Work </h2>
+                    <select id="work-type-select" {...register('workType')} defaultValue={userMetadata.workType} className=" bg-[#4A4A4A] p-3  text-white text-sm rounded-lg placeholder-white block w-auto h-auto dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white ">
+                        <option value="Accounting & Finance">Accounting & Finance</option>
+                        <option value="Development & IT">Development & IT</option>
+                        <option value="Design & Creative">Design & Creative</option>
+                        <option value="Sales & Marketing">Sales & Marketing</option>
+                        <option value="Writing & Translation">Writing & Translation</option>
+                        <option value="Admin & Customer Support">Admin & Customer Support</option>
+                        <option value="HR & Training">HR & Training</option>
+                        <option value="Legal">Legal</option>
+                        <option value="Engineering & Architecture">Engineering & Architecture</option>
+                        <option value="Other">Other</option>
+                        {/* <option value="Consulting">Consulting</option>
+                        <option value="Digital Marketing">Digital Marketing</option>
+                        <option value="Design">Design</option>
+                        <option value="Engineering">Engineering</option>
+                        <option value="Finance">Finance</option>
+                        <option value="Wellness">Wellness</option>
+                        <option value="Graphic Design">Graphic Design</option>
+                        <option value="Human Resources">Human Resources</option>
+                        <option value="IT Consulting">IT Consulting</option>
+                        <option value="Influencer">Influencer</option>
+                        <option value="Legal">Legal</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Music Production">Music Production</option>
+                        <option value="Performing Arts">Performing Arts</option>
+                        <option value="Photography">Photography</option>
+                        <option value="Podcasting">Podcasting</option>
+                        <option value="Product Management">Product Management</option>
+                        <option value="Product Management">Product Management</option>
+                        <option value="Product Management">Product Management</option>
+                        <option value="Product Management">Product Management</option>
+                        <option value="Product Management">Product Management</option>
+                        <option value="Product Management">Product Management</option>
+                        <option value="Public Relations">Public Relations</option>
+                        <option value="Recruitment">Recruitment</option>
+                        <option value="Digital Media Management">Digital Media Management</option>
+                        <option value="Software Engineering">Software Engineering</option>
+                        <option value="Translation/Interpretation">Translation/Interpretation</option>
+                        <option value="Production">Production</option>
+                        <option value="Virtual Assistant">Virtual Assistant</option>
+                        <option value="Videography">Videography</option>
+                        <option value="Web Design">Web Design</option>
+                        <option value="Web Development">Web Development</option>
+                        <option value="Writing/Editing">Writing/Editing</option>
+                        <option value="Youtuber">Youtuber</option>
+                        <option value="Other">Other</option> */}
+                    </select>
+                </div>
+
+                <div className="flex flex-col justify-start space-y-2 mt-3">
+                    <h2 className="prose prose-md text-white text-[16px]"> What best describes your business? </h2>
+                    <select id="business-type-select" {...register('businessType')} defaultValue={userMetadata.businessType} className=" bg-[#4A4A4A] p-3  text-white text-sm rounded-lg placeholder-white block w-auto h-auto dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white ">
+                        <option value="Just starting out">Just starting out</option>
+                        <option value="Part-time Freelancer">Part-time Freelancer</option>
+                        <option value="Full-time Freelancer or Business Owner">Full-time Freelancer or Business Owner</option>
+                        <option value="Agency/Studio or Enterprise">Agency/Studio or Enterprise</option>
+                    </select>
+                </div>
+                {businessType == "Agency/Studio or Enterprise" && <div className="flex flex-col justify-start space-y-2 mt-3 ">
+                    <h2 className="prose prose-md text-white text-[16px]">Does your business work with: </h2>
+                    <select id="employee-type-select" {...register('employeeType')} defaultValue={userMetadata.employeeType} className=" bg-[#4A4A4A] p-3  text-white text-sm rounded-lg placeholder-white block w-auto h-auto dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white ">
+                        <option value="Full-time employees">Full-time employees</option>
+                        <option value="Subcontractors">Subcontractors</option>
+                        <option value="Combination of both">Combination of both</option>
+                    </select>
+                </div>}
+                {businessType != "Agency/Studio or Enterprise" && <div className="flex flex-col justify-start space-y-2 mt-3">
+                    <h2 className="prose prose-md text-white text-[16px]"> Is your business registered/incorporated? </h2>
+                    <select id="is-registered" {...register('isRegistered')} defaultValue={userMetadata?.isRegistered} className=" bg-[#4A4A4A] p-3  text-white text-sm rounded-lg placeholder-white block w-auto h-auto dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white ">
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>}
+            </div>
         </div>
         <button
             className="w-40 rounded-lg mt-2 self-start  bg-accent-dark p-3 border-2 border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-black font-gilroy-black font-[18px] transition-all"

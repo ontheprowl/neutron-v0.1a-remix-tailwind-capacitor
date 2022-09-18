@@ -14,12 +14,17 @@ export function generateNeutronErrorForErrorCode(code: string) {
     case "auth/invalid-email":
       return {
         type: NeutronErrorCode.AuthError,
-        message: "Invalid email ID...",
+        message: "Invalid email ID",
+      };
+    case "auth/user-not-found":
+      return {
+        type:NeutronErrorCode.AuthError,
+        message: "No such user detected"
       };
     case "auth/wrong-password":
       return {
         type: NeutronErrorCode.AuthError,
-        message: "Invalid password...",
+        message: "Invalid password",
       };
     case "auth/internal-error":
       return {
@@ -31,12 +36,17 @@ export function generateNeutronErrorForErrorCode(code: string) {
         return {
             type: NeutronErrorCode.AuthError,
             message:
-              "This email has not been verified. Please try again after completing email verification...",
+              "This email has not been verified. Please try again after completing email verification",
           };
+    case "auth/email-already-in-use":
+      return {
+        type:NeutronErrorCode.AuthError,
+        message : "There is already a user mapped to this email ID. Please use a different email, or reset your password"
+      }
     default:
         return {
             type: NeutronErrorCode.GeneralError,
-            message:" Nothing in particular..."
+            message:" Nothing in particular"
         }
   }
 }

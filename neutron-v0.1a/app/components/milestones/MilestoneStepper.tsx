@@ -103,14 +103,14 @@ export default function MilestoneStepper() {
                     <br></br>
                     <br></br>
                     <span>After this revision request, you will have {contract.revisions - 1} revisions that you can request</span>
-                </div> : `You can not request any/any further revisions for this contract.`}</p>} body={<div className="text-black" > {contract.revisions && contract.revisions > 0 ? <RequestRevisionForm milestone={targetMilestoneInfo?.milestone} milestoneIndex={targetMilestoneInfo?.milestoneIndex}></RequestRevisionForm> : <span className="text-red-600"> If you still feel the quality of work needs to be addressed, please raise a dispute under the Quality of Work category</span>}</div >}></NeutronModal >}
+                </div> : `You can not request any/any further revisions for this contract.`}</p>} body={<div className="text-black" > {contract.revisions && contract.revisions > 0 ? <RequestRevisionForm milestone={targetMilestoneInfo?.milestone} milestoneIndex={targetMilestoneInfo?.milestoneIndex} toggleModalFunction={setRequestRevisionModal}></RequestRevisionForm> : <span className="text-red-600"> If you still feel the quality of work needs to be addressed, please raise a dispute under the Quality of Work category</span>}</div >}></NeutronModal >}
             {raiseDisputeModal && <NeutronModal toggleModalFunction={setRaiseDisputeModal} heading={
-                <div>
+                <div className="max-h-fit">
                     <span className=" break-normal">You are about to raise a dispute for this contract. </span>
                     <br></br>
                     <span className="text-red-700 break-normal mt-2 text-[14px] leading-tight"> Please only raise a dispute in case revisions can no longer address your concerns.</span>
                 </div>} body={
-                    <RaiseDisputeForm milestone={targetMilestoneInfo?.milestone} milestoneIndex={targetMilestoneInfo?.milestoneIndex} />
+                    <RaiseDisputeForm toggleModalFunction={setRaiseDisputeModal} milestone={targetMilestoneInfo?.milestone} milestoneIndex={targetMilestoneInfo?.milestoneIndex} />
                 }></NeutronModal>}
             {
                 payinModal && <NeutronModal onConfirm={() => {
@@ -146,13 +146,13 @@ export default function MilestoneStepper() {
         return milestone != undefined ?
             <>
 
-                <div className="flex flex-col space-x-3 ml-3 items-center border-2 border-solid border-accent-dark rounded-xl">
+                <div className="flex flex-col space-x-3 ml-3 items-center border-2 border-solid border-purple-400 rounded-xl">
                     <div className="flex flex-col self-start m-5 space-x-3 space-y-3">
                         <div className="flex flex-row items-center space-y-1 space-x-3 justify-start">
                             <img src={iconForMilestoneStatus(milestone.status != undefined ? milestone.status : MilestoneStatus.Upcoming)} alt="Neutron Icon" className="h-6 ml-3" />
                             <h1 className="prose text-purple-400 font-gilroy-medium prose-lg  uppercase text-[16px]"> {milestone.name}</h1>
                         </div>
-                        <h2 className="prose prose-sm break-all text-white ml-1 font-gilroy-regular text-[14px]"> {milestone.description}</h2>
+                        <h2 className="prose prose-sm break-words text-white ml-1 font-gilroy-regular text-[14px]"> {milestone.description}</h2>
 
                     </div>
                     {approve && metadata.email == contract.clientEmail ?
@@ -161,7 +161,7 @@ export default function MilestoneStepper() {
                                 console.log("MILESTONE INDEX FOR APPROVAL :" + nextMilestoneIndex)
                                 console.dir("MILESTONE GOING TO APPROVAL ACTION :")
                                 console.dir(milestone);
-                                setTargetMilestoneInfo({ milestone: milestone, nextMilestoneIndex: nextMilestoneIndex + 1 });
+                                setTargetMilestoneInfo({ milestone: milestone, nextMilestoneIndex: Number(nextMilestoneIndex) + 1 });
                                 setApprovalModal(true);
 
                             }} text="Approve Deliverable"></FormButton>
@@ -180,13 +180,19 @@ export default function MilestoneStepper() {
                     }
                     {submit && metadata.email == contract.providerEmail ?
                         <div className="flex flex-row justify-end p-3">
-                            {contract.externalDeliverables ?
+                            {contract.externalDeliverables == "true" ?
                                 <div>
                                     <FormButton onClick={() => {
                                         const form = new FormData();
                                         form.append("externallyDelivered", 'true');
                                         form.append("milestone", JSON.stringify(milestone));
-                                        form.append("milestoneIndex", nextMilestoneIndex)
+                                        if (milestone.isLastMilestone) {
+                                            console.log("LAST MILESTONE IDENTIFIED");
+                                            form.append("isLastMilestone", Boolean(true).toString());
+                                            form.append("milestoneIndex", contract.milestones.workMilestones.length - 1);
+                                        } else {
+                                            form.append("milestoneIndex", nextMilestoneIndex);
+                                        }
                                         fetcher.submit(form, { method: "post", encType: 'multipart/form-data' })
                                     }} text=" Mark as Externally Submitted " />
                                 </div> :
@@ -202,7 +208,13 @@ export default function MilestoneStepper() {
                                             const form = new FormData();
                                             form.append("deliverableFile", file);
                                             form.append("milestone", JSON.stringify(milestone));
-                                            form.append("milestoneIndex", nextMilestoneIndex)
+                                            if (milestone.isLastMilestone) {
+                                                console.log("LAST MILESTONE IDENTIFIED");
+                                                form.append("isLastMilestone", Boolean(true).toString());
+                                                form.append("milestoneIndex", Object.keys(contract?.milestones?.workMilestones).length - 1);
+                                            } else {
+                                                form.append("milestoneIndex", nextMilestoneIndex);
+                                            }
                                             fetcher.submit(form, { method: "post", encType: 'multipart/form-data' })
                                         }
 
@@ -257,6 +269,10 @@ export default function MilestoneStepper() {
         console.log("INDEX IN THE STEP EVENT  : " + eventIndex);
 
         switch (event?.event) {
+
+            case ContractEvent.ContractDrafted:
+                return <MilestoneStep key={event.timestamp} index={eventIndex} status={variant} name={variant == MilestoneStatus.Completed ? `Contract was drafted and then published by ${contract.providerName}` : `Contract has been drafted by ${contract.providerName}`} subline={variant == MilestoneStatus.Completed ? formatDateToReadableString(event.timestamp, false, true) : 'Current Status'} />
+
             case ContractEvent.ContractPublished:
 
                 return <MilestoneStep key={event.timestamp} index={eventIndex} status={variant} name={variant == MilestoneStatus.Completed ? `Contract has been signed by ${contract.providerName}` : `Contract has not been signed by ${contract.providerName}`} subline={variant == MilestoneStatus.Completed ? formatDateToReadableString(event.timestamp, false, true) : 'Current Status'} />
@@ -309,13 +325,17 @@ export default function MilestoneStepper() {
             case ContractEvent.ContractMilestoneCompleted:
                 const approvedMilestone = event?.payload?.data.milestone;
                 return <MilestoneStep index={eventIndex} key={event.event} status={variant} name={`Milestone ${approvedMilestone.name} has been completed`} subline={variant == MilestoneStatus.Completed ? formatDateToReadableString(event.timestamp, false, true) : 'Current Status'} />;
+            case ContractEvent.ContractMilestonePayoutRequested:
+                let milestonePayoutAmount = event.payload?.data.amount;
+                return <MilestoneStep index={eventIndex} key={event.event} status={variant} name={variant == MilestoneStatus.Completed ? `Payout of ₹${milestonePayoutAmount} has been queued ` : `Payout of ₹${milestonePayoutAmount} will be queued shortly `} subline={variant == MilestoneStatus.Completed ? formatDateToReadableString(event.timestamp, false, true) : 'Current Status'} />;
+            case ContractEvent.ContractMilestonePayoutCompleted:
+                return <MilestoneStep index={eventIndex} key={event.event} status={variant} name={variant == MilestoneStatus.Completed ? `Payout has been completed ` : `Payout is being processed `} subline={variant == MilestoneStatus.Completed ? formatDateToReadableString(event.timestamp, false, true) : 'Current Status'} />;
             case ContractEvent.ContractPayoutRequested:
                 let payoutAmount = event.payload?.data?.amount;
                 return <MilestoneStep index={eventIndex} key={event.event} status={variant} name={variant == MilestoneStatus.Completed ? `Payout of ₹${payoutAmount} has been queued ` : `Payout of ₹${payoutAmount} will be queued shortly `} subline={variant == MilestoneStatus.Completed ? formatDateToReadableString(event.timestamp, false, true) : 'Current Status'} />;
 
             //TODO: Add contract details to contract payout completed event so that milestone event can be enriched.
             case ContractEvent.ContractPayoutCompleted:
-                let paidAmount = event.payload?.data?.amount;
                 return <MilestoneStep index={eventIndex} key={event.event} status={variant} name={variant == MilestoneStatus.Completed ? `Payout has been completed ` : `Payout is being processed `} subline={variant == MilestoneStatus.Completed ? formatDateToReadableString(event.timestamp, false, true) : 'Current Status'} />;
 
             case ContractEvent.ContractCompleted:

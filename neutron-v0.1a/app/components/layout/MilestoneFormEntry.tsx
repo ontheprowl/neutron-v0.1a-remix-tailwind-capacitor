@@ -19,6 +19,9 @@ export default function MilestoneFormEntry({ milestoneNumber }: { milestoneNumbe
 
     const startDate = useWatch({ name: 'startDate' })
     const endDate = useWatch({ name: 'endDate' })
+    const milestoneName = useWatch({name:`milestones.${milestoneNumber}.name`});
+    const milestoneDescription = useWatch({name:`milestones.${milestoneNumber}.description`});
+    const milestoneDate = useWatch({name:`milestone.${milestoneNumber}.date`});
     const prevEndDate = useWatch({ name: `milestones.${milestoneNumber - 1}.date` });
 
     const milestonePercentage: string = useWatch({ name: `milestones.${milestoneNumber}.percentage` });
@@ -36,15 +39,17 @@ export default function MilestoneFormEntry({ milestoneNumber }: { milestoneNumbe
 
     return (
         <div key={milestoneNumber} id={`milestones-${milestoneNumber}`} className="flex flex-col sm:flex-row space-y-5 sm:p-1 sm:space-y-0 sm:items-center sm:space-x-5 sm:mb-3 sm:mt-3 justify-start sm:justify-start">
-            <input type="text" {...formMethods.register(`milestones.${milestoneNumber}.name`)} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg sm:w-auto placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Name" required />
-            <input type="textarea" {...formMethods.register(`milestones.${milestoneNumber}.description`)} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm sm:w-full rounded-lg placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Describe this milestone in as much detail as possible" />
-            <input type="date" {...formMethods.register(`milestones.${milestoneNumber}.date`)} min={minDate} max={endDate} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 sm:w-full border-gray-300 text-white text-sm rounded-lg placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Describe this milestone in as much detail as possible" />
+            <input type="text" defaultValue={milestoneName} {...formMethods.register(`milestones.${milestoneNumber}.name`)} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg sm:w-auto placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Name" required />
+            <input type="textarea" defaultValue={milestoneDescription} 
+            {...formMethods.register(`milestones.${milestoneNumber}.description`)} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm sm:w-full rounded-lg placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Describe this milestone in as much detail as possible" />
+            <input type="date" defaultValue={milestoneDate} {...formMethods.register(`milestones.${milestoneNumber}.date`)} min={minDate} max={endDate} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 sm:w-full border-gray-300 text-white text-sm rounded-lg placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Describe this milestone in as much detail as possible" />
             <div className="flex flex-row space-x-2 sm:w-full items-center">
                 <CurrencyInput
                     suffix="%"
                     id="contract-milestone-value"
                     placeholder="e.g: 20%"
                     decimalsLimit={2}
+                    defaultValue={milestonePercentageNumber}
                     {...formMethods.register(`milestones.${milestoneNumber}.percentage`)}
                     className=" bg-[#4A4A4A] pt-3 pb-3 pl-3 max-w-xs space-x-3 border-gray-300 text-white text-sm rounded-lg placeholder-white block sm:w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white "
 

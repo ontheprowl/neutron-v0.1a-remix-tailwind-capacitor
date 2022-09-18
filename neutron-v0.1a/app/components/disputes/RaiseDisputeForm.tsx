@@ -1,6 +1,6 @@
 import { ErrorMessage } from "@hookform/error-message";
 import { useFetcher, useLoaderData } from "@remix-run/react";
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { Milestone } from "~/models/contracts";
 import { DisputeType } from "~/models/disputes";
@@ -10,7 +10,7 @@ import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
 
 
 
-export default function RaiseDisputeForm({ milestone, milestoneIndex }: { milestone: Milestone, milestoneIndex: number }) {
+export default function RaiseDisputeForm({ milestone, milestoneIndex, toggleModalFunction }: { milestone: Milestone, milestoneIndex: number, toggleModalFunction? : Dispatch<SetStateAction<boolean>> }) {
     console.log("Milestone Index : " + milestoneIndex)
     const { contract, metadata, ownerUsername } = useLoaderData();
 
@@ -35,10 +35,11 @@ export default function RaiseDisputeForm({ milestone, milestoneIndex }: { milest
             const payload = { ...data, contractName: contract.projectName, contract: contract, raisedBy: metadata?.displayName, description: data.description ? data.description : 'Deadline Extension requested' };
             form.append('payload', JSON.stringify(payload));
             fetcher.submit(form, { method: "post", action: `/${metadata.displayName}/disputes/createDispute/${contract.id}` });
+            if(toggleModalFunction) toggleModalFunction(false)
         })}>
             <div className="flex flex-col justify-start space-y-2 mt-8">
                 <h2 className="prose prose-md text-black font-gilroy-medium text-[18px]"> What is the nature of your dispute? </h2>
-                <select id="dispute-type-select"  {...methods.register('disputeType')} className=" bg-transparent p-3 transition-all ring-0 hover:ring-2 hover:ring-purple-400 active:ring-purple-400 focus:outline-none focus:ring-purple-400  text-black text-sm rounded-lg placeholder-black block w-auto h-auto dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white ">
+                <select id="dispute-type-select"  {...methods.register('disputeType')} className=" bg-transparent p-3 transition-all ring-2 ring-black hover:ring-purple-400 active:ring-purple-400 focus:outline-none focus:ring-purple-400  text-black text-sm rounded-lg placeholder-black block w-auto h-auto dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white ">
                     <option value={DisputeType.DeadlineExtension}>Deadline Extension</option>
                     {contract?.externalDeliverables ? <option value={DisputeType.QualityIssue}>Issue of Quality</option> : <></>}
                     {contract?.externalDeliverables ? <option value={DisputeType.Fraud}>Fraud</option> : <></>}

@@ -85,8 +85,8 @@ export enum ContractStatus {
 }
 
 export type Revision = {
-  id:string,
-  description:string,
+  id: string;
+  description: string;
 };
 
 export enum ContractCreator {
@@ -97,6 +97,10 @@ export enum ContractCreator {
 
 export interface Contract {
   contractValue?: string;
+  milestonesProcessed?: {
+    advance: Milestone;
+    workMilestones: { [key: string]: Milestone };
+  };
   clientAddress?: string;
   hasDeliverables?: boolean;
   payoutTriggered?: boolean;
@@ -126,7 +130,7 @@ export interface Contract {
   hasAdvance?: boolean;
   advancePercentage?: string;
   description?: string;
-  externalDeliverables? : boolean;
+  externalDeliverables?: boolean;
   supportPolicy?: string;
   startDate?: Date;
   redressalWindow?: number;

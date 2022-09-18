@@ -5,6 +5,7 @@ export class NeutronError extends Error {
   type: NeutronErrorCode;
   message: string;
   constructor(error: any) {
+    console.log(error);
     const { type, message } = error?.code
       ? generateNeutronErrorForErrorCode(error.code)
       : generateNeutronErrorForErrorCode(error.message);

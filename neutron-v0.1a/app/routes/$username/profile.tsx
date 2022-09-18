@@ -109,7 +109,7 @@ export default function Profile() {
     const [tab, setTab] = useState(0)
 
     return (
-        <div className="flex flex-col sm:flex-row h-full ">
+        <div className="flex flex-col sm:flex-row h-full ml-3 ">
             <div id="user-profile-panel" className="w-full sm:w-96 flex flex-col bg-bg-primary-dark sm:bg-bg-secondary-dark justify-evenly rounded-l-3xl ">
                 <div className="w-full sm:w-full sm:p-7 sm:flex sm:flex-col justify-between sm:space-y-10">
                     {/* <img alt="cover" className="w-auto h-auto min-h-48 object-cover rounded-bl-[50px] rounded-br-[50px] rounded-tl-[50px] " src={PlaceholderCover}></img> */}
@@ -137,6 +137,7 @@ export default function Profile() {
                     <div className='flex flex-col space-y-5 translate-y-[-28px]'>
                         <h1 className="prose prose-lg text-white self-center font-gilroy-black text-[25px]">{userMetadata.displayName}</h1>
                         <p className="prose prose-lg text-white self-center font-gilroy-medium text-[18px]"> {userMetadata?.designation} </p>
+                        <p className="prose prose-lg text-white self-center text-center font-gilroy-medium text-[18px]"> <u className='text-center'>Registered Email</u> <br></br> {userMetadata?.email} </p>
                     </div>
                     <div className="flex p-2 flex-row sm:flex-col m-3 justify-evenly sm:space-y-5 space-x-4 sm:space-x-0">
                         <button onClick={() => {

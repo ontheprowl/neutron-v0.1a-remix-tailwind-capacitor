@@ -14,13 +14,14 @@ import NeutronModal from "../layout/NeutronModal";
 import { PAYMENT_BREAKDOWN_VALIDATOR_LOG_PREFIX } from "~/logging/constants";
 import MilestoneFormEntry from "../layout/MilestoneFormEntry";
 import { ErrorMessage } from "@hookform/error-message";
+import MandatoryAsterisk from "../layout/MandatoryAsterisk";
 
 
 
 
 
 
-export default function ContractPaymentDetails() {
+export default function ContractPaymentDetails({ editMode }: { editMode?: boolean }) {
 
 
     const startDate = useWatch({ name: 'startDate' })
@@ -40,6 +41,12 @@ export default function ContractPaymentDetails() {
 
     if (contractValue) {
         contractValueNumber = parseInt(contractValue.replace("₹", '').replace(',', ''));
+    }
+
+    let basePayValueNumber = 0;
+
+    if (basePay) {
+        basePayValueNumber = parseInt(basePay.replace("₹", '').replace(',', ''));
     }
 
     const hasAdvance = ContractDataStore.useState(s => s.hasAdvance);
@@ -81,13 +88,14 @@ export default function ContractPaymentDetails() {
 
                 </div> */}
                 <div className="flex flex-col space-y-4 w-full">
-                    <h2 className="prose prose-lg text-white font-gilroy-regular text-[18px]"> Contract Value </h2>
+                    <h2 className="prose prose-lg text-white font-gilroy-regular text-[18px]"> Contract Value <MandatoryAsterisk></MandatoryAsterisk> </h2>
                     <CurrencyInput
                         prefix="₹"
                         id="contract-value"
                         placeholder="E.g: ₹10000"
                         decimalsLimit={2}
-                        {...formMethods.register('contractValue')}
+                        defaultValue={contractValueNumber}
+                        {...formMethods.register('contractValue', { required: true })}
                         className=" bg-[#4A4A4A] pt-3 pb-3 pl-3 space-x-3 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white "
 
                     />
@@ -108,6 +116,7 @@ export default function ContractPaymentDetails() {
                         id="contract-value-base-pay"
                         placeholder="Minimum compensation for the project"
                         decimalsLimit={2}
+                        defaultValue={basePayValueNumber}
                         {...formMethods.register('basePay', {
                             validate: (v: string) => {
                                 let value = v.replace("₹", '').replace(',', '')
@@ -207,6 +216,7 @@ export default function ContractPaymentDetails() {
                                 id="contract-value-advance"
                                 placeholder="e.g: 20% of total compensation"
                                 decimalsLimit={2}
+                                defaultValue={advancePercentageValue}
                                 {...formMethods.register('advancePercentage')}
                                 className=" bg-[#4A4A4A] pt-3 pb-3 pl-3 max-w-xs space-x-3 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white "
 
@@ -242,7 +252,7 @@ export default function ContractPaymentDetails() {
                 } = {};
                 if (advancePercentage) {
                     milestonesPayload = {
-                        advance: { name: "advance", description: "This contract requires an advance payment before work begins", percentage: advancePercentage, value: advancePercentageValue / 100 * contractValueNumber }
+                        advance: { name: "Advance", description: "This contract requires an advance payment before work begins", percentage: advancePercentage, value: advancePercentageValue / 100 * contractValueNumber }
                     }
                 }
                 let iter = -1;
@@ -250,6 +260,7 @@ export default function ContractPaymentDetails() {
 
                 // If milestones defined, construct milestones from inputted milestone details, else construct singleton milestone for overall contract
                 if (milestonesFromForm) {
+                    console.dir(milestonesFromForm)
                     milestonesPayload['workMilestones'] = {}
 
                     for (const milestone of milestonesFromForm) {
@@ -276,8 +287,13 @@ export default function ContractPaymentDetails() {
                     ContractDataStore.update(s => {
                         s.stage = ContractCreationStages.DraftReview;
                         s.milestones = milestonesPayload;
-                        formMethods.setValue('milestones', milestonesPayload);
+                        formMethods.setValue('milestonesProcessed', milestonesPayload);
                         formMethods.setValue('externalDeliverables', externalDeliverables);
+                        ContractDataStore.update(s => {
+                            s.hasAdvance = !s.hasAdvance;
+                            s.hasDeliverables = !s.hasDeliverables;
+                            s.hasMilestones = !s.hasMilestones
+                        })
                     });
                 }
 

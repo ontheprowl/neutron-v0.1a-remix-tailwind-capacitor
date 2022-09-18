@@ -24,10 +24,11 @@ export const formatDateToReadableString = (seconds?: string, onlyTime?: boolean,
             return date.getHours() + ":" + (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes());
         }
 
+
         let formattedDate =
             (date.getDate() >= 10 ? date.getDate() : '0' + date.getDate()) +
             "-" +
-            (date.getMonth() + 1) +
+            (date.getMonth() >= 9 ? date.getMonth() + 1 : '0' + (date.getMonth() + 1)) +
             "-" +
             date.getFullYear()
             + ' ' + date.getHours() + ":" + (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes());

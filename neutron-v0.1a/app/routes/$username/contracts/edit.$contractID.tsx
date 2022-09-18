@@ -19,7 +19,7 @@ import { getDownloadURL, ref, uploadBytes, uploadBytesResumable, uploadString, U
 import { addDoc, collection } from 'firebase/firestore';
 import { EventEmitter } from 'stream';
 import MobileNavbarPadding from '~/components/layout/MobileNavbarPadding';
-import { addFirestoreDocFromData, getFirebaseDocs, sendEvent, setFirestoreDocFromData } from '~/firebase/queries.server';
+import { addFirestoreDocFromData, getFirebaseDocs, getSingleDoc, sendEvent, setFirestoreDocFromData, updateFirestoreDocFromData } from '~/firebase/queries.server';
 import { requireUser } from '~/session.server';
 import { unstable_parseMultipartFormData as parseMultipartFormData } from '@remix-run/server-runtime';
 import createFirebaseStorageFileHandler from '~/firebase/FirebaseUploadHandler';
@@ -32,14 +32,19 @@ import { injectStyle } from 'react-toastify/dist/inject-style';
 
 
 
-const stages = [<ContractClientInformation key={0}></ContractClientInformation>, <ContractScopeOfWork key={1}></ContractScopeOfWork>, <ContractPaymentDetails key={3}></ContractPaymentDetails>, <ContractEditScreen key={4}></ContractEditScreen>];
+const stages = [<ContractClientInformation editMode key={0}></ContractClientInformation>, <ContractScopeOfWork editMode key={1}></ContractScopeOfWork>, <ContractPaymentDetails editMode key={3}></ContractPaymentDetails>, <ContractEditScreen key={4}></ContractEditScreen>];
 
-export const loader: LoaderFunction = async ({ request }) => {
+export const loader: LoaderFunction = async ({ request, params }) => {
     const session = await requireUser(request, true);
     const users = await getFirebaseDocs('userUIDS');
+
+    const contractID = params.contractID;
+
+    const contract = await getSingleDoc(`users/contracts/${session?.metadata?.id}/${contractID}`);
+
     console.dir(users)
     // const result = await getFirebaseDocs(`users/contracts/${session?.metadata?.id}`)
-    return json({ metadata: session?.metadata, validEmails: users.map((value) => (value.data.email)), users: users });
+    return json({ metadata: session?.metadata, contract: contract, validEmails: users.map((value) => (value.data.email)), users: users });
 
 }
 
@@ -48,9 +53,10 @@ export const loader: LoaderFunction = async ({ request }) => {
  * @param param0 
  * @returns 
  */
-export const action: ActionFunction = async ({ request }) => {
+export const action: ActionFunction = async ({ request, params }) => {
     const session = await requireUser(request, true);
 
+    const contractID = params.contractID;
     const formData = await parseMultipartFormData(request, createFirebaseStorageFileHandler({
         uploadRoutine: generalFilesUploadRoutine, session: session
     }));
@@ -76,21 +82,15 @@ export const action: ActionFunction = async ({ request }) => {
     const finalContractData = { ...data, }
 
     if (finalContractData?.isPublished == "true") {
-        const contractRef = await addFirestoreDocFromData({ ...data, status: ContractStatus.Published }, `users/contracts`, session?.metadata?.id);
-        const numberOfContracts = new Number(session?.metadata?.contracts);
-
+        const contractRef = await updateFirestoreDocFromData({ ...data, status: ContractStatus.Published }, `users/contracts`, `${session?.metadata?.id}/${contractID}`);
         const contractCreationEvent: NeutronEvent = { event: ContractEvent.ContractPublished, type: EventType.ContractEvent, payload: { data: { ...data }, message: 'A contract was created' }, uid: session?.metadata?.id, id: contractRef.id }
         const eventPublished = await sendEvent(contractCreationEvent);
-        const metadataRef = await setFirestoreDocFromData({ ...session?.metadata, contracts: numberOfContracts.valueOf() + 1 }, `metadata`, session?.metadata?.id);
         return redirect(`/${session?.metadata?.displayName}/contracts/${contractRef.id}`)
 
     } else {
-        const contractRef = await addFirestoreDocFromData({ ...data, status: ContractStatus.Draft }, `users/contracts`, session?.metadata?.id);
-       
-        const contractDraftEvent: NeutronEvent = { event: ContractEvent.ContractDrafted, type: EventType.ContractEvent, payload: { data: { ...data }, message: 'A contract was drafted' }, uid: session?.metadata?.id, id: contractRef.id }
-        const eventDrafted = await sendEvent(contractDraftEvent);
-        const numberOfContracts = new Number(session?.metadata?.contracts);
-        const metadataRef = await setFirestoreDocFromData({ ...session?.metadata, contracts: numberOfContracts.valueOf() + 1 }, `metadata`, session?.metadata?.id);
+        const contractRef = await updateFirestoreDocFromData({ ...data, status: ContractStatus.Draft }, `users/contracts`, `${session?.metadata?.id}/${contractID}`);
+        // const contractDraftEvent: NeutronEvent = { event: ContractEvent.ContractDrafted, type: EventType.ContractEvent, payload: { data: { ...data }, message: 'A contract was drafted' }, uid: session?.metadata?.id, id: contractRef.id }
+        // const eventDrafted = await sendEvent(contractDraftEvent);
         return redirect(`/${session?.metadata?.displayName}/contracts/${contractRef.id}`)
 
     }
@@ -99,12 +99,13 @@ export const action: ActionFunction = async ({ request }) => {
 }
 
 
-export default function ContractCreation() {
+export default function ContractEdit() {
 
     const submit = useSubmit();
 
     const data = useLoaderData();
 
+    const contract = data.contract;
     const metadata = data.metadata;
 
     const data1 = useActionData();
@@ -120,22 +121,24 @@ export default function ContractCreation() {
     })
 
     const stage = ContractDataStore.useState(s => s.stage);
-    const methods = useForm();
+    const methods = useForm({ defaultValues: contract });
 
     return (
         <div className='flex flex-col space-y-3 bg-bg-primary-dark h-auto transition-height'>
             <div className=" flex flex-col justify-between w-full">
-                {/* <div className='flex flex-row m-6 mb-2 justify-between'>
+                <div className='flex flex-row m-6 mb-2 justify-between'>
                     <div className="flex flex-col">
-                        <article className="prose">
-                            <h2 className="text-white prose prose-lg font-gilroy-bold text-[24px]">Welcome {metadata?.displayName}</h2>
+                        <article className="">
+                            <h2 className="text-white  text-[30px] font-gilroy-black">Edit Draft </h2>
+                            <p className="text-white text-[20px] font-gilroy-regular">Edit your contract draft here</p>
                         </article>
                     </div>
                     <div id="user-action-buttons">
                         <div>
+                            {/**Add profile buttons here */}
                         </div>
                     </div>
-                </div> */}
+                </div>
 
                 <ContractProcessStepper />
             </div>

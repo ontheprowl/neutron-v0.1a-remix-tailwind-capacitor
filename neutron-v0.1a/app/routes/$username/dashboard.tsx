@@ -12,7 +12,7 @@ import PlaceholderCover from "~/assets/images/sample_cover.png"
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, firestore } from '~/firebase/neutron-config.server';
 import { collection, deleteDoc, doc, getDocs, limit, Query, query, where } from 'firebase/firestore';
-import { Contract, ContractStatus } from '~/models/contracts';
+import { Contract, ContractCreationStages, ContractStatus } from '~/models/contracts';
 import Accordion from '~/components/layout/Accordion'
 import ViewIcon from '~/components/inputs/ViewIcon';
 import EditIcon from '~/components/inputs/EditIcon';
@@ -24,12 +24,13 @@ import PurpleWhiteButton from '~/components/inputs/PurpleWhiteButton';
 import { getSingleDoc, setFirestoreDocFromData } from '~/firebase/queries.server';
 import { requireUser } from '~/session.server';
 import { UserState } from '~/models/user';
-import ContractZeroState from '~/components/layout/ContractZeroState';
+import ContractZeroState from '~/components/contracts/ContractZeroState';
 import { ContractDraftedStatus, ContractPublishedStatus } from '~/components/layout/Statuses';
 import { toast, ToastContainer } from 'react-toastify';
 import { injectStyle } from 'react-toastify/dist/inject-style';
 import { useEffect, useState } from 'react';
 import NeutronModal from '~/components/layout/NeutronModal';
+import { ContractDataStore } from '~/stores/ContractStores';
 
 
 export const loader: LoaderFunction = async ({ request, params }) => {
@@ -93,12 +94,17 @@ export default function Dashboard() {
 
     return (
         <div className="flex flex-col sm:flex-row h-full ">
-            <div id="user-profile-panel" className="w-full sm:w-96 flex flex-col bg-bg-primary-dark sm:bg-bg-secondary-dark justify-start rounded-l-3xl ">
+            <div id="user-profile-panel" className="w-full flex flex-col sm:w-96 sm:hidden sm:bg-bg-secondary-dark justify-start rounded-l-3xl ">
+                {/* Mobile Section */}
+
+                <div className={`flex flex-col sm:hidden border-0 space-y-2 mb-5 text-center bg-transparent`}>
+                    <h1 className="text-white text-[20px] font-gilroy-black"> Welcome, {currentUserData?.displayName} </h1>
+                    <h2 className="text-white text-[14px] font-gilroy-medium">{formatDateToReadableString(new Date().getTime(), false, true)}</h2>
+                </div>
+                {/* Desktop Section */}
                 <div className="hidden sm:flex sm:flex-col items-stretch">
                     {/* <img alt="cover" className="w-auto h-auto min-h-48 object-cover rounded-bl-[50px] rounded-br-[50px] rounded-tl-[50px] " src={PlaceholderCover}></img> */}
-                    <img onClick={() => {
-                        navigate(`/${currentUserData.displayName}/profile`)
-                    }} alt="profile" src={currentUserData.photoURL ? currentUserData.photoURL : PlaceholderDP} className="h-32 w-32 mt-16 translate-y-[-50px] bg-[#e5e5e5] border-8 cursor-pointer hover:opacity-50 hover:ring-1 outline-none transition-all hover:ring-[#8364E8] border-solid border-black rounded-full self-start ml-6  object-contain"></img>
+                    <img alt="profile" src={currentUserData.photoURL ? currentUserData.photoURL : PlaceholderDP} className="h-32 w-32 mt-16 translate-y-[-50px] bg-[#e5e5e5] border-8 hover:opacity-50 hover:ring-1 outline-none transition-all hover:ring-[#8364E8] border-solid border-black rounded-full self-start ml-6  object-contain"></img>
                     <div className='flex flex-col justify-between space-y-4 translate-y-[-28px] p-2 pl-6'>
                         <h2 className="prose prose-lg text-white self-start font-gilroy-black text-[25px]">{currentUserData.firstName} {currentUserData.lastName} </h2>
                         <h1 className="prose prose-lg text-[#CDC1F6] self-start font-gilroy-black text-[16px] translate-y-[-20px]">@{currentUserData.displayName}</h1>
@@ -119,10 +125,20 @@ export default function Dashboard() {
                 <div className=' ml-3 mr-3'>
                     <button
                         className={`w-full rounded-lg p-3 border-2 h-16 self-start text-left ${primaryGradientDark} border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-white transition-all`}
-                        onClick={() => navigate(`/${currentUserData?.displayName}/contracts/create`)}
+                        onClick={() => {
+                            ContractDataStore.update((s) => { s.stage = ContractCreationStages.ClientInformation });
+                            navigate(`/${currentUserData?.displayName}/contracts/create`)
+                        }}
 
                     >
-                        Create Contract
+                        <div className='flex flex-row space-x-4 justify-center'>
+                            <svg width="21" height="20" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M10.4993 4.16602V15.8327M4.66602 9.99935H16.3327" stroke="white" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            <h1>Add Contract</h1>
+
+                        </div>
+
                     </button>
                 </div>
 
@@ -130,13 +146,13 @@ export default function Dashboard() {
             <div id="activity-details-summary" className="flex flex-col w-full bg-bg-primary-dark ">
                 <div className='hidden sm:flex flex-row m-6 justify-between'>
                     <div className="flex flex-col">
-                        <article className="prose ">
-                            <h2 className="text-white font-gilroy-bold text-[24px]">Welcome {currentUserData?.email}</h2>
-                            <p className="text-white font-gilroy-regular text-[12px]">{formatDateToReadableString()}</p>
+                        <article className="">
+                            <h2 className="text-white text-[30px] font-gilroy-black">Contracts </h2>
+                            <p className="text-white text-[20px] font-gilroy-regular">Track and manage your contracts</p>
                         </article>
 
                     </div>
-                    <div className="flex items-center w-[692px]">
+                    {/* <div className="flex items-center w-[692px]">
                         <label htmlFor="simple-search" className="sr-only">Search</label>
                         <div className="relative w-full ">
                             <div className="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
@@ -145,88 +161,120 @@ export default function Dashboard() {
                             <input type="text" id="simple-search" className=" bg-bg-primary-dark border border-gray-300 text-gray-900 text-sm rounded-lg placeholder-white block w-full pl-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white " placeholder="Search through contracts" required />
 
                         </div>
-                    </div>
+                    </div> */}
                     <div id="user-action-buttons">
                         <div>
 
                         </div>
                     </div>
                 </div>
-                {currentContract ? <div id="current-project-summary" className={`flex font-gilroy-regular flex-col sm:flex-row m-6 mt-2 w-auto rounded-xl h-auto min-h-52 ${primaryGradientDark} justify-between items-center`}>
-                    <div className="flex flex-col m-0.5 rounded-xl p-5 w-full text-left bg-bg-secondary-dark">
-                        <h2 className="prose prose-xl mb-3 text-white font-gilroy-black text-[24px]">
-                            Current Project: {currentContract?.projectName}
-                        </h2>
-                        <p className="prose prose-md text-white break-all sm:text-left font-gilroy-regular text-[18px]">
-                            {currentContract?.description}
-                        </p>
-                        {/* <div className="flex flex-col mt-2 text-left">
+                {/* {currentContract ?
+                    <div id="current-project-summary" className={`flex font-gilroy-regular flex-col sm:flex-row m-6 mt-2 w-auto rounded-xl h-auto min-h-52 ${primaryGradientDark} justify-between items-center`}>
+                        <div className="flex flex-col m-0.5 rounded-xl p-5 w-full text-left bg-bg-secondary-dark">
+                            <h2 className="prose prose-xl mb-3 text-white font-gilroy-black text-[24px]">
+                                Current Project: {currentContract?.projectName}
+                            </h2>
+                            <p className="prose prose-md text-white break-all sm:text-left font-gilroy-regular text-[18px]">
+                                {currentContract?.description}
+                            </p>
+                             <div className="flex flex-col mt-2 text-left">
                             <h1 className="prose prose-sm text-white">Next Milestone</h1>
                             <h1 className="prose prose-md text-white">{currentContract?.hasMilestones ? currentContract?.milestones?.workMilestones[0].description : "Project has no milestones"}</h1>
-                        </div> */}
-                        <div className="flex flex-row justify-start space-x-5 items-center prose prose-lg font-gilroy-medium text-white mt-2 whitespace-nowrap max-w-sm mb-5 sm:text-left">
-                            <span className='items-center'>Current Status :</span>
-                            <span className='items-center mb-3'> {currentContract?.status == ContractStatus.Draft ? <ContractDraftedStatus></ContractDraftedStatus> : <ContractPublishedStatus></ContractPublishedStatus>}</span>
+                        </div> 
+                            <div className="flex flex-row justify-start space-x-5 items-center prose prose-lg font-gilroy-medium text-white mt-2 whitespace-nowrap max-w-sm mb-5 sm:text-left">
+                                <span className='items-center'>Current Status :</span>
+                                <span className='items-center mb-3'> {currentContract?.status == ContractStatus.Draft ? <ContractDraftedStatus></ContractDraftedStatus> : <ContractPublishedStatus></ContractPublishedStatus>}</span>
+                            </div>
+                            {currentContract?.projectName && currentUserData.email == currentContract.clientEmail && currentContract.isSigned ? <PurpleWhiteButton onClick={() => {
+                                const payload = structurePayinPayload(currentContract, userData.ownerUsername, currentUserData);
+                                const formData = new FormData();
+                                formData.append("payload", JSON.stringify(payload))
+                                fetcher.submit(formData, { method: 'post', action: `${userData.ownerUsername}/handlers/payment` })
+                            }} text="Pay Contract" /> : <></>}
+
                         </div>
-                        {currentContract?.projectName && currentUserData.email == currentContract.clientEmail && currentContract.isSigned ? <PurpleWhiteButton onClick={() => {
-                            const payload = structurePayinPayload(currentContract, userData.ownerUsername, currentUserData);
-                            const formData = new FormData();
-                            formData.append("payload", JSON.stringify(payload))
-                            fetcher.submit(formData, { method: 'post', action: `${userData.ownerUsername}/handlers/payment` })
-                        }} text="Pay Contract" /> : <></>}
-
-                    </div>
 
 
-                </div> : <ContractZeroState></ContractZeroState>}
-                <MobileNavbarPadding />
+                    </div> : <ContractZeroState></ContractZeroState>}
+                <MobileNavbarPadding /> */}
 
-                {currentContract ? <div className={`bg-[#202020] hidden sm:block p-3 rounded-xl border-2 border-solid border-accent-dark  h-full m-6`}>
+                {currentContract ? <div className={`bg-[#202020] hidden sm:block p-3 rounded-xl border-2 border-solid border-purple-400 ${userData.contracts.length > 3 ? 'h-auto' : 'h-2/5'} m-6`}>
                     <table className=" w-full h-auto text-sm text-left text-gray-500 dark:text-gray-400">
 
                         <tbody>
+                            <tr className={` border-b dark:bg-gray-800 dark:border-gray-700 transition-all  hover:bg-opacity-50 hover:drop-shadow-md dark:hover:bg-gray-600`}>
+
+                                <th scope="row" className="px-6 py-4 font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                    #
+                                </th>
+                                <th scope="row" className="px-6 py-4 font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                    Project Name
+                                </th>
+                                <th scope="row" className="px-6 py-4 font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                    Client Name
+                                </th>
+                                <th scope="row" className="px-6 py-4 font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                    Contract Value & Due Date
+                                </th>
+                                <th scope="row" className="px-6 py-4 font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                    Contract Status
+                                </th>
+                                <th scope="row" className="px-6 py-4 font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                    Actions
+                                </th>
+
+                            </tr>
                             {userData?.contracts.map((contract: Contract, index: number) => {
                                 console.log()
-                                return (<tr key={contract.id} className={` border-b dark:bg-gray-800 dark:border-gray-700 transition-all hover:bg-gradient-to-br from-violet-700 via-violet-400 to-violet-500 hover:bg-opacity-50 hover:border-accent-dark hover:drop-shadow-md dark:hover:bg-gray-600`}>
+                                return (
+                                    <tr key={contract.id} className={`border-b border-gray-400 dark:bg-gray-800 dark:border-gray-700 transition-all hover:bg-bg-primary-dark hover:bg-opacity-50 hover:border-accent-dark hover:drop-shadow-md dark:hover:bg-gray-600`}>
 
-                                    <th scope="row" className="px-6 py-4 font-medium text-center text-white dark:text-white whitespace-nowrap">
-                                        <Link to={`/${currentUserData?.displayName}/contracts/${contract.id}`}>{index + 1}</Link>
-                                    </th>
-                                    <td className="px-6 py-4 text-center text-white">
-                                        {contract.projectName}
-                                        <br></br>
-                                        {contract.clientName}
-                                    </td>
-                                    <td className="px-6 py-4 text-center text-white">
-                                        {contract.contractValue}
-                                        <br></br>
-                                        {contract.isSigned ? formatDateToReadableString(contract.signedDate) : contract.startDate}
+                                        <td scope="row" className="px-6 py-4 font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                            {index + 1}
+                                        </td>
+                                        <td className="px-6 py-4 text-center text-white ">
+                                            <Link to={`/${currentUserData?.displayName}/contracts/${contract.id}`} className="hover:underline ">
+                                                {contract.projectName}
+                                            </Link>
+                                        </td>
+                                        <td className="px-6 py-4 text-center text-white">
+                                            {contract.clientName}
+                                        </td>
+                                        <td className="px-6 py-4 text-center text-white">
 
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {contract?.status == ContractStatus.Draft ? <ContractDraftedStatus></ContractDraftedStatus> : <ContractPublishedStatus></ContractPublishedStatus>}
-                                    </td>
-                                    <td><ViewIcon onClick={() => {
-                                        navigate(`/${currentUserData?.displayName}/contracts/${contract.id}`)
-                                    }} className={''}></ViewIcon></td>
-                                    <td><EditIcon onClick={contract.status == ContractStatus.Draft ? () => {
-                                        throw new Error('Function not implemented.');
-                                    } : () => { toast("You can't edit a contract once it's published :(", { theme: 'dark', type: 'info' }) }} className={''}></EditIcon></td>
-                                    <td><DeleteIcon onClick={contract.status == ContractStatus.Published ? () => {
-                                        setContractSelectedForDeletion(contract);
-                                        setDeleteConfirmationModal(!deleteConfirmationModal);
-                                    } : () => { toast("You can't delete a contract once it's published :(") }} className={''}></DeleteIcon></td>
-                                    <td><ChatIcon onClick={function (event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
-                                        throw new Error('Function not implemented.');
-                                    }} className={''}></ChatIcon></td>
+                                            {contract.contractValue}
+                                            <br></br>
+                                            {contract.isSigned ? formatDateToReadableString(contract.signedDate) : contract.startDate}
+
+                                        </td>
+                                        <td className="px-6 mt-1 py-4 text-center justify-center items-center flex-row flex ">
+                                            {contract?.status == ContractStatus.Draft ? <ContractDraftedStatus></ContractDraftedStatus> : <ContractPublishedStatus></ContractPublishedStatus>}
+                                        </td>
+                                        <td>
+                                            <div className="pl-6 max-w-fit space-x-4 ">
+                                                <ViewIcon onClick={() => {
+                                                    navigate(`/${currentUserData?.displayName}/contracts/${contract.id}`)
+                                                }} className={'rounded-full border-2 border-transparent bg-transparent hover:bg-accent-dark transition-all  p-2'}></ViewIcon>
+                                                {contract.status === ContractStatus.Draft && <EditIcon onClick={() => {
+                                                    navigate(`/${currentUserData?.displayName}/contracts/edit/${contract.id}`)
+                                                }} className={'rounded-full border-2 border-transparent bg-transparent hover:bg-accent-dark transition-all  p-2'}></EditIcon>}
+                                                {contract.status === ContractStatus.Draft && <DeleteIcon onClick={() => {
+                                                    setContractSelectedForDeletion(contract);
+                                                    setDeleteConfirmationModal(!deleteConfirmationModal);
+                                                }} className={'rounded-full border-2 border-transparent bg-transparent hover:bg-accent-dark transition-all  p-2'}></DeleteIcon>}
+                                                {/* <ChatIcon onClick={function (event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
+                                                    throw new Error('Function not implemented.');
+                                                }} className={'rounded-full border-2 border-transparent bg-transparent hover:bg-accent-dark transition-all  p-2'}></ChatIcon> */}
+                                            </div>
+                                        </td>
 
 
-                                </tr>)
+                                    </tr>)
                             })}
 
                         </tbody>
                     </table>
-                </div> : <></>}
+                </div> : <ContractZeroState></ContractZeroState>}
 
             </div>
             {deleteConfirmationModal && <NeutronModal onConfirm={(e) => {

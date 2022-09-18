@@ -4,6 +4,7 @@ import { onValue, push, query, ref, set } from "firebase/database";
 import { ParamHTMLAttributes, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import DisputesChatComponent from "~/components/disputes/DisputesChatComponent";
+import DisputesZeroState from "~/components/disputes/DisputesZeroState";
 import MobileNavbarPadding from "~/components/layout/MobileNavbarPadding";
 import { DisputeSeverityGenerator, DisputeStatusGenerator } from "~/components/layout/Statuses";
 import { auth, db } from "~/firebase/neutron-config.server";
@@ -168,16 +169,16 @@ export default function DisputesIndex() {
 
     return (
         <div className='flex flex-col bg-bg-primary-dark h-full'>
-            <div className=" flex flex-row justify-between w-auto mb-3">
+            {/* <div className=" flex flex-row justify-between w-auto mb-0 border-2">
                 <div className='flex flex-row m-6 mb-2 justify-between'>
                     <div className="flex flex-col">
                         <article className="prose">
-                            <h2 className="text-white prose prose-lg font-gilroy-bold text-[24px]">Welcome {metadata?.email}</h2>
+                            <h2 className="text-white prose prose-lg font-gilroy-bold text-[24px]">Welcome {metadata?.displayName}</h2>
                         </article>
-                    </div>
+                    </div> }
                     <div id="user-action-buttons">
                         <div>
-                            {/**Add profile buttons here */}
+                            {/**Add profile buttons here }
                         </div>
                     </div>
                 </div>
@@ -190,18 +191,18 @@ export default function DisputesIndex() {
                             <input type="text" id="simple-search" className="p-5 bg-bg-primary-dark border border-gray-300 text-gray-900 text-sm rounded-lg placeholder-white block w-full pl-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white " placeholder="Search through contracts" required />
 
                         </div>
-                    </div> */}
+                    </div> }
 
                 <div id="user-action-buttons">
 
                 </div>
-            </div>
+            </div> */}
             <div id="disputes-window" className="flex flex-row h-screen ">
-                <div className="flex flex-row h-auto bg-bg-secondary-dark rounded-3xl m-3 basis-1/3">
+                <div className="flex flex-row h-auto bg-bg-secondary-dark rounded-3xl m-3 mt-0 mb-0  basis-1/3">
                     <div className="flex flex-col m-3 w-full">
-                        <h1 className="text-left font-gilroy-bold text-[20px] m-2 text-white prose prose-lg"> Disputes and Redressal</h1>
+                        {/* <h1 className="text-left font-gilroy-black text-[30px] m-2 text-white prose prose-lg"> Disputes and Redressal</h1> */}
                         <ul className=" space-y-6 transition-all max-h-screen overflow-y-scroll w-full snap-mandatory snap-y">
-                            {disputes.map((dispute: Dispute, index) => {
+                            {disputes.length!=0?disputes.map((dispute: Dispute, index) => {
                                 return <li onClick={() => {
                                     navigate(`${dispute.id}`);
                                 }} key={dispute.id} className={`bg-bg-primary-dark w-full transition-all p-3 cursor-pointer snap-center border-2 border-l-transparent border-r-transparent border-t-transparent h-auto rounded-xl  dark:bg-gray-800 dark:border-gray-700 hover:border-accent-dark hover:bg-bg-secondary-dark hover:bg-opacity-50 dark:hover:bg-gray-600 flex flex-col justify-between`}>
@@ -241,7 +242,7 @@ export default function DisputesIndex() {
                                     throw new Error('Function not implemented.');
                                 }} className={''}></ChatIcon></td> */}
                                 </li>
-                            })}
+                            }):<DisputesZeroState></DisputesZeroState>}
                         </ul>
                     </div>
                 </div>

@@ -11,15 +11,19 @@ import ViewIcon from '~/components/inputs/ViewIcon';
 import EditIcon from '~/components/inputs/EditIcon';
 import DeleteIcon from '~/components/inputs/DeleteIcon';
 import ChatIcon from '~/components/inputs/ChatIcon';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { dataflow } from 'googleapis/build/src/apis/dataflow';
 import MobileNavbarPadding from '~/components/layout/MobileNavbarPadding';
 import { getFirebaseDocs, setFirestoreDocFromData } from '~/firebase/queries.server';
 import { requireUser } from '~/session.server';
 import { UserState } from '~/models/user';
-import { ContractStatus } from '~/models/contracts';
+import { Contract, Contract, ContractCreationStages, ContractStatus } from '~/models/contracts';
 import { ContractDraftedStatus, ContractPublishedStatus } from '~/components/layout/Statuses';
 import { Dispute } from '~/models/disputes';
+import { toast, ToastContainer } from 'react-toastify';
+import { injectStyle } from 'react-toastify/dist/inject-style';
+import NeutronModal from '~/components/layout/NeutronModal';
+import { ContractDataStore } from '~/stores/ContractStores';
 
 export const loader: LoaderFunction = async ({ request }) => {
     const session = await requireUser(request, true);
@@ -57,8 +61,15 @@ export default function ListContracts() {
 
     const [contractsTab, setContractsTab] = useState(true);
     const [currentContract, setCurrentContract] = useState(-1);
+    const initialContractToBeDeleted: Contract = contracts[0]
+    useEffect(() => {
+        injectStyle();
+    })
+    const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
 
     const submit = useSubmit();
+
+    const [contractSelectedForDeletion, setContractSelectedForDeletion] = useState(initialContractToBeDeleted);
 
     let navigate = useNavigate();
 
@@ -160,16 +171,17 @@ export default function ListContracts() {
     }
 
     return (
-        <div className='flex flex-col space-y-8 bg-bg-primary-dark h-full'>
+        <div className='flex flex-col bg-bg-primary-dark h-full'>
             <div className=" flex flex-row justify-between w-full">
                 <div className='flex flex-col m-6 justify-between'>
-                    <div className="flex flex-col">
-                        <article className="prose">
-                            <h2 className="text-white prose prose-lg">Welcome {currentUser?.email}</h2>
-                            <p className="text-white prose prose-sm">{formatDateToReadableString()}</p>
+                    <div className="flex flex-col space-y-0">
+                        <article className="">
+                            <h2 className="text-white text-[30px] font-gilroy-black">Contracts </h2>
+                            <p className="text-white text-[20px] font-gilroy-regular">Track and manage your contracts</p>
                         </article>
                     </div>
-                    <div className="flex items-center w-full sm:w-[692px] mt-10">
+
+                    {/* <div className="flex items-center w-full sm:w-[692px] mt-10">
                         <label htmlFor="simple-search" className="sr-only">Search</label>
                         <div className="relative w-full ">
                             <div className="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
@@ -178,24 +190,46 @@ export default function ListContracts() {
                             <input type="text" id="simple-search" className="p-5 bg-bg-primary-dark border border-gray-300 text-gray-900 text-sm rounded-lg placeholder-white block w-full pl-10  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white " placeholder="Search through contracts" required />
 
                         </div>
-                    </div>
-                    <div id="user-action-buttons">
-                        <div>
+                    </div> */}
+                    <div id="user-action-buttons" className='flex flex-row w-full border-2'>
+                        <button
+                            className={`w-full rounded-lg p-3 border-2 h-16 self-start text-left ${primaryGradientDark} border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-white transition-all`}
+                            onClick={() => {
+                                ContractDataStore.update((s) => { s.stage = ContractCreationStages.ClientInformation });
+                                navigate(`/${currentUserData?.displayName}/contracts/create`)
+                            }}
 
-                        </div>
+                        >
+                            <div className='flex flex-row space-x-4 justify-center'>
+                                <svg width="21" height="20" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M10.4993 4.16602V15.8327M4.66602 9.99935H16.3327" stroke="white" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                <h1>Add Contract</h1>
+
+                            </div>
+
+                        </button>
                     </div>
                 </div>
 
-                <div className="hidden sm:flex sm:flex-col-reverse m-6">
+                <div className="hidden sm:flex sm:flex-col-reverse m-6 sm:max-w-[400px] sm:w-full">
 
-                    {/**Add profile buttons here */}
                     <button
-                        className="w-40 rounded-lg bg-accent-dark p-3 text-white transition-all hover:scale-105"
+                        className={`w-full rounded-lg p-3 border-2 h-16 self-start text-left ${primaryGradientDark} border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-white transition-all`}
                         onClick={() => {
-                            navigate('create');
+                            ContractDataStore.update((s) => { s.stage = ContractCreationStages.ClientInformation });
+                            navigate(`create`)
                         }}
+
                     >
-                        Add Contract
+                        <div className='flex flex-row space-x-4 justify-center'>
+                            <svg width="21" height="20" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M10.4993 4.16602V15.8327M4.66602 9.99935H16.3327" stroke="white" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            <h1>Add Contract</h1>
+
+                        </div>
+
                     </button>
                 </div>
             </div>
@@ -218,39 +252,45 @@ export default function ListContracts() {
                     Disputes
                 </button>
             </div>
-            <div className={`bg-bg-primary-dark p-3 rounded-lg border-2 border-solid border-accent-dark  h-auto m-6 sm:flex hidden`}>
+            <div className={`bg-bg-secondary-dark p-3 rounded-lg border-2 border-solid border-purple-400  h-auto m-6 sm:flex hidden`}>
                 <table className="w-full max-h-max text-sm text-left text-gray-500 dark:text-gray-400">
-                    <thead className="text-xs w-auto text-white uppercase bg-bg-primary-dark dark:bg-gray-700 dark:text-gray-400">
-                        <tr>
-                            <th scope="col" className="px-6 py-3 text-center">
+                    <thead className="text-sm w-auto text-white bg-bg-secondary-dark dark:bg-gray-700 dark:text-gray-400">
+                        <tr className="border-b ">
+                            <th scope="row" className="px-6 py-4 font-medium text-center text-white dark:text-white whitespace-nowrap">
                                 #
                             </th>
-                            <th scope="col" className="px-6 py-3 text-center">
+                            <th scope="row" className="px-6 py-4 text-center text-white dark:text-white whitespace-nowrap">
                                 Project Name
                             </th>
-                            <th scope="col" className="px-6 py-3 text-center">
+                            <th scope="row" className="px-6 py-4 font-medium text-center text-white dark:text-white whitespace-nowrap">
                                 Client Name
                             </th>
-                            <th scope="col" className="px-6 py-3 text-center">
-                                Contract Value
+                            <th scope="row" className="px-6 py-4 font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                Contract Value & Due Date
                             </th>
-                            <th scope="col" className="px-6 py-3 text-center">
-                                Date Created
+                            <th scope="row" className="px-6 py-4 font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                Start Date
                             </th>
-                            <th scope="col" className="px-6 py-3 text-center">
-                                <span>Status</span>
+                            <th scope="row" className="px-6 py-4 font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                Contract Status
+                            </th>
+                            <th scope="row" className="px-6 py-4 font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                Actions
                             </th>
                         </tr>
                     </thead>
                     <tbody>
                         {contracts.map((contract: { id: string, data: any }, index: number) => {
-                            return (<tr key={contract.id} className={`bg-bg-primary-dark border-t border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gradient-to-br from-violet-700 via-violet-400 to-violet-500 hover:bg-opacity-50 dark:hover:bg-gray-600`}>
+                            return (<tr key={contract.id} className={`bg-bg-secondary-dark  border-b hover:border-accent-dark dark:bg-gray-800 dark:border-gray-700 hover:bg-bg-primary-dark hover:bg-opacity-50 dark:hover:bg-gray-600`}>
 
                                 <th scope="row" className="px-6 py-4 font-medium text-center text-white dark:text-white whitespace-nowrap">
                                     <Link to={`${contract.id}`}>{index + 1}</Link>
                                 </th>
                                 <td className="px-6 py-4 text-center text-white">
-                                    {contract.data.projectName}
+                                    <Link to={`/${currentUser?.displayName}/contracts/${contract.id}`} className="hover:underline hover:animate-pulse">
+                                        {contract.data.projectName}
+
+                                    </Link>
                                 </td>
                                 <td className="px-6 py-4 text-center text-white">
                                     {contract.data.clientName}
@@ -265,21 +305,23 @@ export default function ListContracts() {
                                 <td className="px-6 py-4">
                                     {contract?.data?.status == ContractStatus.Draft ? <ContractDraftedStatus></ContractDraftedStatus> : <ContractPublishedStatus></ContractPublishedStatus>}
                                 </td>
-                                <td><ViewIcon onClick={() => {
-                                    navigate(`${contract.id}`)
-                                }} className={''}></ViewIcon></td>
-                                <td><EditIcon onClick={function (event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
-                                    throw new Error('Function not implemented.');
-                                }} className={''}></EditIcon></td>
-                                <td><DeleteIcon onClick={(e) => {
-                                    let data = new FormData();
-                                    data.append('id', contract.id);
-                                    submit(data,
-                                        { method: 'post' });
-                                }} className={''}></DeleteIcon></td>
-                                <td><ChatIcon onClick={function (event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
-                                    throw new Error('Function not implemented.');
-                                }} className={''}></ChatIcon></td>
+                                <td>
+                                    <div className=" justify-between flex flex-row">
+                                        <ViewIcon onClick={() => {
+                                            navigate(`/${currentUser?.displayName}/contracts/${contract.id}`)
+                                        }} className={'rounded-full border-2 border-transparent bg-transparent hover:bg-accent-dark transition-all  p-2'}></ViewIcon>
+                                        <EditIcon onClick={contract.status == ContractStatus.Draft ? () => {
+                                            throw new Error('Function not implemented.');
+                                        } : () => { toast("You can't edit a contract once it's published :(", { theme: 'dark', type: 'info' }) }} className={'rounded-full border-2 border-transparent bg-transparent hover:bg-accent-dark transition-all  p-2'}></EditIcon>
+                                        <DeleteIcon onClick={contract.status == ContractStatus.Published ? () => {
+                                            setContractSelectedForDeletion(contract);
+                                            setDeleteConfirmationModal(!deleteConfirmationModal);
+                                        } : () => { toast("You can't delete a contract once it's published :(") }} className={'rounded-full border-2 border-transparent bg-transparent hover:bg-accent-dark transition-all  p-2'}></DeleteIcon>
+                                        {/* <ChatIcon onClick={function (event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
+                                                    throw new Error('Function not implemented.');
+                                                }} className={'rounded-full border-2 border-transparent bg-transparent hover:bg-accent-dark transition-all  p-2'}></ChatIcon> */}
+                                    </div>
+                                </td>
                             </tr>)
                         })}
 
@@ -289,6 +331,28 @@ export default function ListContracts() {
             <div className="flex flex-col sm:hidden">
                 {contractsTab ? generateContractsList() : generateDisputesList()}
             </div>
+            {deleteConfirmationModal && <NeutronModal onConfirm={(e) => {
+
+                let data = new FormData();
+                if (contractSelectedForDeletion.id) {
+                    data.append('id', contractSelectedForDeletion.id);
+                    submit(data,
+                        { method: 'post' });
+                }
+
+            }} body={<p className="text-red-600">You're about to delete a contract</p>} toggleModalFunction={setDeleteConfirmationModal}></NeutronModal>}
+            <ToastContainer position="bottom-center"
+                autoClose={2000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                theme="dark"
+                limit={1}
+
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover></ToastContainer>
             <MobileNavbarPadding />
 
         </div >);

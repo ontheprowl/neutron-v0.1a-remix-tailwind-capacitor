@@ -50,6 +50,8 @@ FROM base
 ENV PORT="8080"
 ENV NODE_ENV="production"
 ENV GOOGLE_APPLICATION_CREDENTIALS="./serviceAccountKey.json"
+ENV VAPID_PUBLIC_KEY="BLCUCnxLTQDZE0LHiqRSZOoNiag7GkVocbjxtKq8rl7l1EAhztRN1cMi4JXOqifIoGbAdRuuQ5lO7PT0_kxppLI"
+ENV VAPID_PRIVATE_KEY="qUSFWBO_i2-2kVP6vosofgxMVUT_pOG5Vqyn-5aVTrg"
 
 
 # add shortcut for connecting to database CLI

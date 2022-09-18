@@ -77,7 +77,7 @@ export default function ProfileBasicDetailsForm() {
                 }} />
             </div>
             <div className="flex items-end mt-2 flex-col space-y-3 sm:space-x-3 sm:flex-row w-full">
-                <div className="sm:text-center space-y-3 w-full h-auto">
+                <div className=" space-y-3 w-full h-auto">
                     <span className=" prose prose-md text-white">First Name</span>
                     <input  {...register('firstName', { required: 'This field is required', maxLength: { value: 10, message: 'First name exceeds maximum length' } })} type="text" placeholder="e.g : Harvey" defaultValue={userMetadata.firstName} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg invalid:border-red-500 placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
                     <div className="w-full h-10 mt-3 text-left">
@@ -89,7 +89,7 @@ export default function ProfileBasicDetailsForm() {
                 </div>
 
 
-                <div className="sm:text-center space-y-3 w-full">
+                <div className=" space-y-3 w-full">
                     <span className=" prose prose-md text-white">Last Name</span>
                     <input {...register('lastName', { required: 'This field is required', maxLength: { value: 20, message: 'Last name exceeds maximum length' } })} type="text" placeholder="e.g: Spector" defaultValue={userMetadata.lastName} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
                     <div className="w-full h-10 mt-3 text-left">

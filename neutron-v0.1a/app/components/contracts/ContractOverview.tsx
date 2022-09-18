@@ -23,6 +23,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { loader } from '~/routes';
 import TransparentButton from '../inputs/TransparentButton';
 import FormButton from '../inputs/FormButton';
+import { formatDateToReadableString } from '~/utils/utils';
 
 
 function generateDeliverables(milestones: { [key: string]: any }) {
@@ -37,17 +38,17 @@ function generateDeliverables(milestones: { [key: string]: any }) {
                 console.log("The milestone value over here is : ");
                 console.dir(milestone)
                 deliverablesArray.push(
-                    <div className="flex flex-row m-5 space-x-2 w-auto items-center justify-between">
-                        <img src={iconForDeliverableType(Number(milestone.submissionFormat))}
+                    <div className="flex flex-row p-3 font-gilroy-medium space-x-20 w-full items-center justify-between">
+                        {/* <img src={iconForDeliverableType(Number(milestone.submissionFormat))}
                             className="mr-3 h-7 " alt="progressLineActive">
-                        </img>
-                        <h2>{milestone.name}</h2>
-                        <p>{milestone.description}</p>
-                        <p> {milestone.date}</p>
-                        <div className="flex flex-row items-center justify-start space-x-8">
+                        </img> */}
+                        <h2 className='text-center w-[200px] '>{milestone.name}</h2>
+                        <p className="text-center w-[200px] whitespace-nowrap ">{milestone.description}</p>
+                        <p className="text-center w-[200px] "> {formatDateToReadableString(new Date(milestone.date).getTime(), false, true)}</p>
+                        <div className="flex flex-row  w-[300px] items-center justify-center space-x-8">
                             {milestone?.status ? DeliverableStatusGenerator(milestone.status) : <NotSubmittedStatus></NotSubmittedStatus>}
                             {milestone?.status && milestone?.status != DeliverableStatus.SubmittedExternally ?
-                                <a href={milestone.submissionPath} key={milestone.name} >
+                                <a href={milestone.submissionPath} target="_blank" rel="noreferrer" key={milestone.name} >
                                     <svg className="border-2 border-transparent hover:bg-bg-secondary-dark transition-all active:ring-white active:ring-2 rounded-full w-10 h-10 p-1" width="16" height="20" viewBox="0 0 16 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M9.66634 1.89111V5.33323C9.66634 5.79994 9.66634 6.0333 9.75717 6.21156C9.83706 6.36836 9.96455 6.49584 10.1213 6.57574C10.2996 6.66656 10.533 6.66656 10.9997 6.66656H14.4418M5.49967 12.4998L7.99967 14.9998M7.99967 14.9998L10.4997 12.4998M7.99967 14.9998L7.99967 9.99984M9.66634 1.6665H5.33301C3.93288 1.6665 3.23281 1.6665 2.69803 1.93899C2.22763 2.17867 1.84517 2.56112 1.60549 3.03153C1.33301 3.56631 1.33301 4.26637 1.33301 5.6665V14.3332C1.33301 15.7333 1.33301 16.4334 1.60549 16.9681C1.84517 17.4386 2.22763 17.821 2.69803 18.0607C3.23281 18.3332 3.93288 18.3332 5.33301 18.3332H10.6663C12.0665 18.3332 12.7665 18.3332 13.3013 18.0607C13.7717 17.821 14.1542 17.4386 14.3939 16.9681C14.6663 16.4334 14.6663 15.7333 14.6663 14.3332V6.6665L9.66634 1.6665Z" stroke="white" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round" />
                                     </svg>
@@ -144,7 +145,7 @@ Escrow section
                 </div>
             </div> */}
             <div className="flex flex-col-reverse sm:flex-row w-auto h-full ">
-                <div id="contract-details" className="sm:flex sm:flex-col basis-2/3 w-auto h-auto justify-start rounded-lg bg-bg-primary-dark text-white">
+                <div id="contract-details" className="sm:flex sm:flex-col sm:basis-2/3 w-[800px] h-auto justify-start rounded-lg bg-bg-primary-dark text-white">
                     <div className="flex flex-row mb-5 sm:justify-start font-gilroy-bold text-[20px] justify-center">
                         <h2>Project Details</h2>
                     </div>
@@ -156,15 +157,35 @@ Escrow section
                         <h2>Deliverables</h2>
                     </div>
                     <div className="hidden sm:flex sm:flex-col sm:space-y-2 sm:space-x-0 hover:ring-white hover:ring-2 transition-all w-full h-auto justify-between border-gray-400 border-2 border-solid rounded-lg bg-bg-primary-dark text-white">
-
+                        <div className="flex flex-row p-3 font-gilroy-bold space-x-20 w-full items-center justify-between">
+                            {/* <img src={iconForDeliverableType(Number(milestone.submissionFormat))}
+                            className="mr-3 h-7 " alt="progressLineActive">
+                        </img> */}
+                            <h2 className='text-center w-[200px] '> Name </h2>
+                            <p className="text-center w-[200px] whitespace-nowrap "> Description </p>
+                            <p className="text-center w-[200px] "> Due Date </p>
+                            <div className="flex flex-row  w-[300px] items-center justify-center space-x-8">
+                                Status
+                            </div>
+                        </div>
                         {generateDeliverables(milestones)}
                     </div>
                     <div className="flex flex-col sm:hidden w-full h-auto justify-between hover:ring-white hover:ring-2 transition-all active:ring-2 active:ring-white border-gray-400 rounded-lg bg-bg-primary-dark text-white">
-
+                        <div className="flex flex-row p-3 space-x-20 w-full items-center justify-between">
+                            {/* <img src={iconForDeliverableType(Number(milestone.submissionFormat))}
+                            className="mr-3 h-7 " alt="progressLineActive">
+                        </img> */}
+                            <h2 className='text-center w-[200px] '> Name </h2>
+                            <p className="text-center w-[200px] whitespace-nowrap "> Description </p>
+                            <p className="text-center w-[200px] "> Due Date </p>
+                            <div className="flex flex-row  w-[300px] items-center justify-start space-x-8">
+                                Status
+                            </div>
+                        </div>
                         {generateDeliverables(milestones)}
                     </div>
                 </div>
-                <div id="contract-side-panel-section" className="flex flex-col sm:basis-1/3 sm:w-auto w-full mb-5 sm:h-[650px] sm:m-5 sm:mt-[52px]  justify-start bg-bg-secondary-dark  border-solid rounded-xl  text-white">
+                <div id="contract-side-panel-section" className="flex flex-col sm:basis-1/3 sm:w-auto w-full mb-5 sm:mt-0 sm:mb-0 sm:h-auto sm:m-5  sm:max-h-screen  justify-start bg-bg-secondary-dark  border-solid rounded-xl  text-white">
                     <div
                         className="flex flex-row m-5 justify-between">
                         <h2 className={`prose prose-lg text-transparent bg-clip-text ${primaryGradientDark} `}>{stage == ContractSidePanelStages.ChatsPanel ? 'Contract Chat' : 'Contract Events'}</h2>
@@ -201,19 +222,19 @@ Deliverables section
 
 }
 
-function iconForDeliverableType(format: DeliverableFormat): string | undefined {
-    console.dir(`FORMAT IS : ${format}`)
-    switch (format) {
+// function iconForDeliverableType(format: DeliverableFormat): string | undefined {
+//     console.dir(`FORMAT IS : ${format}`)
+//     switch (format) {
 
-        case DeliverableFormat.JPEG || DeliverableFormat.MP4:
-            return IconMedia
-        case DeliverableFormat.PDF:
-            return IconPDF
-        case DeliverableFormat.ZIP:
-            return IconZIP
-        default:
-            return IconGeneric
+//         case DeliverableFormat.JPEG || DeliverableFormat.MP4:
+//             return IconMedia
+//         case DeliverableFormat.PDF:
+//             return IconPDF
+//         case DeliverableFormat.ZIP:
+//             return IconZIP
+//         default:
+//             return IconGeneric
 
 
-    }
-}
+//     }
+// }

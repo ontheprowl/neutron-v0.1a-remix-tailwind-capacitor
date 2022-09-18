@@ -8,7 +8,7 @@ import PeopleIcon from '../icons/PeopleIcon';
 export default function ContractStats({clients, contracts} : {clients: number, contracts:number }) {
 
     return (
-        <motion.div className=" bg-bg-secondary-dark translate-y-[-20px] sm:translate-y-0 sm:m-4 rounded-xl w-auto h-auto items-center">
+        <motion.div className=" hidden sm:inline bg-bg-secondary-dark translate-y-[-20px] sm:translate-y-0 sm:m-4 rounded-xl w-auto h-auto items-center">
             <motion.div className="border-solid border-2 flex flex-row border-white h-auto rounded-xl mt-5 text-left p-4 justify-between">
                 <motion.div className=" flex flex-col">
                     <motion.h2 className='prose prose-sm text-white'>Clients</motion.h2>

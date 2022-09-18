@@ -108,7 +108,7 @@ export default function Login() {
       case "idle":
         return (<span>Log In</span>)
       case "submitting":
-        return (<span>Logging you in ...</span>)
+        return (<span>Logging you in</span>)
       case "loading":
         return (<DefaultSpinner></DefaultSpinner>)
     }

@@ -1,4 +1,5 @@
 import { useLoaderData, useNavigate } from "@remix-run/react"
+import FormButton from "../inputs/FormButton";
 
 
 
@@ -22,16 +23,13 @@ export default function ContractZeroState() {
                 </defs>
             </svg>
         </div>
-        <div className="flex flex-row justify-center">
+        <div className="flex flex-row justify-center mt-2">
             <div className="flex flex-col justify-start text-center ">
                 <h1 className="prose prose-lg font-gilroy-bold text-white text-[25px] mt-5">Your Contracts List is Empty!</h1>
-                <p className="prose prose-sm font-gilroy-regular text-white text-[18px]">You do not have any contracts right now...</p>
-                <button
-                    className="w-80 rounded-lg mt-5 self-center  bg-accent-dark p-5 border-2 border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-black font-gilroy-black font-[18px] transition-all"
+                <p className="prose prose-sm font-gilroy-regular text-white text-[18px] mb-5">You do not have any contracts right now...</p>
+                <FormButton text={'Create Contract'} size="full"
                     onClick={() => { navigate(`/${currentUserData.displayName}/contracts/create`) }}
-                >
-                    Create Contract
-                </button>
+                />
 
             </div>
         </div>

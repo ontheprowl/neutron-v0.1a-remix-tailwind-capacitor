@@ -111,16 +111,16 @@ export default function Signup() {
   const signupButtonStates = (state: string) => {
     switch (state) {
       case "idle":
-        return (<span> Sign Up ...</span>);
+        return (<span> Sign Up</span>);
       case "submitting":
-        return (<span>Creating User...</span>);
+        return (<span>Creating User</span>);
       case "loading":
         return (<DefaultSpinner></DefaultSpinner>);
     }
   }
-
-  let submit = useSubmit();
   const transition = useTransition();
+  let submit = useSubmit();
+
   const userNames = data.usernames;
   console.log(userNames)
   let navigate = useNavigate();
@@ -140,6 +140,10 @@ export default function Signup() {
   useEffect(() => {
     injectStyle();
     trigger();
+
+  }, [displayName, email, password, trigger, transition])
+
+  useEffect(() => {
     const neutronError = actionData as NeutronError;
     if (neutronError) {
       console.log("ERROR DURING LOGIN")
@@ -148,12 +152,12 @@ export default function Signup() {
 
 
 
+    } else {
+      if (transition.type === "actionReload") {
+        toast(<div><h2>Please verify your email ID</h2></div>, { theme: "dark", type: "success" })
+      }
     }
-    if (transition.type === "actionSubmission") {
-      toast(<div><h2>Please verify your email ID</h2></div>, { theme: "dark", type: "success" })
-    }
-  }, [displayName, email, password, trigger, transition, actionData])
-
+  }, [actionData, transition])
 
   return (
     <div className="h-screen sm:h-full w-full justify-center bg-bg-primary-dark align-middle p-5 sm:p-10">

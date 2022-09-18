@@ -57,10 +57,11 @@ export default function GenericContractTemplate({ viewMode }: { viewMode?: boole
 
     function generateMilestonesForContract() {
         let milestonesArray = []
-        if (allContractFields?.milestones) {
-            for (const [key, value] of Object.entries(allContractFields?.milestones)) {
+        const milestonesContainer = viewMode ? allContractFields?.milestones : allContractFields?.milestonesProcessed;
+        if (milestonesContainer) {
+            for (const [key, value] of Object.entries(milestonesContainer)) {
                 if (key == "advance") {
-                    milestonesArray.push(<li>{value.name}</li>)
+                    milestonesArray.push(<li>{value.name}<br></br>{value.description}</li>)
                 } else {
                     for (const milestone of Object.values(value)) {
                         milestonesArray.push(<li>{milestone.name}<br></br>{milestone.description}</li>)
@@ -88,7 +89,7 @@ export default function GenericContractTemplate({ viewMode }: { viewMode?: boole
     console.log('data for the edit screen is')
     console.log(allContractFields)
 
-    return (<div id="contract-container" className="m-5 flex flex-row justify-center text-center overflow-y-scroll h-[70vh] scroll-smooth">
+    return (<div id="contract-container" className="m-5 flex drop-shadow-lg flex-row justify-center text-justify overflow-y-scroll h-[65vh] scroll-smooth">
         <article className="prose prose-xl w-full flex flex-col font-gilroy-regular" >
             <strong className="font-gilroy-bold text-[25px]">SERVICE AGREEMENT</strong>
 

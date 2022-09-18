@@ -21,11 +21,15 @@ import createFirebaseStorageFileHandler from "~/firebase/FirebaseUploadHandler";
 import { generalFilesUploadRoutine } from "~/firebase/firebase-utils";
 import type { NeutronEvent } from "~/models/events";
 import { ContractEvent, EventType } from "~/models/events";
-import { onValue, query, ref } from "firebase/database";
+import { get, onValue, query, ref } from "firebase/database";
 import { ContractCreator, ContractSidePanelStages, DeliverableStatus } from "~/models/contracts";
 import { sign } from "crypto";
 import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
 import { env } from "process";
+import { ToastContainer } from "react-toastify";
+import MobileNavbarPadding from "~/components/layout/MobileNavbarPadding";
+import { useEffect } from "react";
+import { injectStyle } from "react-toastify/dist/inject-style";
 
 
 /**
@@ -72,19 +76,19 @@ export const loader: LoaderFunction = async ({ params, request }) => {
         const messageQuery = query(ref(db, 'messages/' + btoa((from + to + contractID).split('').sort().join(''))));
 
 
-        onValue(messageQuery, (value) => {
-            const data = value.val();
-            console.log(data)
-            if (data) {
-                for (const [key, value] of Object.entries(data)) {
-                    messagesArray.push(value)
-                }
-                console.log(messagesArray)
-            }
+        const queryData = await get(messageQuery);
 
-            // if (messages.length != messagesArray.length)
-            //     setMessages(messagesArray)
-        })
+        const data = queryData.val();
+        console.log(data)
+        if (data) {
+            for (const [key, value] of Object.entries(data)) {
+                messagesArray.push(value)
+            }
+            console.log(messagesArray)
+        }
+        // if (messages.length != messagesArray.length)
+        //     setMessages(messagesArray)
+
 
     }
 
@@ -135,9 +139,15 @@ export const action: ActionFunction = async ({ params, request }) => {
     const milestonePayload: { [key: string]: any } = {}
     const ownerUsername = params.username;
 
+    //TODO : This is an unnecessary modification to the milestone index, due to poorly documented string processing. Please refactor ASAP.
+    if (finalDeliverableData?.milestoneIndex?.includes('"')) {
+        finalDeliverableData.milestoneIndex = Number(finalDeliverableData?.milestoneIndex?.replace(/"/g, ""))
+    }
+
     if (finalDeliverableData?.externallyDelivered) {
         milestonePayload[`milestones.workMilestones.${finalDeliverableData.milestoneIndex}.submissionPath`] = '[EXTERNAL]';
         milestonePayload[`milestones.workMilestones.${finalDeliverableData.milestoneIndex}.status`] = DeliverableStatus.SubmittedExternally;
+
         console.dir(milestonePayload)
 
         const uidMapping = await getSingleDoc(`/userUIDS/${ownerUsername}`);
@@ -180,6 +190,12 @@ export default function DetailedContractView() {
 
     const sidePanelStage = ContractDataStore.useState(s => s.sidePanelStage);
     let navigate = useNavigate();
+
+    useEffect((
+
+    ) => {
+        injectStyle();
+    })
 
     const data = useLoaderData();
     const contractData = data.contract;
@@ -226,37 +242,35 @@ export default function DetailedContractView() {
                 </div>
             </div> */}
             <div className="flex flex-row m-3 mb-0 mt-2 space-x-3 justify-between  ">
-                <div className="flex flex-row  p-2 pt-6 space-x-3 mb-3 w-full  ">
-                    <BackArrowButton onClick={() => {
-                        navigate(-1);
+                <div className="flex flex-row space-x-3 mb-3 w-full  ">
+                    <div className="hover:drop-shadow-md hover:bg-bg-secondary-dark transition-all h-8 p-1 translate-y-[12px]  rounded-full">
+                        <BackArrowButton onClick={() => {
+                            navigate(`/${currentUser.displayName}/dashboard`);
 
-                    }} className="hover:drop-shadow-md hover:bg-bg-secondary-dark transition-all h-8 mt-4  rounded-full"></BackArrowButton>
+                        }} ></BackArrowButton>
+                    </div>
+
                     <h1 className="prose prose-xl font-gilroy-black text-[25px] mt-2 text-white">{contractData?.projectName}</h1>
                 </div>
-                <div id="contract-buttons-section" className="hidden w-full sm:flex sm:flex-col space-y-3  p-2 max-w-xl  ">
-                    <div className="flex flex-row space-x-4">
+                <div id="contract-buttons-section" className="hidden w-full sm:flex sm:flex-col space-y-3   p-2 max-w-xl  ">
+                    <div className="flex flex-row space-x-4 justify-start">
 
                         <button onClick={() => {
                             ContractDataStore.update(s => {
                                 s.viewStage == 1 ? s.viewStage = 0 : s.viewStage = 1;
                             })
-                        }} className=' p-4 text-center bg-[#E6E0FA] sm:w-full text-[#765AD1] prose prose-md transition-all rounded-lg active:border-white whitespace-nowrap hover:bg-white'>{`${stage == 1 ? 'Back To Overview' : 'Open Contract'}`}</button>
-                        <FormButton onClick={() => {
-                        }} text="Share Deliverables" ></FormButton>
-                    </div>
-                    <div className="flex flex-row space-x-4 w-full">
-                        <a href={contractData.attachment} className=" hover:bg-bg-secondary-dark transition-all active:bg-bg-secondary-dark border-2 border-transparent hover:border-purple-400 p-4 rounded-xl">
-                            <div className="flex flex-row space-x-4 text-white items-center">
-                                <span>
-                                    <svg width="16" height="20" viewBox="0 0 16 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M9.66634 1.89111V5.33323C9.66634 5.79994 9.66634 6.0333 9.75717 6.21156C9.83706 6.36836 9.96455 6.49584 10.1213 6.57574C10.2996 6.66656 10.533 6.66656 10.9997 6.66656H14.4418M5.49967 12.4998L7.99967 14.9998M7.99967 14.9998L10.4997 12.4998M7.99967 14.9998L7.99967 9.99984M9.66634 1.6665H5.33301C3.93288 1.6665 3.23281 1.6665 2.69803 1.93899C2.22763 2.17867 1.84517 2.56112 1.60549 3.03153C1.33301 3.56631 1.33301 4.26637 1.33301 5.6665V14.3332C1.33301 15.7333 1.33301 16.4334 1.60549 16.9681C1.84517 17.4386 2.22763 17.821 2.69803 18.0607C3.23281 18.3332 3.93288 18.3332 5.33301 18.3332H10.6663C12.0665 18.3332 12.7665 18.3332 13.3013 18.0607C13.7717 17.821 14.1542 17.4386 14.3939 16.9681C14.6663 16.4334 14.6663 15.7333 14.6663 14.3332V6.6665L9.66634 1.6665Z" stroke="white" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round" />
-                                    </svg>
-                                </span>
-                                <span className="whitespace-nowrap"> Download Proposal </span>
-                            </div>
-                        </a>
-
-                        <button className={`${primaryGradientDark} p-0.5 rounded-xl w-full hover:bg-white transition-all `}>
+                        }} className=' p-4 text-center bg-[#E6E0FA] sm:w-full text-[#765AD1] basis-1/2 prose prose-md transition-all rounded-lg active:border-white whitespace-nowrap hover:bg-white'>{`${stage == 1 ? 'Back To Overview' : 'Open Contract'}`}</button>
+                        <button onClick={() => {
+                            if (navigator.share) {
+                                navigator.share({
+                                    title: `${contractData.projectName}`,
+                                    text: 'Check out this Neutron contract!',
+                                    url: window.location.href,
+                                })
+                                    .then(() => console.log('Successful share'))
+                                    .catch((error) => console.log('Error sharing', error));
+                            }
+                        }} className={`${primaryGradientDark} p-0.5 rounded-xl w-full basis-1/2 hover:bg-white transition-all `}>
                             <div className="bg-bg-primary-dark border-2 hover:bg-bg-secondary-dark  text-white h-full flex flex-row space-x-3 justify-center items-center border-transparent rounded-xl">
                                 <span className="flex flex-row space-x-4 ">
                                     <svg width="18" height="20" viewBox="0 0 18 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -266,24 +280,36 @@ export default function DetailedContractView() {
                                 <span >Share Contract</span>
                             </div>
                         </button>
-
-
                     </div>
-                    <div className="flex flex-row justify-end">
+                    <div className="flex flex-row space-x-4 w-full justify-start">
                         <button onClick={() => {
 
                             ContractDataStore.update(s => {
                                 s.sidePanelStage == ContractSidePanelStages.MilestonesPanel ? s.sidePanelStage = ContractSidePanelStages.ChatsPanel : s.sidePanelStage = ContractSidePanelStages.MilestonesPanel;
                             })
-                        }} className="w-60 hover:bg-bg-secondary-dark rounded-xl transition-all  border-2 border-transparent hover:border-accent-dark"  ><div className="transition-all p-4 flex flex-row justify-between w-full rounded-xl">
+                        }} className="w-full hover:bg-bg-secondary-dark basis-1/2 rounded-xl transition-all  border-2 border-transparent hover:border-accent-dark"  ><div className="transition-all p-4 flex flex-row justify-between w-full rounded-xl">
                                 <h1 className="prose prose-sm text-white font-gilroy-bold text-[14px] whitespace-nowrap">
                                     {sidePanelStage == ContractSidePanelStages.MilestonesPanel ? 'View Contract Chat' : ' View Contract Milestones'}
                                 </h1>
                                 <img src={sidePanelStage === ContractSidePanelStages.MilestonesPanel ? IconDisputesChat : IconMilestones} alt="Disputes Chat Icon"></img>
                             </div>
                         </button>
+                        <a href={contractData.attachment} className=" hover:bg-bg-secondary-dark basis-1/2 transition-all active:bg-bg-secondary-dark border-2 border-transparent hover:border-purple-400 p-4 rounded-xl">
+                            <div className="flex flex-row space-x-8 text-white items-center">
+                                <span>
+                                    <svg width="16" height="20" viewBox="0 0 16 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M9.66634 1.89111V5.33323C9.66634 5.79994 9.66634 6.0333 9.75717 6.21156C9.83706 6.36836 9.96455 6.49584 10.1213 6.57574C10.2996 6.66656 10.533 6.66656 10.9997 6.66656H14.4418M5.49967 12.4998L7.99967 14.9998M7.99967 14.9998L10.4997 12.4998M7.99967 14.9998L7.99967 9.99984M9.66634 1.6665H5.33301C3.93288 1.6665 3.23281 1.6665 2.69803 1.93899C2.22763 2.17867 1.84517 2.56112 1.60549 3.03153C1.33301 3.56631 1.33301 4.26637 1.33301 5.6665V14.3332C1.33301 15.7333 1.33301 16.4334 1.60549 16.9681C1.84517 17.4386 2.22763 17.821 2.69803 18.0607C3.23281 18.3332 3.93288 18.3332 5.33301 18.3332H10.6663C12.0665 18.3332 12.7665 18.3332 13.3013 18.0607C13.7717 17.821 14.1542 17.4386 14.3939 16.9681C14.6663 16.4334 14.6663 15.7333 14.6663 14.3332V6.6665L9.66634 1.6665Z" stroke="white" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </span>
+                                <span className="whitespace-nowrap"> Download Proposal </span>
+                            </div>
+                        </a>
+
+
+
 
                     </div>
+
 
                 </div>
 
@@ -362,6 +388,19 @@ export default function DetailedContractView() {
 
                 </motion.div >
             </AnimatePresence>
+            <ToastContainer position="bottom-center"
+                autoClose={2000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                theme="dark"
+                limit={1}
+
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover></ToastContainer>
+            <MobileNavbarPadding />
         </div >
     );
 
