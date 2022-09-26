@@ -33,8 +33,8 @@ export async function getFirebaseDocs(collectionName: string, onlyKeys?: boolean
 export async function addFirestoreDocFromData(data: any, collectionName: string, path?: string): Promise<DocumentReference<any>> {
 
     console.log('FULL CONTRACT BEING ADDED (server-side) \n');
-    const docRef = await addDoc(collection(firestore, `${collectionName}/${path}`), data);
-    console.log(`Object added to firestore with id ${docRef}`);
+    const docRef = await addDoc(collection(firestore, `${path ? `${collectionName}/${path}` : `${collectionName}`}`), data);
+    console.log(`Object added to firestore with id ${docRef.id}`);
     return docRef
 }
 
@@ -78,10 +78,10 @@ export async function sendChatMessage(message: string, from: string, to: string,
 }
 
 
-export async function sendEvent(eventData: NeutronEvent) {
+export async function sendEvent(eventData: NeutronEvent, viewers?: string[]) {
 
     try {
-        const result = await set(push(ref(db, 'events/' + eventData.type)), { ...eventData, timestamp: new Date().getTime() })
+        const result = await set(push(ref(db, 'events/' + eventData.type)), { ...eventData, timestamp: new Date().getTime(), viewers: viewers })
         return true
     }
     catch (e) {

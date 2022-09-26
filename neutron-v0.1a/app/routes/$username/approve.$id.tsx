@@ -1,6 +1,6 @@
 import { ActionFunction, json, LoaderFunction, redirect } from "@remix-run/server-runtime";
 import { getSingleDoc, sendEvent, updateFirestoreDocFromData } from "~/firebase/queries.server";
-import { DeliverableStatus, Milestone } from "~/models/contracts";
+import { Contract, DeliverableStatus, Milestone } from "~/models/contracts";
 import { ContractEvent, EventType, NeutronEvent } from "~/models/events";
 import { requireUser } from "~/session.server";
 import { MULTIPLE_MILESTONES_LOG_PREFIX } from "~/utils";
@@ -23,7 +23,7 @@ export const action: ActionFunction = async ({ request, params }) => {
 
     const formData = await request.formData();
     const contract = formData.get('contract');
-    const contractData = JSON.parse(formData.get('contract'));
+    const contractData: Contract = JSON.parse(formData.get('contract'));
     const milestone = formData.get('milestone');
     const milestoneData = JSON.parse(milestone);
     const isLastMilestone = formData.get('isLastMilestone');
@@ -50,8 +50,8 @@ export const action: ActionFunction = async ({ request, params }) => {
             console.dir(milestonePayload)
 
 
-            const milestoneStatusUpdateRef = await updateFirestoreDocFromData(milestonePayload, `users/contracts/${ownerUID}`, contractID);
-            const nextMilestoneQueuedEvent = await sendEvent(milestoneCompletionEvent);
+            const milestoneStatusUpdateRef = await updateFirestoreDocFromData(milestonePayload, `contracts`, contractID);
+            const nextMilestoneQueuedEvent = await sendEvent(milestoneCompletionEvent, contractData.viewers);
         }
 
     } else {
@@ -68,9 +68,9 @@ export const action: ActionFunction = async ({ request, params }) => {
         console.dir(milestoneCompletionEvent);
         console.dir(milestoneCompletionEvent);
         const milestonePayload: { [key: string]: any } = {};
-        milestonePayload[`milestones.workMilestones.${Object.keys(contractData?.milestones?.workMilestones).length-1}.status`] = DeliverableStatus.Approved;
-        const milestoneStatusUpdateRef = await updateFirestoreDocFromData(milestonePayload, `users/contracts/${ownerUID}`, contractID);
-        const lastMilestoneCompletedEvent = await sendEvent(milestoneCompletionEvent);
+        milestonePayload[`milestones.workMilestones.${Object.keys(contractData?.milestones?.workMilestones).length - 1}.status`] = DeliverableStatus.Approved;
+        const milestoneStatusUpdateRef = await updateFirestoreDocFromData(milestonePayload, `contracts`, contractID);
+        const lastMilestoneCompletedEvent = await sendEvent(milestoneCompletionEvent, contractData.viewers);
     }
 
 

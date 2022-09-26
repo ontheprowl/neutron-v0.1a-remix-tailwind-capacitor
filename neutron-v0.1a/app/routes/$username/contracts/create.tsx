@@ -19,7 +19,7 @@ import { getDownloadURL, ref, uploadBytes, uploadBytesResumable, uploadString, U
 import { addDoc, collection } from 'firebase/firestore';
 import { EventEmitter } from 'stream';
 import MobileNavbarPadding from '~/components/layout/MobileNavbarPadding';
-import { addFirestoreDocFromData, getFirebaseDocs, sendEvent, setFirestoreDocFromData } from '~/firebase/queries.server';
+import { addFirestoreDocFromData, getFirebaseDocs, getSingleDoc, sendEvent, setFirestoreDocFromData } from '~/firebase/queries.server';
 import { requireUser } from '~/session.server';
 import { unstable_parseMultipartFormData as parseMultipartFormData } from '@remix-run/server-runtime';
 import createFirebaseStorageFileHandler from '~/firebase/FirebaseUploadHandler';
@@ -73,22 +73,44 @@ export const action: ActionFunction = async ({ request }) => {
 
     }
 
-    const finalContractData = { ...data, }
+    // TODO : Check if there is a better way to retrieve counter-party metadata
+
+    if (data?.clientEmail == session?.metadata?.email) {
+        const providerMetadata = await getSingleDoc(`metadata/${data?.providerID}`);
+        data['providerPAN'] = providerMetadata?.PAN;
+        data['providerName'] = providerMetadata?.firstName + " " + providerMetadata?.lastName;
+        data['providerAadhaar'] = providerMetadata?.aadhaar;
+        data['providerAddress'] = providerMetadata?.address + ", " + providerMetadata?.city + ", " + providerMetadata?.state + " - " + providerMetadata?.pincode
+    } else {
+        const clientMetadata = await getSingleDoc(`metadata/${data?.clientID}`);
+        data['clientPAN'] = clientMetadata?.PAN;
+        data['clientAadhaar'] = clientMetadata?.aadhaar;
+        data['clientName'] = clientMetadata?.firstName + " " + clientMetadata?.lastName;
+        data['clientAddress'] = clientMetadata?.address + ", " + clientMetadata?.city + ", " + clientMetadata?.state + " - " + clientMetadata?.pincode
+    }
+
+    const finalContractData = { ...data }
+
+
+    console.log("FINAL CONTRACT DATA IS ")
+    console.log(finalContractData)
+
+
 
     if (finalContractData?.isPublished == "true") {
-        const contractRef = await addFirestoreDocFromData({ ...data, status: ContractStatus.Published }, `users/contracts`, session?.metadata?.id);
+        const contractRef = await addFirestoreDocFromData({ ...data, status: ContractStatus.Published }, `contracts`);
         const numberOfContracts = new Number(session?.metadata?.contracts);
 
         const contractCreationEvent: NeutronEvent = { event: ContractEvent.ContractPublished, type: EventType.ContractEvent, payload: { data: { ...data }, message: 'A contract was created' }, uid: session?.metadata?.id, id: contractRef.id }
-        const eventPublished = await sendEvent(contractCreationEvent);
+        const eventPublished = await sendEvent(contractCreationEvent, finalContractData?.viewers);
         const metadataRef = await setFirestoreDocFromData({ ...session?.metadata, contracts: numberOfContracts.valueOf() + 1 }, `metadata`, session?.metadata?.id);
         return redirect(`/${session?.metadata?.displayName}/contracts/${contractRef.id}`)
 
     } else {
-        const contractRef = await addFirestoreDocFromData({ ...data, status: ContractStatus.Draft }, `users/contracts`, session?.metadata?.id);
-       
+        const contractRef = await addFirestoreDocFromData({ ...data, status: ContractStatus.Draft }, `contracts`);
+
         const contractDraftEvent: NeutronEvent = { event: ContractEvent.ContractDrafted, type: EventType.ContractEvent, payload: { data: { ...data }, message: 'A contract was drafted' }, uid: session?.metadata?.id, id: contractRef.id }
-        const eventDrafted = await sendEvent(contractDraftEvent);
+        const eventDrafted = await sendEvent(contractDraftEvent, finalContractData?.viewers);
         const numberOfContracts = new Number(session?.metadata?.contracts);
         const metadataRef = await setFirestoreDocFromData({ ...session?.metadata, contracts: numberOfContracts.valueOf() + 1 }, `metadata`, session?.metadata?.id);
         return redirect(`/${session?.metadata?.displayName}/contracts/${contractRef.id}`)
@@ -150,23 +172,23 @@ export default function ContractCreation() {
                             const formdata = new FormData();
 
                             //TODO: Creator specific contract 
-                            if (creator == ContractCreator.IndividualServiceProvider) {
-                                console.log("Creator is the service Provider ");
+                            // if (creator == ContractCreator.IndividualServiceProvider) {
+                            //     console.log("Creator is the service Provider ");
 
-                                data = { ...data, providerEmail: metadata?.email, providerName: metadata?.firstName + ' ' + metadata?.lastName, creator: creator }
-                                console.dir(data)
+                            //     data = { ...data, providerEmail: metadata?.email, providerName: metadata?.firstName + ' ' + metadata?.lastName, creator: metadata?.email }
+                            //     console.dir(data)
 
-                            }
-                            else {
-                                console.log("The creator is the client ");
-                                data = { ...data, clientEmail: metadata?.email, clientName: metadata?.firstName + ' ' + metadata?.lastName, creator: creator }
-                                console.dir(data)
+                            // }
+                            // else {
+                            //     console.log("The creator is the client ");
+                            //     data = { ...data, clientEmail: metadata?.email, clientName: metadata?.firstName + ' ' + metadata?.lastName, creator: metadata?.email }
+                            //     console.dir(data)
 
 
-                            }
+                            // }
                             const clientAdditionalDetails = returnUserUIDAndUsername(data.clientEmail, users);
                             const providerAdditionalDetails = returnUserUIDAndUsername(data.providerEmail, users);
-                            data = { ...data, clientID: clientAdditionalDetails.uid, providerID: providerAdditionalDetails.uid, clientUsername: clientAdditionalDetails.username, providerUsername: providerAdditionalDetails.username, externalDeliverables: data.externalDeliverables == "true" ? true : false };
+                            data = { ...data, clientID: clientAdditionalDetails.uid, providerID: providerAdditionalDetails.uid, clientUsername: clientAdditionalDetails.username, providerUsername: providerAdditionalDetails.username, externalDeliverables: data.externalDeliverables == "true" ? true : false, viewers: JSON.stringify([providerAdditionalDetails.uid, clientAdditionalDetails.uid]) };
                             for (const [key, value] of Object.entries(data)) {
 
                                 if (key.includes('attachment')) {

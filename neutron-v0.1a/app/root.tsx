@@ -24,6 +24,7 @@ import {
 } from "@remix-run/react";
 import { useEffect } from "react";
 import { env } from 'process';
+import { beamsClient } from './components/notifications/pusher-config.client';
 let isMount = true;
 
 export const links: LinksFunction = () => {
@@ -78,7 +79,9 @@ export function ErrorBoundary({ error }) {
   React.useEffect(() => {
     let mounted = isMount;
     isMount = false;
+   
     if ("serviceWorker" in navigator) {
+
       if (navigator.serviceWorker.controller) {
         navigator.serviceWorker.controller?.postMessage({
           type: "REMIX_NAVIGATION",

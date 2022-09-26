@@ -11,6 +11,10 @@ import { Links, Meta, Outlet, Scripts, ShouldReloadFunction, useFetcher, useLoad
 import { ActionFunction, json, LoaderFunction, redirect } from "@remix-run/server-runtime";
 import { time } from "console";
 import { formatDateToReadableString } from "~/utils/utils";
+import { SendNotification } from "~/utils/client/pwa-utils.client";
+import * as PusherPushNotifications from "@pusher/push-notifications-web";
+
+
 import Icon from '../assets/images/NeutronLogoFull.svg';
 import IconWhite from '../assets/images/iconWhite.svg'
 import PlaceholderDP from '~/assets/images/kartik.png'
@@ -23,8 +27,9 @@ import DisputesButton from "~/components/DisputesButton";
 import SupportButton from "~/components/SupportButton";
 import SettingsButton from "~/components/SettingsButton";
 import LogoutButton from "~/components/LogoutButton";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import NeutronModal from "~/components/layout/NeutronModal";
+import { beamsClient } from "~/components/notifications/pusher-config.client";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
 
@@ -40,6 +45,8 @@ export const loader: LoaderFunction = async ({ request, params }) => {
     console.log("username is :" + ownerUsername)
     const isOwner = await isViewerOwner(session, ownerUsername);
     console.log(`value of isOwner is ${isOwner}`)
+
+    //* The next line exploits the order of execution of loaders to forward the responsibility of testing privilege for viewing a contract to the specific contract page itself.
     if (!isOwner && contractID == undefined) {
         throw new Error("Don't have the privilege to view this page")
     }
@@ -53,8 +60,32 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
 export default function CustomUserPage() {
 
+
+    // const options = {
+    //     body: "Hello, take a break and drink some water! 💧", // required!
+    //     silent: false,
+    //     badge:"/favicon.ico" ,
+    //     icon:"/favicon.ico",
+    //     image:"/favicon.ico"
+    // }
+
+    // let minutes = 30
+
+    // // executed in several ways
+    // React.useEffect(() => {
+    //     SendNotification("Neutron", options)
+    // })
+
+
     const data = useLoaderData();
+    const metadata = data.metadata;
     let fetcher = useFetcher();
+
+    // * This effect ensures that the beamsClient is subscribing to all messages for the currently logged-in user
+    useEffect(() => {
+        beamsClient.start().then(() => { beamsClient.addDeviceInterest(metadata.id) });
+        console.log("BEAMS CLIENT REGISTERED WITH INTEREST ID : " + metadata.id)
+    }, [metadata])
 
     const [rotation, cycleRotation] = useCycle([0, 180, 360]);
     console.dir(data)
@@ -90,8 +121,9 @@ export default function CustomUserPage() {
                                 alt="Neutron Logo"
                             />
                         </motion.a>
+
                         <ul className={`${!data?.isOwner ? 'hidden' : ''} mt-10 w-full shrink-0 space-y-2`}>
-                            <li className="hover:opacity-80 transition-all  rounded-lg w-full">
+                            <li className=" transition-all  rounded-lg w-full">
                                 <button
                                     onClick={() => {
                                         UIStore.update((s) => {
@@ -101,7 +133,7 @@ export default function CustomUserPage() {
 
 
                                     }}
-                                    className={`rounded-lg transition-all w-full flex flex-row align-middle p-2 text-gray-100 hover:ring-1 hover:ring-accent-dark sm:space-x-3 ${tab == "Home" ? 'bg-bg-secondary-dark' : ``}
+                                    className={`rounded-lg transition-all w-full flex flex-row align-middle p-2 text-gray-100 border-2 border-transparent active:border-accent-dark  hover:bg-bg-secondary-dark  sm:space-x-3 ${tab == "Home" ? 'bg-bg-secondary-dark' : ``}
                                 `}
                                 >
                                     <ContractsButton />
@@ -126,7 +158,7 @@ export default function CustomUserPage() {
 
                                 </button>
                             </li> */}
-                            <li className="hover:opacity-80 transition-all rounded-lg">
+                            <li className=" transition-all rounded-lg">
                                 <button
 
                                     onClick={() => {
@@ -137,7 +169,7 @@ export default function CustomUserPage() {
                                         navigate('disputes/')
 
                                     }}
-                                    className={`rounded-lg transition-all flex hover:ring-1 hover:ring-accent-dark w-full flex-row align-middle p-2 text-gray-100 sm:space-x-3 ${tab == "Disputes" ? 'bg-bg-secondary-dark' : ``}
+                                    className={`rounded-lg transition-all flex border-2 border-transparent active:border-accent-dark  hover:bg-bg-secondary-dark w-full flex-row align-middle p-2 text-gray-100 sm:space-x-3 ${tab == "Disputes" ? 'bg-bg-secondary-dark' : ``}
                                 `}
                                 >
                                     <DisputesButton />
@@ -152,10 +184,10 @@ export default function CustomUserPage() {
                     <div className="flex flex-col space-y-6 ">
                         <div id="misc-buttons" className="w-full">
                             <ul className={`${!data?.isOwner ? 'hidden' : ''} mt-20 w-full shrink-0 space-y-2`}>
-                                <li className="hover:opacity-80 transition-all  rounded-lg w-full">
+                                <li className=" transition-all  rounded-lg w-full">
                                     <a
                                         href='https://www.neutron.money/support'
-                                        className={`rounded-lg transition-all flex flex-row align-middle p-2 text-gray-100 w-full hover:ring-1 hover:ring-accent-dark sm:space-x-3 ${tab == "Support" ? 'bg-bg-secondary-dark' : ``}
+                                        className={`rounded-lg transition-all flex flex-row align-middle p-2 text-gray-100 w-full border-2 border-transparent active:border-accent-dark  hover:bg-bg-secondary-dark sm:space-x-3 ${tab == "Support" ? 'bg-bg-secondary-dark' : ``}
                                 `}
                                     >
 
@@ -181,7 +213,7 @@ export default function CustomUserPage() {
 
                                 </button>
                             </li> */}
-                                <li className="hover:opacity-80 transition-all rounded-lg">
+                                <li className=" transition-all rounded-lg">
                                     <button onClick={() => {
                                         UIStore.update((s) => {
                                             s.selectedTab = "Profile";
@@ -189,7 +221,7 @@ export default function CustomUserPage() {
                                         navigate('profile')
 
                                     }}
-                                        className={`rounded-lg transition-all flex flex-row align-middle p-2 text-gray-100 w-full hover:ring-1 hover:ring-accent-dark sm:space-x-3 ${tab == "Profile" ? 'bg-bg-secondary-dark' : ``}
+                                        className={`rounded-lg transition-all flex flex-row align-middle p-2 text-gray-100 w-full border-2 border-transparent active:border-accent-dark  hover:bg-bg-secondary-dark  sm:space-x-3 ${tab == "Profile" ? 'bg-bg-secondary-dark' : ``}
                                  `}
                                     >
                                         <SettingsButton />
@@ -218,9 +250,9 @@ export default function CustomUserPage() {
                             </ul>
                         </div>
                         <div id="profile-funds-summary" className={`text-white text-left p-4 w-full self-start  rounded-xl ${primaryGradientDark}`}>
-                            <h1 className="font-gilroy-bold text-[14px]">Committed Funds</h1>
+                            <h1 className="font-gilroy-bold text-[14px]">Protected Funds</h1>
                             <h2 className="font-gilroy-black text-[20px]">₹{currentUserData.committedFunds ? currentUserData.committedFunds : '0'}</h2>
-                            <p className="font-gilroy-bold text-[14px] mt-5"> {currentUserData.contracts} active contracts</p>
+                            <p className="font-gilroy-bold text-[14px] mt-5"> {currentUserData.contracts} Active Contract{currentUserData.contracts != 1 ? 's' : ''}</p>
                         </div>
                         <div className="flex flex-row p-5 pb-0 pt-0 items-center border-t-2 border-gray-300 justify-end space-x-2 ">
                             <img alt="profile" src={currentUserData.photoURL ? currentUserData.photoURL : PlaceholderDP} className="h-10 w-10 mt-16 translate-y-[-30px]  bg-[#e5e5e5]  hover:opacity-50 hover:ring-1 outline-none transition-all hover:ring-[#8364E8] border-solid border-black rounded-full self-start ml-6  object-contain"></img>
@@ -301,7 +333,7 @@ export default function CustomUserPage() {
           </div>
         </div>
       </div> */}
-            <div className={`flex flex-col w-full ${primaryGradientDark} h-screen sm:h-auto relative flex-grow`} >
+            <div className={`flex flex-col w-full ${primaryGradientDark} h-full sm:h-auto relative flex-grow`} >
                 <div className={`flex flex-row m-5 mt-8 justify-between items-start sm:hidden`}>
                     <motion.a
                         whileHover={{ rotate: rotation }}

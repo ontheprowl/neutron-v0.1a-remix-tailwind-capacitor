@@ -1,11 +1,12 @@
 import { ContractDataStore } from "~/stores/ContractStores";
 import { Contract, ContractCreationStages } from "~/models/contracts";
-import { formatDateToReadableString } from "~/utils/utils";
+import { extractDayMonthAndYear, formatDateToReadableString } from "~/utils/utils";
 import ContractEditableLink from "./ContractEditableLink";
 import { useFormContext } from "react-hook-form";
 import { ClientInformationRedirect, PaymentAndMilestonesRedirect, ScopeOfWorkRedirect } from "./InputRedirects";
 import { useFetcher, useLoaderData } from "@remix-run/react";
 import { useEffect } from "react";
+import NeutronSignComponent from "../signage/NeutronSignComponent";
 
 
 function generateDeliverables(milestones: { [key: string]: any }) {
@@ -61,10 +62,11 @@ export default function GenericContractTemplate({ viewMode }: { viewMode?: boole
         if (milestonesContainer) {
             for (const [key, value] of Object.entries(milestonesContainer)) {
                 if (key == "advance") {
-                    milestonesArray.push(<li>{value.name}<br></br>{value.description}</li>)
+                    milestonesArray.push(<li>{value.name}<br></br>{value.description}<br></br>worth a sum of INR {value.value} /-</li>)
                 } else {
                     for (const milestone of Object.values(value)) {
-                        milestonesArray.push(<li>{milestone.name}<br></br>{milestone.description}</li>)
+                        milestonesArray.push(<li>{milestone.name}<br></br>{milestone.description}
+                            <br></br>worth a sum of INR {milestone.value} /-</li>)
                     }
                 }
             }
@@ -89,23 +91,34 @@ export default function GenericContractTemplate({ viewMode }: { viewMode?: boole
     console.log('data for the edit screen is')
     console.log(allContractFields)
 
-    return (<div id="contract-container" className="m-5 flex drop-shadow-lg flex-row justify-center text-justify overflow-y-scroll h-[65vh] scroll-smooth">
+
+    const generateFormattedSignDate = () => {
+        if (allContractFields?.startDate) {
+            const { date, month, year } = extractDayMonthAndYear(allContractFields?.startDate);
+            return `${date} day of ${month}, ${year} (the “Effective Date”)`;
+        } else {
+            return '[WILL BE FILLED IN DURING SIGNING]';
+
+        }
+    }
+
+
+    return (<div id="contract-container" className={`m-5 flex flex-row justify-center text-justify overflow-y-scroll h-auto ${viewMode ? 'max-h-[600px]' : 'max-h-[700px]'} scroll-smooth`}>
         <article className="prose prose-xl w-full flex flex-col font-gilroy-regular" >
             <strong className="font-gilroy-bold text-[25px]">SERVICE AGREEMENT</strong>
 
 
-            <p className="break-normal whitespace-pre-wrap">This <span className="font-gilroy-bold">SERVICE AGREEMENT</span> (hereinafter, referred to as “the Agreement”) is entered into on this [insert signingDate here] __day of ___(month), 20	(year) (the “Effective Date”)
+            <p className="break-normal whitespace-pre-wrap">This <span className="font-gilroy-bold">SERVICE AGREEMENT</span> (hereinafter, referred to as “the Agreement”) is entered into on this {generateFormattedSignDate()}
 
                 <br></br>
-                BY AND BETWEEN
-                <br></br>
-                <ClientInformationRedirect viewMode={viewMode}>{allContractFields.clientName}</ClientInformationRedirect>, (Name of Company/Agency/individual) a private limited/ limited company incorporated under the Companies Act, 2013/1956 having its registered office at <ClientInformationRedirect viewMode={viewMode}>{allContractFields.clientAddress}</ClientInformationRedirect>	(address of Registered office)/ a sole proprietorship/ an individual being an Indian citizen and not specifically registered as either of the above (hereinafter referred to as the “Employer”), of the FIRST PART;
+                <div className="text-center mt-2">BY AND BETWEEN</div>
+                <ClientInformationRedirect viewMode={viewMode}>{allContractFields.clientName}</ClientInformationRedirect>, (Name of Company/Agency/individual) a private limited/ limited company incorporated under the Companies Act, 2013/1956 having its registered office at <ClientInformationRedirect viewMode={viewMode}>{allContractFields.clientAddress}</ClientInformationRedirect>	(address of Registered office)/ a sole proprietorship/ an individual being an Indian citizen and not specifically registered as either of the above (hereinafter referred to as the “Employer”), bearing Permanent Account No. <ClientInformationRedirect viewMode={viewMode}>{allContractFields.clientPAN}</ClientInformationRedirect> of the FIRST PART;
 
                 <br></br>
-                AND
-                <br></br>
+                <div className="text-center mt-2">AND</div>
 
-                <ClientInformationRedirect viewMode={viewMode}>{allContractFields.providerName}</ClientInformationRedirect>, residing at <ClientInformationRedirect viewMode={viewMode}>{allContractFields.providerAddress}</ClientInformationRedirect>and bearing Permanent Account No. <ClientInformationRedirect viewMode={viewMode}>{allContractFields.providerPAN}</ClientInformationRedirect>/(hereinafter referred to as the “Service Provider”) of the SECOND PART;
+
+                <ClientInformationRedirect viewMode={viewMode}>{allContractFields.providerName}</ClientInformationRedirect>, residing at <ClientInformationRedirect viewMode={viewMode}>{allContractFields.providerAddress}</ClientInformationRedirect> and bearing Permanent Account No. <ClientInformationRedirect viewMode={viewMode}>{allContractFields.providerPAN}</ClientInformationRedirect>/(hereinafter referred to as the “Service Provider”) of the SECOND PART;
 
                 <br></br>
                 <br></br>
@@ -201,8 +214,9 @@ export default function GenericContractTemplate({ viewMode }: { viewMode?: boole
                             <span className="font-gilroy-bold">COMPENSATION:</span>
                             <br></br>
 
-                            The Service Provider shall be entitled to a total compensation amount of   INR <PaymentAndMilestonesRedirect viewMode={viewMode}>{allContractFields.totalValue}</PaymentAndMilestonesRedirect>/- (Rupees	) for the   Services so rendered. This total compensation shall either be disbursed in lump sum or in parts upon the successful completion of specific milestones of the Services in the manner as set forth specifically in the Payment and Progress Schedule annexed as ‘Exhibit B’ hereunder. No other fee or expenses shall be paid to the Service Provider unless the Employer has approved such fee or expenses in writing.
-
+                            The Service Provider shall be entitled to a total compensation amount of INR <PaymentAndMilestonesRedirect viewMode={viewMode}>{allContractFields.contractValue}</PaymentAndMilestonesRedirect>/- (Rupees) for the Services so rendered.
+                            <br></br>
+                            This total compensation shall either be disbursed in lump sum or in parts upon the successful completion of specific milestones of the Services in the manner as set forth specifically in the Payment and Progress Schedule annexed as ‘Exhibit B’ hereunder. No other fee or expenses shall be paid to the Service Provider unless the Employer has approved such fee or expenses in writing.
                             Time is of the essence with respect to payment for the Services and it is an essential condition to this Agreement. The Service Provider shall be entitled to terminate the Agreement upon non-payment for the said Services or for specific milestones, as under Exhibit B, by the Employer.
 
                             If the Employer disputes any compensation for the Services, the Employer shall notify the Service Provider in writing/email communication/ via the Neutron platform and will submit such dispute to the Service Provider as soon as it is aware of the dispute, but in no event later than fourteen (14) days from when the said compensation for the Services is payable. The Employer agrees to pay the full compensation as under Exhibit B, except for pending the resolution of such dispute. The Service Provider will respond to The Employer’s written dispute within fourteen (14) days of receipt of such dispute and initiate actions as laid down in Clause 26 herein.
@@ -369,30 +383,44 @@ export default function GenericContractTemplate({ viewMode }: { viewMode?: boole
                     </li>
                     <li>
                         <span className="font-gilroy-bold">MODIFICATION:</span>
+                        <br></br>
+
                         Any modification of this Agreement or additional obligation assumed by either party in connection with this Agreement shall be binding only if evidenced in writing signed by each party or an authorized representative of each party.
                     </li>
                     <li>
                         <span className="font-gilroy-bold">ENTIRE AGREEMENT:</span>
+                        <br></br>
+
                         This Agreement constitutes the sole and entire agreement between the parties with respect to the Confidential Information and all restrictions thereon; it supersedes all prior or contemporaneous oral or written agreements except any NDA executed before this agreement, negotiations, communications, understandings and terms, whether express or implied regarding the Confidential Information, and may not be amended except in a writing signed by a duly authorized representative of the respective parties. Any other agreements between the parties, including non-disclosure agreements, will not be affected by this Agreement.
                     </li>
                     <li>
                         <span className="font-gilroy-bold">ELECTRONIC SIGNATURES:</span>
+                        <br></br>
+
                         The words “execution,” “execute,” “signed,” “signature,” and words of like import in or related to this Agreement or any other document to be signed in connection with this Agreement and the transactions contemplated hereby shall be deemed to include electronic signatures, the electronic matching of assignment terms and contract formations on electronic platforms or the keeping of records in electronic form. Any signature (including any electronic symbol or process attached to, or associated with, a contract or other record and adopted by a person with the intent to sign, authenticate or accept such contract or record) hereto or to any other certificate, agreement or document related to this transaction, and any contract formation each of which shall be of the same legal effect, validity or enforceability as a manually executed signature or the use of a paper-based recordkeeping system, as the case may be, to the extent and as provided for in any applicable law, including the Information Technology Act, 2000.
                     </li>
                     <li>
                         <span className="font-gilroy-bold">SEVERABILITY:</span>
+                        <br></br>
+
                         Each paragraph of this agreement shall be and remain separate from and independent of and severable from all and any other paragraphs herein except where otherwise indicated by the context of the agreement. The decision or declaration that one or more of the paragraphs are null and void shall have no effect on the remaining paragraphs of this agreement.
                     </li>
                     <li>
                         <span className="font-gilroy-bold">NO WAIVER:</span>
+                        <br></br>
+
                         The failure of either Party to enforce any right resulting from breach of any provision of this Agreement by the other party will not be deemed a waiver of any right relating to a subsequent breach of such provision or of any other right hereunder.
                     </li>
                     <li>
                         <span className="font-gilroy-bold">SURVIVAL:</span>
+                        <br></br>
+
                         Any terms and conditions that by their nature or otherwise reasonably should survive cancellation or termination of this Agreement shall be deemed to survive the cancellation or termination of this Agreement. Such terms and conditions include, but are not limited to, Term and Termination (Clause 9 and Clause 10), Confidentiality Obligations (Clause 12), Limitation of Liability (Clause 16), Governing Law and Jurisdiction (Clause 26), Indemnity (Clause 19 ) and Severability (Clause 23).
                     </li>
                     <li id="dispute-resolution">
                         <span className="font-gilroy-bold">GOVERNING LAW AND DISPUTE RESOLUTION:</span>
+                        <br></br>
+
                         <ol>
                             <li>
                                 This Agreement shall be governed by and construed in accordance with the laws of India. Each party hereby irrevocably submits that this Agreement will be governed by the laws of India without reference to conflict of law principles if any. Any disputes arising from this Agreement shall be subject to the jurisdiction of the courts in Bengaluru, Karnataka.
@@ -416,6 +444,8 @@ export default function GenericContractTemplate({ viewMode }: { viewMode?: boole
                     </li>
                     <li>
                         <span className="font-gilroy-bold">COUNTERPARTS:</span>
+                        <br></br>
+
                         The Agreement may be executed in two or more counterparts, any one of which shall be deemed the original without reference to the others.
                     </li>
 
@@ -424,35 +454,42 @@ export default function GenericContractTemplate({ viewMode }: { viewMode?: boole
 
 
 
-            <span className="font-gilroy-black">IN WITNESS WHEREOF THE PARTIES HAVE HEREUNTO SET THEIR HANDS AND SEALS THE DAY AND YEAR FIRST ABOVE WRITTEN</span>
+            <div className="font-gilroy-bold">IN WITNESS WHEREOF THE PARTIES HAVE HEREUNTO SET THEIR HANDS AND SEALS THE DAY AND YEAR FIRST ABOVE WRITTEN</div>
 
 
 
-            <div className="flex flex-row w-full justify-between">
-                <div className="font-gilroy-bold">
-                    Signed, Sealed and Delivered by:
-                    <br>
-                    </br>
-                    (Service Provider)
-                    <br>
-                    </br>
-                    Name: <span className="font-gilroy-bold text-purple-600"> Service Provider's signature goes here</span>
-                    <br>
-                    </br>
-                    Date:
+            <div className="flex flex-row w-full justify-between p-8 my-5 space-x-8">
+                <div className="font-gilroy-bold basis-1/2 ">
+                    {allContractFields.signedByProvider && allContractFields.providerEmail && allContractFields.providerID && allContractFields.signedByProviderDate ? <NeutronSignComponent signerEmail={allContractFields.providerEmail} signerAadhaar={allContractFields.providerAadhaar} signerID={allContractFields.providerID} signDate={formatDateToReadableString(allContractFields.signedByProviderDate, false, true)}></NeutronSignComponent> :
+                        <div>
+                            Signed, Sealed and Delivered by:
+                            <br>
+                            </br>
+                            (Service Provider)
+                            <br>
+                            </br>
+                            Name: <span className="font-gilroy-bold text-purple-600"> Service Provider's signature goes here</span>
+                            <br>
+                            </br>
+                            Date:
+                        </div>}
+
                 </div>
-                <div className="font-gilroy-bold">
-                    Signed, Sealed and Delivered by:
-                    <br>
-                    </br>
+                <div className="font-gilroy-bold basis-1/2">
+                    {allContractFields.signedByClient && allContractFields.clientEmail && allContractFields.clientID && allContractFields.signedByClientDate ? <NeutronSignComponent signerEmail={allContractFields.clientEmail} signerAadhaar={allContractFields.clientAadhaar} signerID={allContractFields.clientID} signDate={formatDateToReadableString(allContractFields.signedByClientDate, false, true)}></NeutronSignComponent> :
+                        <div>
+                            Signed, Sealed and Delivered by:
+                            <br>
+                            </br>
 
-                    (The Employer)
-                    <br>
-                    </br>
-                    Name: <span className="font-gilroy-bold text-purple-600"> Employer's signature goes here</span>
-                    <br>
-                    </br>
-                    Date:
+                            (The Employer)
+                            <br>
+                            </br>
+                            Name: <span className="font-gilroy-bold text-purple-600 "> Employer's signature goes here</span>
+                            <br>
+                            </br>
+                            Date:
+                        </div>}
 
                 </div>
 
@@ -510,7 +547,7 @@ export default function GenericContractTemplate({ viewMode }: { viewMode?: boole
 
 
 
-        </article>
+        </article >
 
     </div >);
 }

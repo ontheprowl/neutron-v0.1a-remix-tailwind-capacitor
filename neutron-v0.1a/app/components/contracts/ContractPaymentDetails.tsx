@@ -15,6 +15,7 @@ import { PAYMENT_BREAKDOWN_VALIDATOR_LOG_PREFIX } from "~/logging/constants";
 import MilestoneFormEntry from "../layout/MilestoneFormEntry";
 import { ErrorMessage } from "@hookform/error-message";
 import MandatoryAsterisk from "../layout/MandatoryAsterisk";
+import BackArrowButton from "../inputs/BackArrowButton";
 
 
 
@@ -76,7 +77,17 @@ export default function ContractPaymentDetails({ editMode }: { editMode?: boolea
 
     return (
         <>
-            <h2 className="prose prose-lg mt-5 mb-1 text-white font-gilroy-black text-[30px]"> Payment & Milestones  </h2>
+            <div className="flex flex-row space-x-3">
+                <div className="hidden sm:inline hover:drop-shadow-md mt-1  transition-all h-12 rounded-full">
+                    <BackArrowButton className="p-2 ring-2 ring-transparent hover:bg-bg-secondary-dark hover:ring-purple-400 transition-all rounded-full" onClick={() => {
+                        ContractDataStore.update(s => { s.stage = s.stage - 1 })
+
+                    }} ></BackArrowButton>
+                </div>
+                <h2 className="prose prose-lg  mb-1 text-white font-gilroy-black text-[30px]"> Payment & Milestones  </h2>
+            </div>
+
+
             <h3 className="font-gilroy-bold text-gray-400 text-[16px] mb-5 w-full">Disclaimer : Neutron is not liable for work exchanged off-platform and Advances paid aren't protected by escrow.</h3>
             <label htmlFor="simple-search" className="sr-only">Client Name</label>
             <div className="mb-5 flex flex-col space-y-5 sm:flex-row relative w-auto sm:items-end sm:space-x-3 justify-start align-middle">
@@ -272,7 +283,7 @@ export default function ContractPaymentDetails({ editMode }: { editMode?: boolea
 
                 } else {
                     milestonesPayload['workMilestones'] = {}
-                    milestonesPayload['workMilestones'][0] = { name: "Contract End Milestone", description: "This contract will be paid out in full on the completion of this milestone", percentage: advancePercentageValue ? `${100 - advancePercentageValue}` : '100', value: advancePercentageValue ? (1 - (advancePercentageValue / 100)) * contractValueNumber : contractValueNumber, isLastMilestone: true, submissionPath: '' }
+                    milestonesPayload['workMilestones'][0] = { name: "Contract End Milestone", date: formMethods.getValues('endDate'), description: "This contract will be paid out in full on the completion of this milestone", percentage: advancePercentageValue ? `${100 - advancePercentageValue}` : '100', value: advancePercentageValue ? (1 - (advancePercentageValue / 100)) * contractValueNumber : contractValueNumber, isLastMilestone: true, submissionPath: '' }
                 }
 
                 console.log("This is the milestones data ( after pre-processing ) ")

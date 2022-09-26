@@ -28,7 +28,7 @@ import { ContractDataStore } from '~/stores/ContractStores';
 export const loader: LoaderFunction = async ({ request }) => {
     const session = await requireUser(request, true);
 
-    const result = await getFirebaseDocs(`users/contracts/${session?.metadata?.id}`)
+    const result = await getFirebaseDocs(`contracts`)
     return json({ contracts: result, metadata: session?.metadata });
 
 }
@@ -39,7 +39,7 @@ export const action: ActionFunction = async ({ request }) => {
     const data = await request.formData();
     const id = data.get('id');
     console.log(data);
-    const docRef = doc(firestore, `users/contracts/${session?.metadata?.id}/${id}`);
+    const docRef = doc(firestore, `contracts/${id}`);
     await deleteDoc(docRef);
     console.log(`Contract deleted from firestore with id ${id}`);
     const numberOfContracts = new Number(session?.metadata?.contracts);
@@ -76,28 +76,32 @@ export default function ListContracts() {
 
 
     const generateContractsList = () => {
-        return (<ul className="m-5 mt-1 space-y-4 max-h-96 overflow-scroll snap-y snap-mandatory">
-            {contracts.map((contract: { id: string, data: any }, index: number) => {
+        return (<ul className=" m-4 space-y-4 max-h-[512px] overflow-scroll snap-y snap-mandatory">
+            {contracts.map((contract: Contract, index: number) => {
                 return (<li onClick={() => {
                     setCurrentContract(index)
-                }} key={contract.id} className={`snap-center bg-bg-secondary-dark border-2 h-auto rounded-xl border-accent-dark dark:bg-gray-800 dark:border-gray-700 hover:bg-gradient-to-br from-violet-700 via-violet-400 to-violet-500 hover:bg-opacity-50 dark:hover:bg-gray-600 flex flex-col transition-all justify-between`}>
+                }} key={contract.id} className={`snap-center bg-bg-secondary-dark border-2 h-auto rounded-xl border-purple-400 dark:bg-gray-800 dark:border-gray-700 hover:bg-gradient-to-br from-violet-700 via-violet-400 to-violet-500 hover:bg-opacity-50 dark:hover:bg-gray-600 flex flex-col transition-all justify-between`}>
 
-                    <div className="flex flex-row justify-between">
-                        <div className="flex flex-col  m-2 p-3 space-y-2">
-                            <h2 className="prose prose-md text-white">
-                                {contract.data.projectName}
+                    <div className="flex flex-col justify-between p-4 space-y-2">
+                        <div className="flex flex-row space-y-2">
+                            <h2 className="prose prose-md text-[18px] text-white">
+                                {contract.projectName}
                             </h2>
-                            <h3 className="prose prose-sm text-gray-300">{contract.data.clientName}</h3>
-                            <h4 className="prose prose-sm text-gray-300">{contract.data.signedDate}</h4>
+
                         </div>
-                        <div className="flex flex-col  m-2 p-3 justify-between">
+                        <div className="flex flex-row   justify-between">
+                            <h3 className="prose prose-sm text-gray-300">{contract.clientName}</h3>
+                            <h4 className="prose prose-sm text-gray-300">{contract.endDate}</h4>
+                        </div>
+                        <div className="flex flex-row space-x-5  justify-between">
                             <h2 className="prose prose-md text-white">
-                                {contract.data.contractValue}
+                                {contract.contractValue}
                             </h2>
-                            <td>
-                                {contract?.data?.status == ContractStatus.Draft ? <ContractDraftedStatus></ContractDraftedStatus> : <ContractPublishedStatus></ContractPublishedStatus>}
-                            </td>
+                            <span className="w-full flex flex-row justify-end">
+                                {contract?.status == ContractStatus.Draft ? <ContractDraftedStatus></ContractDraftedStatus> : <ContractPublishedStatus></ContractPublishedStatus>}
+                            </span>
                         </div>
+
                     </div>
 
 
@@ -191,25 +195,9 @@ export default function ListContracts() {
 
                         </div>
                     </div> */}
-                    <div id="user-action-buttons" className='flex flex-row w-full border-2'>
-                        <button
-                            className={`w-full rounded-lg p-3 border-2 h-16 self-start text-left ${primaryGradientDark} border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-white transition-all`}
-                            onClick={() => {
-                                ContractDataStore.update((s) => { s.stage = ContractCreationStages.ClientInformation });
-                                navigate(`/${currentUserData?.displayName}/contracts/create`)
-                            }}
-
-                        >
-                            <div className='flex flex-row space-x-4 justify-center'>
-                                <svg width="21" height="20" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M10.4993 4.16602V15.8327M4.66602 9.99935H16.3327" stroke="white" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round" />
-                                </svg>
-                                <h1>Add Contract</h1>
-
-                            </div>
-
-                        </button>
-                    </div>
+                    {/* <div id="user-action-buttons" className='flex flex-row'>
+                        
+                    </div> */}
                 </div>
 
                 <div className="hidden sm:flex sm:flex-col-reverse m-6 sm:max-w-[400px] sm:w-full">

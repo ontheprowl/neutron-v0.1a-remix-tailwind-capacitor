@@ -40,7 +40,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
     const contractID = params.contractID;
 
-    const contract = await getSingleDoc(`users/contracts/${session?.metadata?.id}/${contractID}`);
+    const contract = await getSingleDoc(`contracts/${contractID}`);
 
     console.dir(users)
     // const result = await getFirebaseDocs(`users/contracts/${session?.metadata?.id}`)
@@ -82,13 +82,13 @@ export const action: ActionFunction = async ({ request, params }) => {
     const finalContractData = { ...data, }
 
     if (finalContractData?.isPublished == "true") {
-        const contractRef = await updateFirestoreDocFromData({ ...data, status: ContractStatus.Published }, `users/contracts`, `${session?.metadata?.id}/${contractID}`);
+        const contractRef = await updateFirestoreDocFromData({ ...data, status: ContractStatus.Published }, `contracts`, `${contractID}`);
         const contractCreationEvent: NeutronEvent = { event: ContractEvent.ContractPublished, type: EventType.ContractEvent, payload: { data: { ...data }, message: 'A contract was created' }, uid: session?.metadata?.id, id: contractRef.id }
-        const eventPublished = await sendEvent(contractCreationEvent);
+        const eventPublished = await sendEvent(contractCreationEvent, finalContractData?.viewers);
         return redirect(`/${session?.metadata?.displayName}/contracts/${contractRef.id}`)
 
     } else {
-        const contractRef = await updateFirestoreDocFromData({ ...data, status: ContractStatus.Draft }, `users/contracts`, `${session?.metadata?.id}/${contractID}`);
+        const contractRef = await updateFirestoreDocFromData({ ...data, status: ContractStatus.Draft }, `contracts`, `${contractID}`);
         // const contractDraftEvent: NeutronEvent = { event: ContractEvent.ContractDrafted, type: EventType.ContractEvent, payload: { data: { ...data }, message: 'A contract was drafted' }, uid: session?.metadata?.id, id: contractRef.id }
         // const eventDrafted = await sendEvent(contractDraftEvent);
         return redirect(`/${session?.metadata?.displayName}/contracts/${contractRef.id}`)

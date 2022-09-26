@@ -30,7 +30,7 @@ export function generateNeutronErrorForErrorCode(code: string) {
       return {
         type: NeutronErrorCode.AuthError,
         message:
-          "Internal server error - If this problem persists, please email us at team@neutron.money",
+          "Internal server error - If this problem persists, please email us at connect@neutron.money",
       };
     case "neutron-auth/email-not-verified":
         return {

@@ -1,14 +1,35 @@
 import { RemixBrowser } from "@remix-run/react";
 import { hydrate } from "react-dom";
+import * as PusherPushNotifications from "@pusher/push-notifications-web";
 
 hydrate(<RemixBrowser />, document);
 
+
+
 if ("serviceWorker" in navigator) {
+
+
   // Use the window load event to keep the page load performant
   window.addEventListener("load", () => {
     navigator.serviceWorker
       .register("/entry.worker.js")
-      .then(() => navigator.serviceWorker.ready)
+      .then(() => navigator.serviceWorker.ready.then((serviceWorkerRegistration) => {
+        // const beamsClient = new PusherPushNotifications.Client({
+        //   instanceId: 'd45267dd-8950-4cbd-ad07-678a6460917d',
+        //   serviceWorkerRegistration: serviceWorkerRegistration,
+        // })
+
+        // window.sessionStorage.setItem('pusherBeamsClient', JSON.stringify(beamsClient));
+
+        // beamsClient
+        //   .start()
+        //   .then(() => beamsClient.getDeviceId())
+        //   .then(() => console.log("Successfully registered and subscribed!"))
+        //   .then(() => beamsClient.addDeviceInterest("hello"))
+        //   .then(() => beamsClient.getDeviceInterests())
+        //   .then((interests) => console.log("Current interests:", interests))
+        //   .catch(console.error);
+      }))
       .then(() => {
         if (navigator.serviceWorker.controller) {
           navigator.serviceWorker.controller.postMessage({
@@ -63,7 +84,7 @@ navigator.serviceWorker.ready
     });
   })
   .then(async (subscription) => {
-    await fetch("./resources/subscribe", {
+    await fetch("/resources/subscribe", {
       method: "POST",
       body: JSON.stringify({
         subscription: subscription,

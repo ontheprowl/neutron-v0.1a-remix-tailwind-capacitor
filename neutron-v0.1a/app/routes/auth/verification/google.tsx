@@ -1,8 +1,6 @@
-import { ActionFunction, LoaderFunction, redirect } from "@remix-run/server-runtime"
-import { applyActionCode, checkActionCode } from "firebase/auth"
-import { auth } from "~/firebase/neutron-config.server"
-
-
+import { LoaderFunction, redirect } from "@remix-run/server-runtime";
+import { applyActionCode } from "firebase/auth";
+import { auth } from '~/firebase/neutron-config.server'
 
 export const loader: LoaderFunction = async ({ request }) => {
     console.log("VERIFICATION REQUEST RECEIVED");
@@ -29,12 +27,5 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 
     return redirect('/login')
-    // await checkActionCode(auth)
-}
-
-
-export const action: ActionFunction = async ({ request }) => {
-    console.log("VERIFICATION REQUEST RECEIVED");
-    return null;
     // await checkActionCode(auth)
 }

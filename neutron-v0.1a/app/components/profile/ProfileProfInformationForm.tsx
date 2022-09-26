@@ -6,6 +6,7 @@ import { ErrorMessage } from '@hookform/error-message'
 import { CountrySelect } from "~/utils/utils";
 import { toast, ToastContainer } from "react-toastify";
 import DefaultSpinner from "../layout/DefaultSpinner";
+import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
 
 
 
@@ -64,7 +65,7 @@ export default function ProfileProfInformationForm() {
         })
     }>
 
-        <h2 className="prose prose-lg mt-3 text-white"> Professional Information </h2>
+        <h2 className="prose prose-lg  text-white font-gilroy-black text-[30px]"> Professional Information </h2>
         <div className="relative w-auto mt-2 mb-5 sm:mt-5 sm:mb-5 flex flex-col ">
             <span className=" prose prose-md text-white mb-5">Designation</span>
             <input type="text" id="designation"  {...register('designation', {
@@ -111,7 +112,7 @@ export default function ProfileProfInformationForm() {
 
             </div>
             <div className="flex flex-row w-full space-x-4">
-                <div className="flex flex-col justify-start space-y-2 mt-3">
+                <div className="flex flex-col justify-start space-y-2 ">
                     <h2 className="prose prose-md text-white  text-[16px]"> Type of Work </h2>
                     <select id="work-type-select" {...register('workType')} defaultValue={userMetadata.workType} className=" bg-[#4A4A4A] p-3  text-white text-sm rounded-lg placeholder-white block w-auto h-auto dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white ">
                         <option value="Accounting & Finance">Accounting & Finance</option>
@@ -162,7 +163,7 @@ export default function ProfileProfInformationForm() {
                     </select>
                 </div>
 
-                <div className="flex flex-col justify-start space-y-2 mt-3">
+                <div className="flex flex-col justify-start space-y-2 ">
                     <h2 className="prose prose-md text-white text-[16px]"> What best describes your business? </h2>
                     <select id="business-type-select" {...register('businessType')} defaultValue={userMetadata.businessType} className=" bg-[#4A4A4A] p-3  text-white text-sm rounded-lg placeholder-white block w-auto h-auto dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white ">
                         <option value="Just starting out">Just starting out</option>
@@ -171,7 +172,7 @@ export default function ProfileProfInformationForm() {
                         <option value="Agency/Studio or Enterprise">Agency/Studio or Enterprise</option>
                     </select>
                 </div>
-                {businessType == "Agency/Studio or Enterprise" && <div className="flex flex-col justify-start space-y-2 mt-3 ">
+                {businessType == "Agency/Studio or Enterprise" && <div className="flex flex-col justify-start space-y-2 ">
                     <h2 className="prose prose-md text-white text-[16px]">Does your business work with: </h2>
                     <select id="employee-type-select" {...register('employeeType')} defaultValue={userMetadata.employeeType} className=" bg-[#4A4A4A] p-3  text-white text-sm rounded-lg placeholder-white block w-auto h-auto dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white ">
                         <option value="Full-time employees">Full-time employees</option>
@@ -179,17 +180,22 @@ export default function ProfileProfInformationForm() {
                         <option value="Combination of both">Combination of both</option>
                     </select>
                 </div>}
-                {businessType != "Agency/Studio or Enterprise" && <div className="flex flex-col justify-start space-y-2 mt-3">
+                {businessType != "Agency/Studio or Enterprise" && <div className="flex flex-col justify-start space-y-2">
                     <h2 className="prose prose-md text-white text-[16px]"> Is your business registered/incorporated? </h2>
                     <select id="is-registered" {...register('isRegistered')} defaultValue={userMetadata?.isRegistered} className=" bg-[#4A4A4A] p-3  text-white text-sm rounded-lg placeholder-white block w-auto h-auto dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white ">
                         <option value="Yes">Yes</option>
                         <option value="No">No</option>
                     </select>
                 </div>}
+
+
+            </div>
+            <div className="flex flex-row mt-8">
+                
             </div>
         </div>
         <button
-            className="w-40 rounded-lg mt-2 self-start  bg-accent-dark p-3 border-2 border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-black font-gilroy-black font-[18px] transition-all"
+            className={`w-40 rounded-lg mt-2 self-start ${primaryGradientDark} p-3 border-2 border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-black font-gilroy-black font-[18px] transition-all`}
             type="submit"
         >
             {saveButtonStates(fetcher.state)}

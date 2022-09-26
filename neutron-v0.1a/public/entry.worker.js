@@ -14,6 +14,7 @@ var json = (data, init = {}) => {
 };
 
 // app/entry.worker.ts
+importScripts("https://js.pusher.com/beams/service-worker.js");
 var STATIC_ASSETS = ["/build/", "/icons/", "/"];
 var ASSET_CACHE = "asset-cache";
 var DATA_CACHE = "data-cache";
@@ -123,21 +124,6 @@ async function handleFetch(event) {
   }
   return fetch(event.request.clone());
 }
-var handlePush = (event) => {
-  const data = JSON.parse(event == null ? void 0 : event.data.text());
-  const title = data.title ? data.title : "Remix PWA";
-  const options = {
-    body: data.body ? data.body : "Notification Body Text",
-    icon: data.icon ? data.icon : "/icons/android-icon-192x192.png",
-    badge: data.badge ? data.badge : "/icons/android-icon-48x48.png",
-    dir: data.dir ? data.dir : "auto",
-    image: data.image ? data.image : void 0,
-    silent: data.silent ? data.silent : false
-  };
-  self.registration.showNotification(title, {
-    ...options
-  });
-};
 function isMethod(request, methods) {
   return methods.includes(request.method.toLowerCase());
 }
@@ -159,9 +145,6 @@ self.addEventListener("activate", (event) => {
 });
 self.addEventListener("message", (event) => {
   event.waitUntil(handleMessage(event));
-});
-self.addEventListener("push", (event) => {
-  event.waitUntil(handlePush(event));
 });
 self.addEventListener("fetch", (event) => {
   event.respondWith((async () => {

@@ -1,17 +1,46 @@
+import { useTransition } from "@remix-run/react";
 import type { Dispatch, MouseEventHandler, SetStateAction } from "react";
 import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
+import DefaultSpinner from "./DefaultSpinner";
 
 
 
 
 export default function NeutronModal({ toggleModalFunction, heading, body, onConfirm, onReject }: { toggleModalFunction: Dispatch<SetStateAction<boolean>>, heading?: JSX.Element, body?: JSX.Element, onConfirm?: MouseEventHandler<HTMLButtonElement>, onReject?: MouseEventHandler<HTMLButtonElement> }) {
 
+    let transition = useTransition();
+
+
+    const neutronModalConfirmationStates = (state: string)=>{
+
+        switch (state) {
+            case "idle":
+                return (<span>Confirm</span>);
+            case "submitting":
+                return (<span>Confirming</span>);
+            case "loading":
+                return (<DefaultSpinner></DefaultSpinner>);
+        }
+    }
+
+    const neutronModalRejectionStates = (state: string)=>{
+
+        switch (state) {
+            case "idle":
+                return (<span>Reject</span>);
+            case "submitting":
+                return (<span>Rejecting...</span>);
+            case "loading":
+                return (<DefaultSpinner></DefaultSpinner>);
+        }
+    }
+
     return (<>
 
-        <div id="defaultModal" className="backdrop-blur-md overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 w-auto sm:w-full md:inset-0 h-modal md:h-full justify-center items-center flex" aria-modal="true" role="dialog">
-            <div className="relative p-4 flex flex-col w-full max-w-2xl h-full md:h-auto">
-                <div className="relative bg-[#F5EBFF] rounded-xl p-14 shadow dark:bg-gray-700">
-                    <div className="flex justify-start items-start  rounded-t">
+        <div id="defaultModal" className="backdrop-blur-md overflow-y-auto overflow-x-hidden fixed top-0 right-0 h-screen sm:h-full left-0 z-50 w-auto sm:w-full md:inset-0 h-modal md:h-full justify-center items-center flex" aria-modal="true" role="dialog">
+            <div className="relative p-4 flex flex-col w-full max-w-3xl h-full md:h-auto">
+                <div className="relative  bg-[#F5EBFF] rounded-xl p-14 ">
+                    <div className="flex  justify-start items-start  rounded-t">
                         {heading && <h3 className="text-[30px] font-gilroy-black text-gray-900 dark:text-white">
                             {heading}
                         </h3>}
@@ -30,11 +59,11 @@ export default function NeutronModal({ toggleModalFunction, heading, body, onCon
                         {onReject && <button onClick={(e) => {
                             onReject(e);
                             toggleModalFunction(false);
-                        }} type="button" className="transition-all text-black bg-transparent  focus:ring-4 w-full focus:outline-none focus:ring-purple-300  rounded-lg ring-2 ring-purple-500 text-sm font-gilroy-black px-5 py-2.5  hover:ring-4 focus:z-10 ">Cancel</button>}
+                        }} type="button" className="transition-all text-black bg-transparent  focus:ring-4 w-full focus:outline-none focus:ring-purple-300  rounded-lg ring-2 ring-purple-500 text-sm font-gilroy-black px-5 py-2.5  hover:ring-4 focus:z-10 ">{neutronModalRejectionStates(transition.state)}</button>}
                         {onConfirm && <button onClick={(e) => {
                             onConfirm(e);
                             toggleModalFunction(false);
-                        }} type="button" className={`transition-all text-white ${primaryGradientDark}  hover:ring-4 focus:ring-4 w-full focus:ring-gray-400 focus:outline-none ring-black  font-gilroy-black rounded-lg text-sm px-5 py-2.5 text-center`}>Confirm</button>}
+                        }} type="button" className={`transition-all text-white ${primaryGradientDark}  hover:ring-4 focus:ring-4 w-full focus:ring-gray-400 focus:outline-none ring-black  font-gilroy-black rounded-lg text-sm px-5 py-2.5 text-center`}>{neutronModalConfirmationStates(transition.state)}</button>}
                     </div>
                 </div>
             </div>

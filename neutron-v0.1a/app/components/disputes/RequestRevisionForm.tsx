@@ -60,7 +60,7 @@ export default function RequestRevisionForm({ milestone, milestoneIndex, toggleM
         <form onSubmit={methods.handleSubmit(async (data) => {
             console.dir(data)
             const form = new FormData();
-            const payload = { ...data, milestone: milestone, milestoneIndex: milestoneIndex, revisions: contract.revisions };
+            const payload = { ...data, milestone: milestone, milestoneIndex: milestoneIndex, revisions: contract.revisions, viewers: contract?.viewers };
             form.append('payload', JSON.stringify(payload));
             fetcher.submit(form, { method: "post", action: `/${ownerUsername}/disputes/submitRevision/${contract.id}` });
             if (toggleModalFunction) toggleModalFunction(false);

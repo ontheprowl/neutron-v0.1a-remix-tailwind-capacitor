@@ -1,7 +1,7 @@
 import { UIStore } from "~/stores/UIStore";
 import { secondaryGradient } from "~/utils/neutron-theme-extensions";
 import { formatDateToReadableString } from "~/utils/utils";
-import HomeButton from '~/components/HomeButton'
+import HomeButtonMobile from '~/components/HomeButtonMobile'
 import WalletButton from '~/components/WalletButton'
 import CalendarButton from '~/components/CalendarButton'
 import ContractsButton from '~/components/ContractsButton'
@@ -24,26 +24,62 @@ export default function BottomNav() {
 
     let navigate = useNavigate();
     return (
-        <div className=" flex flex-row min-w-fit h-auto justify-between w-full bg-[#202020]   shadow-lg sm:hidden">
+        <div className="flex flex-row w-full p-2 pl-10 pr-10 justify-between bg-[#202020]   shadow-lg sm:hidden">
 
             <div
-                className={`rounded-xl p-2 transition-all hover:opacity-80  hover:ring-1 hover:ring-accent-dark`}
+                className={`transition-all flex flex-col align-middle focus:opacity-50  active:opacity-60`}
+                onClick={() => {
+                    UIStore.update(s => {
+                        s.selectedTab = "Home"
+                    })
+                    navigate("dashboard")
 
+                }}
             >
-                <HomeButton selected={tab === "Home"} />
+                <div className=" flex flex-row justify-center">
+                    <HomeButtonMobile selected={tab === "Home"} />
+                </div>
+                <h1 className={`transition-all ${tab === "Home" ? 'text-purple-400' : 'text-white'}`}>Home</h1>
             </div>
 
 
-            <div>
-                <CreateContractMobileButton className={`rounded-xl p-2 m-2 hover:opacity-80 transition-all hover:ring-1 hover:ring-accent-dark`}
-                ></CreateContractMobileButton>
+            <div
+                className="focus:opacity-50  active:opacity-60"
+                onClick={() => {
+                    UIStore.update(s => {
+                        s.selectedTab = "Create Contract"
+                    })
+                    navigate("contracts/create")
+
+                }}>
+                <div className=" flex flex-row justify-center">
+                    <CreateContractMobileButton selected={tab === "Create Contract"} className={``}
+                    ></CreateContractMobileButton>
+                </div>
+
+
+                <h1 className={`transition-all ${tab === "Create Contract" ? 'text-purple-400' : 'text-white'}`}>Add Contract</h1>
+
             </div>
 
             <div
-                className={`rounded-xl p-2 transition-all m-2 ${tab == "Contracts" ? secondaryGradient : 'hover:opacity-80 transition-all hover:ring-1 hover:ring-accent-dark rounded-lg'}`}
+                className={`transition-all flex flex-col align-middle focus:opacity-50  active:opacity-60`}
 
+                onClick={() => {
+                    UIStore.update(s => {
+                        s.selectedTab = "Contracts"
+                    })
+                    navigate("contracts")
+
+                }}
             >
-                <ContractsButton />
+                <div className="flex flex-row justify-center">
+                    <ContractsButton selected={tab === "Contracts"} />
+
+                </div>
+
+                <h1 className={`transition-all ${tab === "Contracts" ? 'text-purple-400' : 'text-white'}`}>Contracts</h1>
+
             </div>
 
         </div >

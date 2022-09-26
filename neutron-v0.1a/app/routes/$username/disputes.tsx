@@ -1,13 +1,14 @@
 import { json, LoaderFunction, redirect } from "@remix-run/node";
 import { Outlet, useLoaderData, useNavigate } from "@remix-run/react";
 import { onValue, push, query, ref, set } from "firebase/database";
+import { collection, getDocs, where } from "firebase/firestore";
 import { ParamHTMLAttributes, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import DisputesChatComponent from "~/components/disputes/DisputesChatComponent";
 import DisputesZeroState from "~/components/disputes/DisputesZeroState";
 import MobileNavbarPadding from "~/components/layout/MobileNavbarPadding";
 import { DisputeSeverityGenerator, DisputeStatusGenerator } from "~/components/layout/Statuses";
-import { auth, db } from "~/firebase/neutron-config.server";
+import { auth, db, firestore } from "~/firebase/neutron-config.server";
 import { fetchEvents, getFirebaseDocs, getSingleDoc, sendChatMessage } from "~/firebase/queries.server";
 import { ContractCreator } from "~/models/contracts";
 import { Dispute, DisputeSeverity, DisputeStatus, DisputeType } from "~/models/disputes";
@@ -21,9 +22,12 @@ export const loader: LoaderFunction = async ({ request, params }) => {
     const session = await requireUser(request, true);
     const viewerUsername = session?.metadata?.displayName;
     const ownerUsername = params.username
-    const disputesRef = await getFirebaseDocs('users/disputes', false, `${session?.metadata?.id}`);
+    const disputesQuery = query(collection(firestore, `disputes`), where("viewers", "array-contains", session?.metadata?.id));
+    //TODO : Make metadata fetching dynamic
+    // const disputesQuery = query(collection(firestore, 'disputes'), limit(5));
+    const disputesData = await getDocs(disputesQuery);
     let disputes: Dispute[] = [];
-    disputesRef.forEach((dispute) => { disputes.push({ ...dispute.data, id: dispute.id }) });
+    disputesData.forEach((dispute) => { disputes.push({ ...dispute.data(), id: dispute.id }) });
 
     // const disputes: Dispute[] = [
     //     {
@@ -160,6 +164,8 @@ export default function DisputesIndex() {
     const metadata = data.metadata;
     const messages = data.result;
     const disputes: Dispute[] = data.disputes;
+    console.log("disputes")
+    console.dir(disputes)
 
     const selectedDispute = disputes[selectedIndex];
 
@@ -202,7 +208,7 @@ export default function DisputesIndex() {
                     <div className="flex flex-col m-3 w-full">
                         {/* <h1 className="text-left font-gilroy-black text-[30px] m-2 text-white prose prose-lg"> Disputes and Redressal</h1> */}
                         <ul className=" space-y-6 transition-all max-h-screen overflow-y-scroll w-full snap-mandatory snap-y">
-                            {disputes.length!=0?disputes.map((dispute: Dispute, index) => {
+                            {disputes.length != 0 ? disputes.map((dispute: Dispute, index) => {
                                 return <li onClick={() => {
                                     navigate(`${dispute.id}`);
                                 }} key={dispute.id} className={`bg-bg-primary-dark w-full transition-all p-3 cursor-pointer snap-center border-2 border-l-transparent border-r-transparent border-t-transparent h-auto rounded-xl  dark:bg-gray-800 dark:border-gray-700 hover:border-accent-dark hover:bg-bg-secondary-dark hover:bg-opacity-50 dark:hover:bg-gray-600 flex flex-col justify-between`}>
@@ -211,8 +217,8 @@ export default function DisputesIndex() {
                                             <h2 className="prose prose-md text-white font-gilroy-medium ">
                                                 {dispute.name}
                                             </h2>
-                                            <h3 className="prose prose-sm text-white ">{dispute.raisedBy}</h3>
-                                            <h4 className="prose prose-sm text-gray-300">{dispute.contractName}</h4>
+                                            <h3 className="prose prose-sm text-white text-[12px] ">{dispute.raisedBy}</h3>
+                                            <h4 className="prose prose-sm text-gray-300 font-gilroy-black text-[18px]">{dispute.contractName}</h4>
                                         </div>
                                         <div className="m-2 p-3 w-full basis-1/3">
                                             <DisputeSeverityGenerator severity={dispute.severity}></DisputeSeverityGenerator>
@@ -220,7 +226,7 @@ export default function DisputesIndex() {
                                     </div>
 
                                     <div className="flex flex-col space-y-2 h-[60px] p-2 justify-between">
-                                        <p className="prose prose-md text-left break-normal align-text-top truncate font-gilroy-regular text-white text-[14px]">
+                                        <p className="prose prose-md text-left break-normal align-text-top truncate font-gilroy-regular text-white text-[16px]">
                                             {dispute.description}
                                         </p>
                                     </div>
@@ -242,7 +248,7 @@ export default function DisputesIndex() {
                                     throw new Error('Function not implemented.');
                                 }} className={''}></ChatIcon></td> */}
                                 </li>
-                            }):<DisputesZeroState></DisputesZeroState>}
+                            }) : <DisputesZeroState></DisputesZeroState>}
                         </ul>
                     </div>
                 </div>

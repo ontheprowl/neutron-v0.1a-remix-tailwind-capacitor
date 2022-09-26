@@ -2,6 +2,7 @@ import { useMatches } from "@remix-run/react";
 import { useMemo } from "react";
 
 import type { User } from "~/models/user.server";
+import { DisputeType } from "./models/disputes";
 
 const DEFAULT_REDIRECT = "/";
 export const MULTIPLE_MILESTONES_LOG_PREFIX = '[MULTIPLE MILESTONES TEST] ';
@@ -71,6 +72,16 @@ export function validateEmail(email: unknown): email is string {
   return typeof email === "string" && email.length > 3 && email.includes("@");
 }
 
+export function generateTextForDisputeType(type: DisputeType) {
+  switch (type) {
+      case DisputeType.QualityIssue:
+          return 'Issue of Quality';
+      case DisputeType.Fraud:
+          return 'Fraud';
+      case DisputeType.DeadlineExtension:
+          return 'Deadline Extension';
+  }
+}
 
 export function generateFromToForDisputes(currentUserEmail : string, contract: Contract){
   
@@ -80,3 +91,5 @@ export function generateFromToForDisputes(currentUserEmail : string, contract: C
 
   }
 }
+
+

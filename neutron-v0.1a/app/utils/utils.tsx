@@ -10,14 +10,14 @@ export const isEmpty = (obj: {
 }) => (Object.keys(obj).length === 0);
 
 
-export const formatDateToReadableString = (seconds?: string, onlyTime?: boolean, simplified?: boolean) => {
+export const formatDateToReadableString = (milliseconds?: string | number, onlyTime?: boolean, simplified?: boolean) => {
 
     let date;
-    if (seconds == undefined) {
+    if (milliseconds == undefined) {
         date = new Date();
     }
     else {
-        date = new Date(seconds);
+        date = new Date(milliseconds);
     }
     if (simplified) {
         if (onlyTime) {
@@ -31,7 +31,7 @@ export const formatDateToReadableString = (seconds?: string, onlyTime?: boolean,
             (date.getMonth() >= 9 ? date.getMonth() + 1 : '0' + (date.getMonth() + 1)) +
             "-" +
             date.getFullYear()
-            + ' ' + date.getHours() + ":" + (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes());
+            + ' ' + date.getHours() + ":" + (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()) + ":" + (date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds());
         ;
         return formattedDate;
     }
@@ -41,6 +41,20 @@ export const formatDateToReadableString = (seconds?: string, onlyTime?: boolean,
 
 
     return date.toLocaleString(undefined, { timeZone: 'Asia/Kolkata', timeZoneName: 'short' });
+}
+
+export function extractDayMonthAndYear(milliseconds?: string | number) {
+
+    let date;
+    if (milliseconds == undefined) {
+        date = new Date();
+    }
+    else {
+        date = new Date(milliseconds);
+    }
+
+    return { date: (date.getDate() >= 10 ? date.getDate() : '0' + date.getDate()), month: (date.getMonth() >= 9 ? date.getMonth() + 1 : '0' + (date.getMonth() + 1)), year: date.getFullYear() }
+
 }
 
 export function getRandomInt(max: number) {

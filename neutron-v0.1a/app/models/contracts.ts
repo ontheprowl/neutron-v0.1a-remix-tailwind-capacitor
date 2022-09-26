@@ -96,6 +96,20 @@ export enum ContractCreator {
 }
 
 export interface Contract {
+  clientPAN?: string;
+  clientAadhaar?: string;
+
+  providerAddress?: string;
+  providerPAN?: string;
+  providerAadhaar?: string;
+
+  signedByClientDate?: number;
+  clientID?: string;
+  providerID?: string;
+  signedByProviderDate?: number;
+  signedByProvider?: boolean;
+  signedByClient?: boolean;
+  viewers: string[];
   contractValue?: string;
   milestonesProcessed?: {
     advance: Milestone;

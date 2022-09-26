@@ -19,7 +19,7 @@ import MandatoryAsterisk from "../layout/MandatoryAsterisk";
 
 export default function ContractClientInformation({ editMode }: { editMode?: boolean }) {
 
-    const { validEmails, users }: { validEmails: string[], users: [{ id: string, data: { [key: string]: any } }] } = useLoaderData();
+    const { validEmails, users, metadata }: { validEmails: string[], users: [{ id: string, data: { [key: string]: any } }], metadata: { [x: string]: any } } = useLoaderData();
 
 
 
@@ -30,10 +30,16 @@ export default function ContractClientInformation({ editMode }: { editMode?: boo
         })
     }
 
+    function returnUsername(v: any) {
+        return users.find((value) => {
+            if (value?.data?.email && value?.data?.profileComplete) {
+                return (value.data.email == v && value.data.profileComplete == true)
+            } else {
+                return false;
+            }
+        })?.id;
+    }
 
-
-
-    let fetcher = useFetcher();
     const formMethods = useFormContext();
     const errors = formMethods.formState.errors;
     const trigger = formMethods.trigger;
@@ -76,11 +82,14 @@ export default function ContractClientInformation({ editMode }: { editMode?: boo
             <div className="flex flex-row items-center space-x-3">
                 <AccentedToggle name="isClient" states={{
                     default: <div className="text-white">
+                        <span className="font-gilroy-black inline sm:hidden">I am the</span>
+
                         <h1 className="font-gilroy-black">Employer</h1>
-                        <span className="font-gilroy-bold">Are you requesting the service?</span>
+                        <span className="font-gilroy-bold hidden sm:inline">Are you requesting the service?</span>
                     </div>, toggled: <div className="text-white">
+                        <span className="font-gilroy-black inline sm:hidden">I am the</span>
                         <h1 className="font-gilroy-black">Service Provider</h1>
-                        <span className="font-gilroy-bold">Are you providing the service?</span>
+                        <span className="font-gilroy-bold hidden sm:inline">Are you providing the service?</span>
                     </div>
                 }} onToggle={() => {
                     if (creator === ContractCreator.IndividualServiceProvider) {
@@ -110,16 +119,6 @@ export default function ContractClientInformation({ editMode }: { editMode?: boo
 
                 </div> */}
                 <div className=" space-y-3 w-full">
-                    <span className=" prose prose-md text-white font-gilroy-regular text-[18px]">{creator === ContractCreator.IndividualServiceProvider ? 'Employer Name ' : 'Service Provider Name'}<MandatoryAsterisk /></span>
-                    <input type="text" id="client-name" defaultValue={creator === ContractCreator.IndividualServiceProvider ? clientName : providerName} {...formMethods.register(creator === ContractCreator.IndividualServiceProvider ? 'clientName' : 'providerName', { required: true, maxLength: { value: 20, message: 'Client name cannot exceed 20 characters' } })} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="e.g : Acme Corp" required />
-                    <div className="w-full h-5 mt-3 text-left">
-                        <ErrorMessage errors={errors} name={creator === ContractCreator.IndividualServiceProvider ? 'clientName' : 'providerName'} render={(data) => {
-                            return <span className="text-red-500 p-0 m-1 z-10">{data.message}</span>
-                        }} />
-                    </div>
-                </div>
-                <div className="hidden sm:flex sm:h-20 w-5 border-l-gray-500 border-l-2"></div>
-                <div className=" space-y-3 w-full">
                     <span className=" prose prose-md text-white font-gilroy-regular text-[18px]">{creator === ContractCreator.IndividualServiceProvider ? 'Employer Email ' : 'Service Provider Email'}<MandatoryAsterisk /></span>
                     <input type="text" id="client-email" defaultValue={creator === ContractCreator.IndividualServiceProvider ? clientEmail : providerEmail} {...formMethods.register(creator === ContractCreator.IndividualServiceProvider ? 'clientEmail' : 'providerEmail', {
                         required: true, pattern: {
@@ -133,6 +132,17 @@ export default function ContractClientInformation({ editMode }: { editMode?: boo
 
                     <div className="w-full h-5 mt-3 text-left">
                         <ErrorMessage errors={errors} name={creator === ContractCreator.IndividualServiceProvider ? 'clientEmail' : 'providerEmail'} render={(data) => {
+                            return <span className="text-red-500 p-0 m-1 z-10">{data.message}</span>
+                        }} />
+                    </div>
+                </div>
+
+                <div className="hidden sm:flex sm:h-20 w-5 border-l-gray-500 border-l-2"></div>
+                <div className=" space-y-3 w-full">
+                    <span className=" prose prose-md text-white font-gilroy-regular text-[18px]">{creator === ContractCreator.IndividualServiceProvider ? 'Employer Name ' : 'Service Provider Name'} (Autofilled)</span>
+                    <input type="text" id="client-name" defaultValue={creator === ContractCreator.IndividualServiceProvider ? returnUsername(clientEmail) : returnUsername(providerEmail)} {...formMethods.register(creator === ContractCreator.IndividualServiceProvider ? 'clientName' : 'providerName')} readOnly className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="e.g : Acme Corp" required />
+                    <div className="w-full h-5 mt-3 text-left">
+                        <ErrorMessage errors={errors} name={creator === ContractCreator.IndividualServiceProvider ? 'clientName' : 'providerName'} render={(data) => {
                             return <span className="text-red-500 p-0 m-1 z-10">{data.message}</span>
                         }} />
                     </div>
@@ -195,6 +205,26 @@ export default function ContractClientInformation({ editMode }: { editMode?: boo
 
                     toast("Invalid values detected for contract fields!", { theme: 'dark', type: 'warning' })
                 } else {
+                    if (creator == ContractCreator.IndividualServiceProvider) {
+                        console.log("Creator is the service Provider ");
+
+                        formMethods.setValue('providerEmail', metadata?.email);
+                        formMethods.setValue('providerName', metadata?.firstName + " " +  metadata?.lastName);
+                        formMethods.setValue('providerPAN', metadata?.PAN);
+                        formMethods.setValue('providerAadhaar', metadata?.aadhaar);
+                        formMethods.setValue('providerAddress', metadata?.address + ", " + metadata?.city +", " + metadata?.state + " - " + metadata?.pincode );
+                        formMethods.setValue('creator', metadata?.email);
+                    }
+                    else {
+                        console.log("The creator is the client ");
+                        formMethods.setValue('clientEmail', metadata?.email);
+                        formMethods.setValue('clientName', metadata?.firstName + " " +  metadata?.lastName);
+                        formMethods.setValue('clientPAN', metadata?.PAN);
+                        formMethods.setValue('clientAadhaar', metadata?.aadhaar);
+                        formMethods.setValue('clientAddress', metadata?.address + ", " + metadata?.city +", " + metadata?.state + " - " + metadata?.pincode );
+                        formMethods.setValue('creator', metadata?.email);
+
+                    }
                     ContractDataStore.update(s => {
                         s.stage = ContractCreationStages.ScopeOfWork;
 

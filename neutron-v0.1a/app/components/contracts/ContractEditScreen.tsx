@@ -14,6 +14,7 @@ import AccentedToggle from "../layout/AccentedToggleV1";
 import PurpleWhiteButton from "../inputs/PurpleWhiteButton";
 import { returnUserUIDAndUsername } from "~/utils/utils";
 import DefaultSpinner from "../layout/DefaultSpinner";
+import { Transition } from "@remix-run/react/transition";
 
 
 
@@ -28,26 +29,40 @@ export default function ContractEditScreen({ viewMode }: { viewMode?: boolean })
     let events: NeutronEvent[] = loaderData.contractEvents;
     const users = loaderData.users;
 
-    const publishContractStates = (state: string) => {
-        switch (state) {
-            case "idle":
-                return (<span> Publish Contract</span>);
-            case "submitting":
-                return (<span>Publishing Contract</span>);
-            case "loading":
-                return (<DefaultSpinner></DefaultSpinner>);
+    const publishContractStates = (transition: Transition) => {
+        const isPublished = transition.submission?.formData.get('isPublished');
+        if (isPublished === "true") {
+            switch (transition.state) {
+                case "idle":
+                    return (<span> Publish Contract</span>);
+                case "submitting":
+                    return (<span>Publishing Contract</span>);
+                case "loading":
+                    return (<DefaultSpinner></DefaultSpinner>);
+            }
         }
+        else {
+            return (<span>Publish Contract</span>)
+        }
+
     }
 
     const draftContractStates = (state: string) => {
-        switch (state) {
-            case "idle":
-                return (<span> Save as Draft</span>);
-            case "submitting":
-                return (<span>Drafting contract</span>);
-            case "loading":
-                return (<DefaultSpinner></DefaultSpinner>);
+        const isPublished = transition.submission?.formData.get('isPublished');
+        if (isPublished != "true") {
+            switch (transition.state) {
+                case "idle":
+                    return (<span> Draft Contract</span>);
+                case "submitting":
+                    return (<span>Drafting Contract</span>);
+                case "loading":
+                    return (<DefaultSpinner></DefaultSpinner>);
+            }
         }
+        else {
+            return (<span>Draft Contract</span>)
+        }
+
     }
     const transition = useTransition();
     const formMethods = useFormContext();
@@ -63,7 +78,7 @@ export default function ContractEditScreen({ viewMode }: { viewMode?: boolean })
 
     return (
         <div className="flex flex-col sm:flex-row space-y-5 sm:space-x-10 justify-start">
-            <div className="bg-white h-full w-auto basis-2/3 border-2">
+            <div className="bg-white h-auto w-auto basis-2/3 ring-1 ring-bg-secondary-dark  bg-opacity-90">
                 <GenericContractTemplate viewMode={viewMode}></GenericContractTemplate>
             </div>
             <div className="flex flex-col h-auto w-full basis-1/3 ">
@@ -73,14 +88,19 @@ export default function ContractEditScreen({ viewMode }: { viewMode?: boolean })
                     {viewMode && events[events.length - 1] && events[events.length - 1].event == ContractEvent.ContractPublished && metadata?.email == data.providerEmail ?
                         <button onClick={() => {
                             const form = new FormData();
-                            form.append('email', data.providerEmail)
+                            form.append('email', data.providerEmail);
+                            form.append('id',data.providerID);
+                            form.append('viewers', JSON.stringify(data.viewers));
                             // E
                             fetcher.submit(form, { action: `/${username}/sign/${data.id}`, method: 'post' });
                         }} className=' p-4 text-center bg-[#E6E0FA] sm:w-full text-[#765AD1] basis-1/2 prose prose-md transition-all rounded-lg active:border-white whitespace-nowrap hover:bg-white'>{`Sign as the Service Provider`}</button> : <></>}
                     {viewMode && events[events.length - 1] && events[events.length - 1].event == ContractEvent.ContractPendingSignByClient && data.clientEmail && metadata?.email == data.clientEmail ? <button onClick={() => {
                         const form = new FormData();
                         form.append('email', data.clientEmail)
-                        form.append('isClient', 'true')
+                        form.append('isClient', 'true');
+                        form.append('id',data.clientID);
+                        form.append('viewers', JSON.stringify(data.viewers));
+
                         fetcher.submit(form, { action: `/${username}/sign/${data.id}`, method: 'post' })
                     }} className=' p-4 text-center bg-[#E6E0FA] sm:w-full text-[#765AD1] basis-1/2 prose prose-md transition-all rounded-lg active:border-white whitespace-nowrap hover:bg-white'>{`Sign as the Client`}</button> : <></>}
 
@@ -106,8 +126,8 @@ export default function ContractEditScreen({ viewMode }: { viewMode?: boolean })
                         </div>} */}
                         {!viewMode &&
                             <div className="flex flex-row space-x-6">
-                                <FormButton submit={true} text={publishContractStates(transition.state)} ></FormButton>
-                                <TransparentButton  variant="light" text={draftContractStates(transition.state)} onClick={(e) => {
+                                <FormButton submit={true} text={publishContractStates(transition)} ></FormButton>
+                                <TransparentButton variant="light" text={draftContractStates(transition)} onClick={(e) => {
                                     console.log("This contract is being saved to drafts")
                                     console.log("This is the contract creation data")
                                     let data: {
@@ -117,22 +137,22 @@ export default function ContractEditScreen({ viewMode }: { viewMode?: boolean })
                                     const formdata = new FormData();
 
                                     //TODO: Creator specific contract 
-                                    if (creator == ContractCreator.IndividualServiceProvider) {
-                                        console.log("Creator is the service Provider ");
-                                        data = { ...data, providerEmail: metadata?.email, providerName: metadata?.firstName + ' ' + metadata?.lastName, creator: creator }
-                                        console.dir(data)
+                                    // if (creator == ContractCreator.IndividualServiceProvider) {
+                                    //     console.log("Creator is the service Provider ");
+                                    //     data = { ...data, providerEmail: metadata?.email, providerName: metadata?.firstName + ' ' + metadata?.lastName, creator: metadata?.email }
+                                    //     console.dir(data)
 
-                                    }
-                                    else {
-                                        console.log("The creator is the client ");
-                                        data = { ...data, clientEmail: metadata?.email, clientName: metadata?.firstName + ' ' + metadata?.lastName, creator: creator }
-                                        console.dir(data)
+                                    // }
+                                    // else {
+                                    //     console.log("The creator is the client ");
+                                    //     data = { ...data, clientEmail: metadata?.email, clientName: metadata?.firstName + ' ' + metadata?.lastName, creator: metadata?.email }
+                                    //     console.dir(data)
 
 
-                                    }
+                                    // }
                                     const clientAdditionalDetails = returnUserUIDAndUsername(data.clientEmail, users);
                                     const providerAdditionalDetails = returnUserUIDAndUsername(data.providerEmail, users);
-                                    data = { ...data, clientID: clientAdditionalDetails.uid, providerID: providerAdditionalDetails.uid, clientUsername: clientAdditionalDetails.username, providerUsername: providerAdditionalDetails.username };
+                                    data = { ...data, clientID: clientAdditionalDetails.uid, providerID: providerAdditionalDetails.uid, clientUsername: clientAdditionalDetails.username, providerUsername: providerAdditionalDetails.username, viewers: JSON.stringify([providerAdditionalDetails.uid, clientAdditionalDetails.uid]) };
 
                                     for (const [key, value] of Object.entries(data)) {
                                         console.log(" KEY IS : " + key)

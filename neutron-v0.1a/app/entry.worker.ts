@@ -1,6 +1,11 @@
 /// <reference lib="WebWorker" />
 
+
+
 import { json } from "@remix-run/server-runtime";
+
+
+importScripts("https://js.pusher.com/beams/service-worker.js");
 
 export type {};
 declare let self: ServiceWorkerGlobalScope;
@@ -143,7 +148,7 @@ async function handleFetch(event: FetchEvent): Promise<Response> {
 
 const handlePush = (event: PushEvent) => {
   const data = JSON.parse(event?.data!.text());
-  const title = data.title ? data.title : "Remix PWA";
+  const title = data.title ? data.title : "Remix hi PWA";
 
   const options = {
     body: data.body ? data.body : "Notification Body Text",
@@ -188,15 +193,15 @@ self.addEventListener("message", (event) => {
   event.waitUntil(handleMessage(event));
 });
 
-self.addEventListener("push", (event) => {
-  // self.clients.matchAll().then(function (c) {
-  // if (c.length === 0) {
-  event.waitUntil(handlePush(event));
-  // } else {
-  //   console.log("Application is already open!");
-  // }
-  // });
-});
+// self.addEventListener("push", (event) => {
+//   // self.clients.matchAll().then(function (c) {
+//   // if (c.length === 0) {
+//   event.waitUntil(handlePush(event));
+//   // } else {
+//   //   console.log("Application is already open!");
+//   // }
+//   // });
+// });
 
 self.addEventListener("fetch", (event) => {
   event.respondWith(

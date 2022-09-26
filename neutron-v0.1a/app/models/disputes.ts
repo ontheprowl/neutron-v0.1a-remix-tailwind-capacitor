@@ -1,3 +1,5 @@
+import { Milestone } from "./contracts";
+
 export type Dispute = {
   id: string;
   status: DisputeStatus;
@@ -15,8 +17,12 @@ export type Dispute = {
     id: string;
     email?: string;
   };
+  viewers? : string[],
   description?: string;
+  data?: any;
   severity: DisputeSeverity;
+  currentMilestone?: Milestone;
+  nextMilestoneIndex?: number;
 };
 
 

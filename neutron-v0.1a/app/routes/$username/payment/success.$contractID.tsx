@@ -23,7 +23,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
         const uidMapping = await getSingleDoc(`/userUIDS/${ownerUsername}`);
         const ownerUID = uidMapping?.uid;
-        const queuedContract = await getSingleDoc(`users/contracts/${ownerUID}/${contractID}`);
+        const queuedContract = await getSingleDoc(`contracts/${contractID}`);
         console.dir("queued contract milestones are ")
 
         if (queuedContract?.milestones?.advance) {
@@ -32,13 +32,13 @@ export const loader: LoaderFunction = async ({ request, params }) => {
             const beneficiaryMetadata = await getSingleDoc(`beneficiaries/${queuedContract.providerEmail}`);
 
             const payinCompletedAndAdvanceQueuedEvent: NeutronEvent = { event: ContractEvent.ContractPayinCompleted, type: EventType.ContractEvent, payload: { data: { contractID: contractID, order_id: orderID, order_token: orderToken, queuedMilestone: queuedMilestone, milestones: queuedContract?.milestones, beneficiaryData: beneficiaryMetadata, milestoneType: 'advance', nextMilestoneIndex: nextMilestoneIndex, ownerUsername: ownerUsername }, message: 'Payin was completed for a contract. Queuing advance payout next...' }, uid: ownerUID, id: contractID }
-            await sendEvent(payinCompletedAndAdvanceQueuedEvent);
+            await sendEvent(payinCompletedAndAdvanceQueuedEvent, queuedContract?.viewers);
 
         } else {
             const queuedMilestone = queuedContract?.milestones?.workMilestones['0'];
             const nextMilestoneIndex = 0;
             const payinCompletedAndFirstMilestoneEvent: NeutronEvent = { event: ContractEvent.ContractPayinCompleted, type: EventType.ContractEvent, payload: { data: { contractID: contractID, order_id: orderID, order_token: orderToken, queuedMilestone: queuedMilestone, milestones: queuedContract?.milestones, milestoneType: 'deliverable', nextMilestoneIndex: nextMilestoneIndex, ownerUsername: ownerUsername }, message: 'Payin was completed for a contract. Queuing first milestone next...' }, uid: ownerUID, id: contractID }
-            await sendEvent(payinCompletedAndFirstMilestoneEvent);
+            await sendEvent(payinCompletedAndFirstMilestoneEvent, queuedContract?.viewers);
         }
 
         return redirect(`/${ownerUsername}/contracts/${contractID}`)

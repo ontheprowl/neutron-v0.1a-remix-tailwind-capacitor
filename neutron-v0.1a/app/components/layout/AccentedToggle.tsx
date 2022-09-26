@@ -46,7 +46,7 @@ export default function AccentedToggle({ name, states, onToggle }: { name?: stri
         } : toggleSwitch} className={`flex flex-start w-[609px] bg-bg-primary-dark border-2 cursor-pointer border-gray-400 rounded-lg whitespace-nowrap ${isOn && 'place-content-end'}`}>
 
             <motion.div
-                className={`flex w-[304px] items-start p-3 rounded-md ${primaryGradientDark}`}
+                className={`flex w-6/12 sm:w-[304px] items-start p-3 rounded-md ${primaryGradientDark}`}
                 layout
                 transition={spring}
             >

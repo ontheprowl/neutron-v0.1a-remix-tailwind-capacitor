@@ -11,11 +11,12 @@ import { isEmpty, minStartDate } from "~/utils/utils";
 import { ErrorMessage } from "@hookform/error-message";
 import { toast } from "react-toastify";
 import MandatoryAsterisk from "../layout/MandatoryAsterisk";
+import BackArrowButton from "../inputs/BackArrowButton";
 
 
 
 
-export default function ContractScopeOfWork({editMode} : {editMode?: boolean}) {
+export default function ContractScopeOfWork({ editMode }: { editMode?: boolean }) {
 
 
 
@@ -37,7 +38,16 @@ export default function ContractScopeOfWork({editMode} : {editMode?: boolean}) {
 
     return (
         <div className="flex flex-col w-full h-auto space-y-5">
-            <h1 className="prose prose-lg text-white font-gilroy-black text-[30px]"> Scope of Work </h1>
+            <div className="flex flex-row space-x-3">
+                <div className="hidden sm:inline hover:drop-shadow-md  transition-all h-12 translate-y-[8px]  rounded-full">
+                    <BackArrowButton className="p-2 ring-2 ring-transparent hover:bg-bg-secondary-dark hover:ring-purple-400 transition-all rounded-full" onClick={() => {
+                        ContractDataStore.update(s => { s.stage = s.stage - 1 })
+
+                    }} ></BackArrowButton>
+                </div>
+                <h1 className="prose prose-lg text-white font-gilroy-black mt-1 text-[30px]"> Scope of Work </h1>
+
+            </div>
 
 
             <div className="flex flex-row w-full space-x-4">
@@ -111,7 +121,7 @@ export default function ContractScopeOfWork({editMode} : {editMode?: boolean}) {
 
 
             <div className="flex flex-row space-x-3 space-y-0">
-                
+
                 <FormButton
                     text="Proceed" onClick={() => {
                         if (!isEmpty(errors)) {
