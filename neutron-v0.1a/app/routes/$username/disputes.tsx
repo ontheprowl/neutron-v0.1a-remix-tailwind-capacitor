@@ -8,6 +8,8 @@ import DisputesChatComponent from "~/components/disputes/DisputesChatComponent";
 import DisputesZeroState from "~/components/disputes/DisputesZeroState";
 import MobileNavbarPadding from "~/components/layout/MobileNavbarPadding";
 import { DisputeSeverityGenerator, DisputeStatusGenerator } from "~/components/layout/Statuses";
+import DashboardMobileUI from "~/components/pages/DashboardMobileUI";
+import DisputesMobileUI from "~/components/pages/DisputesMobileUI";
 import { auth, db, firestore } from "~/firebase/neutron-config.server";
 import { fetchEvents, getFirebaseDocs, getSingleDoc, sendChatMessage } from "~/firebase/queries.server";
 import { ContractCreator } from "~/models/contracts";
@@ -174,8 +176,9 @@ export default function DisputesIndex() {
     console.dir(messages)
 
     return (
-        <div className='flex flex-col bg-bg-primary-dark h-full'>
-            {/* <div className=" flex flex-row justify-between w-auto mb-0 border-2">
+        <>
+            <div className='hidden sm:flex sm:flex-col bg-bg-primary-dark h-full'>
+                {/* <div className=" flex flex-row justify-between w-auto mb-0 border-2">
                 <div className='flex flex-row m-6 mb-2 justify-between'>
                     <div className="flex flex-col">
                         <article className="prose">
@@ -203,36 +206,36 @@ export default function DisputesIndex() {
 
                 </div>
             </div> */}
-            <div id="disputes-window" className="flex flex-row h-screen ">
-                <div className="flex flex-row h-auto bg-bg-secondary-dark rounded-3xl m-3 mt-0 mb-0  basis-1/3">
-                    <div className="flex flex-col m-3 w-full">
-                        {/* <h1 className="text-left font-gilroy-black text-[30px] m-2 text-white prose prose-lg"> Disputes and Redressal</h1> */}
-                        <ul className=" space-y-6 transition-all max-h-screen overflow-y-scroll w-full snap-mandatory snap-y">
-                            {disputes.length != 0 ? disputes.map((dispute: Dispute, index) => {
-                                return <li onClick={() => {
-                                    navigate(`${dispute.id}`);
-                                }} key={dispute.id} className={`bg-bg-primary-dark w-full transition-all p-3 cursor-pointer snap-center border-2 border-l-transparent border-r-transparent border-t-transparent h-auto rounded-xl  dark:bg-gray-800 dark:border-gray-700 hover:border-accent-dark hover:bg-bg-secondary-dark hover:bg-opacity-50 dark:hover:bg-gray-600 flex flex-col justify-between`}>
-                                    <div className="flex flex-row justify-between items-center ">
-                                        <div className="flex flex-col w-full p-2 font-gilroy-regular basis-2/3">
-                                            <h2 className="prose prose-md text-white font-gilroy-medium ">
-                                                {dispute.name}
-                                            </h2>
-                                            <h3 className="prose prose-sm text-white text-[12px] ">{dispute.raisedBy}</h3>
-                                            <h4 className="prose prose-sm text-gray-300 font-gilroy-black text-[18px]">{dispute.contractName}</h4>
+                <div id="disputes-window" className="flex flex-row h-screen ">
+                    <div className="flex flex-row h-auto bg-bg-secondary-dark rounded-3xl m-3 mt-0 mb-0  basis-1/3">
+                        <div className="flex flex-col m-3 w-full">
+                            {/* <h1 className="text-left font-gilroy-black text-[30px] m-2 text-white prose prose-lg"> Disputes and Redressal</h1> */}
+                            <ul className=" space-y-6 transition-all max-h-screen overflow-y-scroll w-full snap-mandatory snap-y">
+                                {disputes.length != 0 ? disputes.map((dispute: Dispute, index) => {
+                                    return <li onClick={() => {
+                                        navigate(`${dispute.id}`);
+                                    }} key={dispute.id} className={`bg-bg-primary-dark w-full transition-all p-3 cursor-pointer snap-center border-2 border-l-transparent border-r-transparent border-t-transparent h-auto rounded-xl  dark:bg-gray-800 dark:border-gray-700 hover:border-accent-dark hover:bg-bg-secondary-dark hover:bg-opacity-50 dark:hover:bg-gray-600 flex flex-col justify-between`}>
+                                        <div className="flex flex-row justify-between items-center ">
+                                            <div className="flex flex-col w-full p-2 font-gilroy-regular basis-2/3">
+                                                <h2 className="prose prose-md text-white font-gilroy-medium ">
+                                                    {dispute.name}
+                                                </h2>
+                                                <h3 className="prose prose-sm text-white text-[12px] ">{dispute.raisedBy}</h3>
+                                                <h4 className="prose prose-sm text-gray-300 font-gilroy-black text-[18px]">{dispute.contractName}</h4>
+                                            </div>
+                                            <div className="m-2 p-3 w-full basis-1/3">
+                                                <DisputeSeverityGenerator severity={dispute.severity}></DisputeSeverityGenerator>
+                                            </div>
                                         </div>
-                                        <div className="m-2 p-3 w-full basis-1/3">
-                                            <DisputeSeverityGenerator severity={dispute.severity}></DisputeSeverityGenerator>
+
+                                        <div className="flex flex-col space-y-2 h-[60px] p-2 justify-between">
+                                            <p className="prose prose-md text-left break-normal align-text-top truncate font-gilroy-regular text-white text-[16px]">
+                                                {dispute.description}
+                                            </p>
                                         </div>
-                                    </div>
-
-                                    <div className="flex flex-col space-y-2 h-[60px] p-2 justify-between">
-                                        <p className="prose prose-md text-left break-normal align-text-top truncate font-gilroy-regular text-white text-[16px]">
-                                            {dispute.description}
-                                        </p>
-                                    </div>
 
 
-                                    {/* <td><ViewIcon onClick={() => {
+                                        {/* <td><ViewIcon onClick={() => {
                                     navigate(`${contract.id}`)
                                 }} className={''}></ViewIcon></td>
                                 <td><EditIcon onClick={function (event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
@@ -247,16 +250,18 @@ export default function DisputesIndex() {
                                 <td><ChatIcon onClick={function (event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
                                     throw new Error('Function not implemented.');
                                 }} className={''}></ChatIcon></td> */}
-                                </li>
-                            }) : <DisputesZeroState></DisputesZeroState>}
-                        </ul>
+                                    </li>
+                                }) : <DisputesZeroState></DisputesZeroState>}
+                            </ul>
+                        </div>
+                    </div>
+                    <div className="flex flex-col h-auto m-5 basis-2/3  p-3">
+                        <Outlet></Outlet>
                     </div>
                 </div>
-                <div className="flex flex-col h-auto m-5 basis-2/3  p-3">
-                    <Outlet></Outlet>
-                </div>
-            </div>
-            <MobileNavbarPadding></MobileNavbarPadding>
+                <MobileNavbarPadding></MobileNavbarPadding>
 
-        </div >)
+            </div >
+            <DisputesMobileUI></DisputesMobileUI>
+        </>)
 }

@@ -17,20 +17,20 @@ export type Dispute = {
     id: string;
     email?: string;
   };
-  viewers? : string[],
+  viewers?: string[];
   description?: string;
   data?: any;
+  createdOn?: number;
   severity: DisputeSeverity;
   currentMilestone?: Milestone;
   nextMilestoneIndex?: number;
 };
 
-
-export enum DisputeType { 
+export enum DisputeType {
   Dummy,
   QualityIssue,
   DeadlineExtension,
-  Fraud
+  Fraud,
 }
 
 export enum DisputeSeverity {

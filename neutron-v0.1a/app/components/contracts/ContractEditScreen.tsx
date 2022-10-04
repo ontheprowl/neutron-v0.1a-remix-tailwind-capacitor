@@ -15,6 +15,7 @@ import PurpleWhiteButton from "../inputs/PurpleWhiteButton";
 import { returnUserUIDAndUsername } from "~/utils/utils";
 import DefaultSpinner from "../layout/DefaultSpinner";
 import { Transition } from "@remix-run/react/transition";
+import { useState } from "react";
 
 
 
@@ -31,6 +32,8 @@ export default function ContractEditScreen({ viewMode }: { viewMode?: boolean })
 
     const publishContractStates = (transition: Transition) => {
         const isPublished = transition.submission?.formData.get('isPublished');
+        console.log("isPublished [PUBLISH STATES GENERATOR ] ")
+        console.log(isPublished);
         if (isPublished === "true") {
             switch (transition.state) {
                 case "idle":
@@ -49,6 +52,9 @@ export default function ContractEditScreen({ viewMode }: { viewMode?: boolean })
 
     const draftContractStates = (state: string) => {
         const isPublished = transition.submission?.formData.get('isPublished');
+        console.log("isPublished [DRAFT STATES GENERATOR ] ")
+        console.log(isPublished);
+
         if (isPublished != "true") {
             switch (transition.state) {
                 case "idle":
@@ -67,6 +73,7 @@ export default function ContractEditScreen({ viewMode }: { viewMode?: boolean })
     const transition = useTransition();
     const formMethods = useFormContext();
 
+
     console.log("events here are:")
     if (viewMode) {
         console.dir(events)
@@ -78,7 +85,7 @@ export default function ContractEditScreen({ viewMode }: { viewMode?: boolean })
 
     return (
         <div className="flex flex-col sm:flex-row space-y-5 sm:space-x-10 justify-start">
-            <div className="bg-white h-auto w-auto basis-2/3 ring-1 ring-bg-secondary-dark  bg-opacity-90">
+            <div className="bg-white h-[90vh] sm:h-auto w-auto basis-2/3 ring-1 ring-bg-secondary-dark  bg-opacity-90">
                 <GenericContractTemplate viewMode={viewMode}></GenericContractTemplate>
             </div>
             <div className="flex flex-col h-auto w-full basis-1/3 ">
@@ -89,7 +96,7 @@ export default function ContractEditScreen({ viewMode }: { viewMode?: boolean })
                         <button onClick={() => {
                             const form = new FormData();
                             form.append('email', data.providerEmail);
-                            form.append('id',data.providerID);
+                            form.append('id', data.providerID);
                             form.append('viewers', JSON.stringify(data.viewers));
                             // E
                             fetcher.submit(form, { action: `/${username}/sign/${data.id}`, method: 'post' });
@@ -98,7 +105,7 @@ export default function ContractEditScreen({ viewMode }: { viewMode?: boolean })
                         const form = new FormData();
                         form.append('email', data.clientEmail)
                         form.append('isClient', 'true');
-                        form.append('id',data.clientID);
+                        form.append('id', data.clientID);
                         form.append('viewers', JSON.stringify(data.viewers));
 
                         fetcher.submit(form, { action: `/${username}/sign/${data.id}`, method: 'post' })
@@ -190,7 +197,7 @@ export default function ContractEditScreen({ viewMode }: { viewMode?: boolean })
 
 
                 </div>
-                <div className="border-2 border-accent-dark rounded-xl m-5 mt-2">
+                <div className="hidden sm:flex sm:flex-col border-2 border-purple-400 rounded-xl m-5 mt-2">
 
                     <ContractCustomizationComponent viewMode={viewMode}></ContractCustomizationComponent>
 

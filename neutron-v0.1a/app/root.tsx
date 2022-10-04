@@ -205,7 +205,7 @@ export default function App() {
 
         <Meta /> <Links />
       </head>
-      <body className="font-gilroy-regular bg-bg-primary-dark">
+      <body className="font-gilroy-regular  bg-bg-primary-dark">
 
         <Outlet />
         <script

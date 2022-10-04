@@ -11,6 +11,8 @@ import ContractsButton from '~/components/ContractsButton'
 import { useNavigate } from "@remix-run/react";
 import { useMemo } from 'react'
 import CreateContractMobileButton from "../inputs/CreateContractMobileButton";
+import DisputesButton from "../DisputesButton";
+import LogoutButton from "../LogoutButton";
 
 
 
@@ -24,27 +26,27 @@ export default function BottomNav() {
 
     let navigate = useNavigate();
     return (
-        <div className="flex flex-row w-full p-2 pl-10 pr-10 justify-between bg-[#202020]   shadow-lg sm:hidden">
+        <div className="flex flex-row w-full p-3 px-5 justify-between bg-[#202020] space-x-12   shadow-lg sm:hidden">
 
             <div
-                className={`transition-all flex flex-col align-middle focus:opacity-50  active:opacity-60`}
+                className={`transition-all flex flex-col align-middle text-[14px] focus:opacity-50  active:opacity-60 `}
                 onClick={() => {
                     UIStore.update(s => {
-                        s.selectedTab = "Home"
+                        s.selectedTab = "Contracts"
                     })
                     navigate("dashboard")
 
                 }}
             >
                 <div className=" flex flex-row justify-center">
-                    <HomeButtonMobile selected={tab === "Home"} />
+                    <ContractsButton selected={tab === "Contracts"} />
                 </div>
-                <h1 className={`transition-all ${tab === "Home" ? 'text-purple-400' : 'text-white'}`}>Home</h1>
+                <h1 className={`transition-all ${tab === "Contracts" ? 'text-purple-400' : 'text-white'}`}>Contracts</h1>
             </div>
 
 
             <div
-                className="focus:opacity-50  active:opacity-60"
+                className="focus:opacity-50 whitespace-nowrap text-[14px]  active:opacity-60"
                 onClick={() => {
                     UIStore.update(s => {
                         s.selectedTab = "Create Contract"
@@ -63,24 +65,25 @@ export default function BottomNav() {
             </div>
 
             <div
-                className={`transition-all flex flex-col align-middle focus:opacity-50  active:opacity-60`}
+                className={`transition-all flex flex-col align-middle text-[14px] focus:opacity-50  active:opacity-60`}
 
                 onClick={() => {
                     UIStore.update(s => {
-                        s.selectedTab = "Contracts"
+                        s.selectedTab = "Disputes"
                     })
-                    navigate("contracts")
+                    navigate("disputes")
 
                 }}
             >
                 <div className="flex flex-row justify-center">
-                    <ContractsButton selected={tab === "Contracts"} />
+                    <DisputesButton selected={tab === "Disputes"} />
 
                 </div>
 
-                <h1 className={`transition-all ${tab === "Contracts" ? 'text-purple-400' : 'text-white'}`}>Contracts</h1>
+                <h1 className={`transition-all ${tab === "Disputes" ? 'text-purple-400' : 'text-white'}`}>Disputes</h1>
 
             </div>
+            
 
         </div >
     )

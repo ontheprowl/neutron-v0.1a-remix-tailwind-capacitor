@@ -88,7 +88,7 @@ export async function action({ request }: { request: Request }) {
     const firstLogin = Boolean(metadata?.firstLogin);
 
     //* Send Welcome Email on First Login (SIB Template #13)
-    if (!firstLogin) {
+    if (!firstLogin && !(email == "test@test.com" || email == "demo@neutron-demo.com" || email=="tester@neutronalpha.in")) {
       const emailResult = await sendTeamEmail(email, user?.displayName, { "FIRSTNAME": user?.displayName }, 13);
       const updateLoginMetadataRef = await updateFirestoreDocFromData({ firstLogin: true }, 'metadata', `${user.uid}`);
       console.dir(emailResult)
@@ -97,7 +97,7 @@ export async function action({ request }: { request: Request }) {
     console.log(`Current user is : ${user.email}`)
     const token = await user.getIdToken();
     console.log("EMAIL VERFIED ? " + user.emailVerified)
-    if (user.emailVerified || email == "test@test.com" || email == "demo@neutron-demo.com") {
+    if (user.emailVerified || email == "test@test.com" || email == "demo@neutron-demo.com" || email=="tester@neutronalpha.in") {
       return createUserSession({ request: request, metadata: { path: ref.path }, userId: token, remember: true, redirectTo: profileComplete ? `/${user.displayName}/dashboard` : `/${user.displayName}/profile` })
     } else {
       throw new Error("neutron-auth/email-not-verified");
@@ -200,7 +200,7 @@ export default function Login() {
 
                       <div className="sm:text-left space-y-3 w-full">
                         <span className=" prose prose-md text-white font-gilroy-black text-[25px]">Password</span>
-                        <input {...register('password')} type="password" placeholder="Lets keep it hush hush..." className=" transition-all bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 caret-bg-accent-dark focus:outline-none focus:border-accent-dark focus:ring-2 focus:ring-accent-dark text-white active:caret-yellow-400 text-sm rounded-lg placeholder-[#C1C1C1] block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white font-gilroy-medium font-[18px] " />
+                        <input {...register('password')} type="password" placeholder="Enter Password" className=" transition-all bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 caret-bg-accent-dark focus:outline-none focus:border-accent-dark focus:ring-2 focus:ring-accent-dark text-white active:caret-yellow-400 text-sm rounded-lg placeholder-[#C1C1C1] block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white font-gilroy-medium font-[18px] " />
                       </div>
 
                       <div className="flex flex-row justify-start">
@@ -245,7 +245,7 @@ export default function Login() {
           </div>
 
         </div>
-        <div id="right-panel" className="hidden sm:flex sm:flex-col w-full basis-2/5 bg-[url('/AuthPagesSidePanel.svg')] bg-cover bg-no-repeat ">
+        <div id="right-panel" className="hidden sm:flex sm:flex-col w-full basis-2/5 bg-origin-content bg-[url('/AuthPagesSidePanel.svg')] bg-cover bg-no-repeat ">
           {/* <img
             src={RightSidePanelIllustration}
             className="h-full m-1 w-full snap-center"

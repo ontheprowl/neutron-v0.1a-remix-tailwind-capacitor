@@ -66,7 +66,7 @@ export function DisputeSeverityGenerator({ severity }: { severity: DisputeSeveri
 
     switch (severity) {
         case DisputeSeverity.Low:
-            return <h3 className="font-medium text-white bg-[#12B76A] text-center text-[16px] w-full max-w-[160px] rounded-full p-1"> Low </h3>
+            return <h3 className="font-medium text-white bg-[#12B76A] text-center text-[16px] max-h-fit w-full max-w-[160px] rounded-full p-1"> Low </h3>
         case DisputeSeverity.Urgent:
             return <h3 className={`font-medium text-white bg-[#F04438]  text-[16px] w-full max-w-[160px]  text-center rounded-full p-1`}>High </h3>
         case DisputeSeverity.Medium:

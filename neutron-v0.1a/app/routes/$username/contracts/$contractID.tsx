@@ -30,6 +30,7 @@ import { ToastContainer } from "react-toastify";
 import MobileNavbarPadding from "~/components/layout/MobileNavbarPadding";
 import { useEffect } from "react";
 import { injectStyle } from "react-toastify/dist/inject-style";
+import ContractViewMobileUI from "~/components/pages/ContractViewMobileUI";
 
 
 /**
@@ -218,7 +219,8 @@ export default function DetailedContractView() {
 
 
     return (
-        <div className='flex flex-col bg-bg-primary-dark h-auto'>
+        <>
+        <div className='hidden sm:flex sm:flex-col bg-bg-primary-dark h-auto'>
             {/* <div className="hidden sm:flex sm:flex-row w-full border-2 border-purple-600">
                 <div className='flex flex-row m-6 mb-3 justify-between w-full space-x-10 border-2 border-accent-dark '>
                     <div className="flex flex-col">
@@ -400,7 +402,10 @@ export default function DetailedContractView() {
                 draggable
                 pauseOnHover></ToastContainer>
             <MobileNavbarPadding />
-        </div >
+        </div>
+        <ContractViewMobileUI></ContractViewMobileUI>
+
+        </>
     );
 
 }

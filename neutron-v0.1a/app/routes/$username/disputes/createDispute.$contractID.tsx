@@ -58,7 +58,7 @@ export const action: ActionFunction = async ({ request, params }) => {
 
         const ownerUsername = params.username
         const contractOwner = await getSingleDoc(`userUIDS/${ownerUsername}`);
-        const newDispute: Dispute = { contractID: contractID, data: disputeType == DisputeType.DeadlineExtension ? { extension: extension } : {}, currentMilestone: currentMilestone, nextMilestoneIndex: nextMilestoneIndex, description: description, type: disputeType, severity: disputeSeverity, raisedBy: raisedBy, status: DisputeStatus.Raised, client: { email: clientEmail, id: clientID, name: clientName }, provider: { email: providerEmail, id: providerID, name: providerName }, contractName: contractName, viewers: [clientID, providerID] }
+        const newDispute: Dispute = { contractID: contractID, data: disputeType == DisputeType.DeadlineExtension ? { extension: extension } : {}, currentMilestone: currentMilestone, nextMilestoneIndex: nextMilestoneIndex, description: description, type: disputeType, severity: disputeSeverity, raisedBy: raisedBy, status: DisputeStatus.Raised, client: { email: clientEmail, id: clientID, name: clientName }, provider: { email: providerEmail, id: providerID, name: providerName }, contractName: contractName, viewers: [clientID, providerID], createdOn : new Date().getTime() }
 
         console.dir(newDispute)
         const disputeRef = await addFirestoreDocFromData(newDispute, 'disputes');

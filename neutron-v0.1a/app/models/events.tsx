@@ -36,33 +36,43 @@ export enum ContractEvent {
 }
 
 export enum PaymentEvent {
-    PayinRequested,
-    PayinCompleted,
-    PayoutRequested,
-    PayoutCompleted
+	PayinRequested,
+	PayinCompleted,
+	PayoutRequested,
+	PayoutCompleted
 }
 
 export enum ChatEvent {
-    MessageReceived
+	MessageReceived
 }
 
 
 export enum EventType {
-    ContractEvent, MilestoneEvent, DisputeEvent, ChatEvent, PaymentEvent
+	ContractEvent, KYCEvent
+}
+
+
+export enum KYCEvent {
+	BankAccountDetailsVerified,
+	BankAccountDetailsRejected,
+	AadhaarVerified,
+	AadhaarRejected,
+	PANVerified,
+	PANRejected
 }
 
 
 export type NeutronEvent = {
-    id?: string;
-    uid: string;
-    type: EventType;
-    event: ContractEvent | ChatEvent | PaymentEvent;
-    payload?: EventPayload;
-    timestamp?: string;
+	id?: string;
+	uid: string;
+	type: EventType;
+	event: ContractEvent | KYCEvent | ChatEvent | PaymentEvent;
+	payload?: EventPayload;
+	timestamp?: string;
 }
 
 export type EventPayload = {
-    message: string;
-    data?: any;
+	message: string;
+	data?: any;
 }
 

@@ -7,6 +7,7 @@ import DisputesChatComponent from "~/components/disputes/DisputesChatComponent";
 import FormButton from "~/components/inputs/FormButton";
 import NeutronModal from "~/components/layout/NeutronModal";
 import { DisputeSeverityGenerator } from "~/components/layout/Statuses";
+import DisputeViewMobileUI from "~/components/pages/DisputeViewMobileUI";
 import { db } from "~/firebase/neutron-config.server";
 import { deleteFirestoreDoc, getSingleDoc, sendEvent } from "~/firebase/queries.server";
 import { Dispute, DisputeType } from "~/models/disputes";
@@ -112,65 +113,69 @@ export default function DetailedDisputeView() {
 
 
 
-    return (<>
-        <div className="w-full max-h-48 p-3 ">
-            <div className="flex flex-col items-center justify-between w-full">
-                <div className="flex flex-row w-full h-auto justify-between">
-                    <div className="flex flex-col text-white w-full  ">
-                        <h1 className="text-[18px] font-gilroy-regular">{selectedDispute.id}</h1>
-                        <h2 className="text-[24px] font-gilroy-bold">{generateTextForDisputeType(selectedDispute.type)}</h2>
+    return (
+        <>
+            <div className="hidden sm:flex sm:flex-col sm:h-[90vh]">
+                <div className="w-full max-h-48 p-3 ">
+                    <div className="flex flex-col items-center justify-between w-full">
+                        <div className="flex flex-row w-full h-auto justify-between">
+                            <div className="flex flex-col text-white w-full  ">
+                                <h1 className="text-[18px] font-gilroy-regular">{selectedDispute.id}</h1>
+                                <h2 className="text-[24px] font-gilroy-bold">{generateTextForDisputeType(selectedDispute.type)}</h2>
 
 
-                    </div>
+                            </div>
 
-                    <div className="flex flex-row w-full justify-end  p-4">
+                            <div className="flex flex-row w-full justify-end  p-4">
 
-                        <DisputeSeverityGenerator severity={selectedDispute.severity}></DisputeSeverityGenerator>
+                                <DisputeSeverityGenerator severity={selectedDispute.severity}></DisputeSeverityGenerator>
+
+                            </div>
+                        </div>
+                        <div className="flex flex-row w-full rounded-xl space-x-4 mt-4 justify-between p-4 ">
+                            {selectedDispute.raisedBy == metadata?.email && selectedDispute.type != DisputeType.Fraud && selectedDispute.status == DisputeStatus.Raised && <button onClick={() => {
+                                setCancelDisputeModal(true);
+                            }} className="rounded-lg p-4  w-auto text-white whitespace-nowrap active:bg-red-500 transition-all hover:border-white bg-red-700 border-2 border-transparent"> Cancel Dispute </button>}
+                            {selectedDispute.type === DisputeType.QualityIssue && selectedDispute.provider.email == metadata?.email && selectedDispute.status != DisputeStatus.Accepted &&
+                                <div className="flex flex-row space-x-3">
+                                    <FormButton text="Accept Dispute" onClick={() => { setResolutionModal(true) }}></FormButton>
+                                    <FormButton text="Reject" onClick={() => { setRejectionModal(true) }}></FormButton>
+                                </div>
+                            }
+                            {selectedDispute.type === DisputeType.DeadlineExtension && selectedDispute.client.email == metadata?.email && selectedDispute.status == DisputeStatus.Raised &&
+                                <div className="flex flex-row space-x-3">
+                                    <FormButton text="Accept Extension Request" onClick={() => { setResolutionModal(true) }}></FormButton>
+                                    <button className="p-4 text-center w-40 text-white bg-red-800 border-2 border-transparent hover:border-white transition-all rounded-lg" onClick={() => { setRejectionModal(true) }}>Reject</button>
+                                </div>
+                            }
+                        </div>
 
                     </div>
                 </div>
-                <div className="flex flex-row w-full rounded-xl space-x-4 mt-4 justify-between p-4 ">
-                    {selectedDispute.raisedBy == metadata?.email && selectedDispute.type != DisputeType.Fraud && selectedDispute.status == DisputeStatus.Raised && <button onClick={() => {
-                        setCancelDisputeModal(true);
-                    }} className="rounded-lg p-4  w-auto text-white whitespace-nowrap active:bg-red-500 transition-all hover:border-white bg-red-700 border-2 border-transparent"> Cancel Dispute </button>}
-                    {selectedDispute.type === DisputeType.QualityIssue && selectedDispute.provider.email == metadata?.email && selectedDispute.status != DisputeStatus.Accepted &&
-                        <div className="flex flex-row space-x-3">
-                            <FormButton text="Accept Dispute" onClick={() => { setResolutionModal(true) }}></FormButton>
-                            <FormButton text="Reject" onClick={() => { setRejectionModal(true) }}></FormButton>
-                        </div>
-                    }
-                    {selectedDispute.type === DisputeType.DeadlineExtension && selectedDispute.client.email == metadata?.email && selectedDispute.status == DisputeStatus.Raised &&
-                        <div className="flex flex-row space-x-3">
-                            <FormButton text="Accept Extension Request" onClick={() => { setResolutionModal(true) }}></FormButton>
-                            <button className="p-4 text-center w-40 text-white bg-red-800 border-2 border-transparent hover:border-white transition-all rounded-lg" onClick={() => { setRejectionModal(true) }}>Reject</button>
-                        </div>
-                    }
-                </div>
+                <DisputesChatComponent disableMessage={selectedDispute.status == DisputeStatus.Accepted ? `This ${generateTextForDisputeType(selectedDispute.type)} request has been accepted ` : selectedDispute.type === DisputeType.Fraud ? '' : `This ${generateTextForDisputeType(selectedDispute.type)} request has been rejected`} disabled={selectedDispute.type === DisputeType.Fraud || (selectedDispute.status == DisputeStatus.Rejected || selectedDispute.status == DisputeStatus.Accepted)} fullHeight from={from} to={to} customKey={selectedDispute.id} messages={messages}></DisputesChatComponent>
+                {resolutionModal && <NeutronModal heading={<h1> You are about to accept this dispute  </h1>} onConfirm={() => {
+                    const data = new FormData();
+                    const payload = { dispute: selectedDispute, disputeID: selectedDispute.id, disputeData: selectedDispute?.data, contractID: selectedDispute.contractID, milestone: selectedDispute.currentMilestone, nextMilestoneIndex: selectedDispute.nextMilestoneIndex, viewers: selectedDispute.viewers }
+                    data.append('payload', JSON.stringify(payload))
+                    fetcher.submit(data, { method: "post", action: `/${metadata.displayName}/disputes/acceptDispute/${selectedDispute.id}` });
+                }} body={<p> {selectedDispute.type == DisputeType.DeadlineExtension ? `The due date for the relevant milestone will be extended by ${selectedDispute.data.extension} days` : 'Upon confirmation, you will now have 7 days to submit an updated deliverable'} </p>} toggleModalFunction={setResolutionModal}></NeutronModal>}
+                {
+                    rejectionModal && <NeutronModal heading={<h1 className="text-red-700"> Warning: You are about to reject this dispute request   </h1>} onConfirm={() => {
+                        const data = new FormData();
+                        const payload = { dispute: selectedDispute, disputeID: selectedDispute.id, contractID: selectedDispute.contractID, milestone: selectedDispute.currentMilestone, nextMilestoneIndex: selectedDispute.nextMilestoneIndex, viewers: selectedDispute.viewers }
+                        data.append('payload', JSON.stringify(payload))
+                        submit(data, { method: "post", action: `/${metadata.displayName}/disputes/rejectDispute/${selectedDispute.id}` });
+                    }} body={<p className="font-gilroy-regular text-[10px" > If this is a request for Deadline Extension, the contract will resume <br></br><br></br> If this is an Issue of Quality, the contract will be held until both parties arrive with a settlement</p>} toggleModalFunction={setRejectionModal} ></NeutronModal >}
+                {
+                    cancelDisputeModal && <NeutronModal heading={<h1> You are about to cancel this dispute  </h1>} onConfirm={() => {
+                        const data = new FormData();
+                        const payload = { contractID: selectedDispute.contractID, milestone: selectedDispute.currentMilestone, nextMilestoneIndex: selectedDispute.nextMilestoneIndex, viewers: selectedDispute.viewers }
+                        data.append('payload', JSON.stringify(payload))
+                        submit(data, { method: "post" });
+                    }} body={<p className="text-red-700"> Upon confirmation, the dispute will be cancelled, and normal contract flow will resume </p>} toggleModalFunction={setCancelDisputeModal}></NeutronModal>
+                }
 
             </div>
-        </div>
-        <DisputesChatComponent disableMessage={selectedDispute.status == DisputeStatus.Accepted ? `This ${generateTextForDisputeType(selectedDispute.type)} request has been accepted ` : selectedDispute.type === DisputeType.Fraud ? '' : `This ${generateTextForDisputeType(selectedDispute.type)} request has been rejected`} disabled={selectedDispute.type === DisputeType.Fraud || (selectedDispute.status == DisputeStatus.Rejected || selectedDispute.status == DisputeStatus.Accepted)} fullHeight from={from} to={to} customKey={selectedDispute.id} messages={messages}></DisputesChatComponent>
-        {resolutionModal && <NeutronModal heading={<h1> You are about to accept this dispute  </h1>} onConfirm={() => {
-            const data = new FormData();
-            const payload = { dispute: selectedDispute, disputeID: selectedDispute.id, disputeData: selectedDispute?.data, contractID: selectedDispute.contractID, milestone: selectedDispute.currentMilestone, nextMilestoneIndex: selectedDispute.nextMilestoneIndex, viewers: selectedDispute.viewers }
-            data.append('payload', JSON.stringify(payload))
-            fetcher.submit(data, { method: "post", action: `/${metadata.displayName}/disputes/acceptDispute/${selectedDispute.id}` });
-        }} body={<p> {selectedDispute.type == DisputeType.DeadlineExtension ? `The due date for the relevant milestone will be extended by ${selectedDispute.data.extension} days` : 'Upon confirmation, you will now have 7 days to submit an updated deliverable'} </p>} toggleModalFunction={setResolutionModal}></NeutronModal>}
-        {
-            rejectionModal && <NeutronModal heading={<h1 className="text-red-700"> Warning: You are about to reject this dispute request   </h1>} onConfirm={() => {
-                const data = new FormData();
-                const payload = { dispute: selectedDispute, disputeID: selectedDispute.id, contractID: selectedDispute.contractID, milestone: selectedDispute.currentMilestone, nextMilestoneIndex: selectedDispute.nextMilestoneIndex, viewers: selectedDispute.viewers }
-                data.append('payload', JSON.stringify(payload))
-                submit(data, { method: "post", action: `/${metadata.displayName}/disputes/rejectDispute/${selectedDispute.id}` });
-            }} body={<p className="font-gilroy-regular text-[10px" > If this is a request for Deadline Extension, the contract will resume <br></br><br></br> If this is an Issue of Quality, the contract will be held until both parties arrive with a settlement</p>} toggleModalFunction={setRejectionModal} ></NeutronModal >}
-        {
-            cancelDisputeModal && <NeutronModal heading={<h1> You are about to cancel this dispute  </h1>} onConfirm={() => {
-                const data = new FormData();
-                const payload = { contractID: selectedDispute.contractID, milestone: selectedDispute.currentMilestone, nextMilestoneIndex: selectedDispute.nextMilestoneIndex, viewers: selectedDispute.viewers }
-                data.append('payload', JSON.stringify(payload))
-                submit(data, { method: "post" });
-            }} body={<p className="text-red-700"> Upon confirmation, the dispute will be cancelled, and normal contract flow will resume </p>} toggleModalFunction={setCancelDisputeModal}></NeutronModal>
-        }
-
-    </>)
+            <DisputeViewMobileUI></DisputeViewMobileUI>
+        </>)
 }

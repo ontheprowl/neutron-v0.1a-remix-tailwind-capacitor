@@ -81,6 +81,10 @@ export default function CustomUserPage() {
     const metadata = data.metadata;
     let fetcher = useFetcher();
 
+    const [logoutConfirmationModal, setLogoutConfirmationModal] = useState(false);
+
+
+
     // * This effect ensures that the beamsClient is subscribing to all messages for the currently logged-in user
     useEffect(() => {
         beamsClient.start().then(() => { beamsClient.addDeviceInterest(metadata.id) });
@@ -265,13 +269,7 @@ export default function CustomUserPage() {
                                 </h2>
                             </div>
                             <div onClick={() => {
-                                UIStore.update((s) => {
-                                    s.selectedTab = "Logout";
-                                });
-                                fetcher.submit(null, { method: 'post', action: "/logout" })
-                                UIStore.update((s) => {
-                                    s.selectedTab = "Home";
-                                });
+                                setLogoutConfirmationModal(!logoutConfirmationModal);
                             }} className="self-center  rounded-full p-3 cursor-pointer transition-all border-2 border-transparent hover:opacity-50 active:ring-1 active:ring-accent-dark hover:bg-bg-secondary-dark hover:border-accent-dark">
                                 <LogoutButton></LogoutButton>
                             </div>
@@ -334,7 +332,7 @@ export default function CustomUserPage() {
         </div>
       </div> */}
             <div className={`flex flex-col w-full ${primaryGradientDark} h-full sm:h-auto relative flex-grow`} >
-                <div className={`flex flex-row m-5 mt-8 justify-between items-start sm:hidden`}>
+                <div className={` m-5 mt-8 justify-between items-start hidden`}>
                     <motion.a
                         whileHover={{ rotate: rotation }}
                         onTap={() => { cycleRotation() }}
@@ -366,11 +364,20 @@ export default function CustomUserPage() {
                 >
                     <Outlet></Outlet>
                 </div>
-                <div className="bottom-0 transition-all sm:hidden left-0 fixed w-full h-auto">
+                <div className="bottom-0 sm:hidden left-0 fixed w-full z-50 h-auto">
                     <BottomNav></BottomNav>
                 </div>
 
             </div >
+            {logoutConfirmationModal && <NeutronModal onConfirm={() => {
+                UIStore.update((s) => {
+                    s.selectedTab = "Logout";
+                });
+                fetcher.submit(null, { method: 'post', action: "/logout" })
+                UIStore.update((s) => {
+                    s.selectedTab = "Home";
+                });
+            }} heading={<h1> You are about to log out of the Neutron app </h1>} body={<p> Are you sure you want to proceed?</p>} toggleModalFunction={setLogoutConfirmationModal}></NeutronModal>}
 
         </div >
     );

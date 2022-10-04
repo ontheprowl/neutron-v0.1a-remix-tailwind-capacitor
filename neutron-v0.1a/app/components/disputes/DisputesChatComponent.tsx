@@ -33,7 +33,8 @@ export default function DisputesChatComponent({ from, to, messages, fullHeight, 
     console.dir(messages)
     return (
         <div className={` flex flex-col h-full ${fullHeight ? '' : 'max-h-[550px]'}  overflow-y-scroll w-full  rounded-lg items-stretch`}>
-            <h2 className={`${disabled ? 'relative text-white z-40 self-center top-[200px] text-[30px] font-gilroy-black' : 'hidden'}`}>{disableMessage}</h2>
+            
+            <h2 className={`${disabled ? 'relative text-white z-40 self-center top-[200px] text-[18px] sm:text-[26px] font-gilroy-black' : 'hidden'}`}>{disableMessage}</h2>
             <ul className={`h-[900px] overflow-y-scroll m-3 ${disabled ? 'opacity-40' : ''} text-white flex flex-col grid-cols-1`}>
                 <AnimatePresence initial={false}>
 
@@ -57,7 +58,7 @@ export default function DisputesChatComponent({ from, to, messages, fullHeight, 
                 </AnimatePresence>
             </ul>
             <motion.div className={`ml-4 mr-4 ${disabled ? 'opacity-40' : ''} rounded-full flex-row flex justify-between space-x-3 p-1 bg-[#5C5C5C] text-white placeholder:text-white`}>
-                <motion.input type="text" id="new-message" className="bg-[#5C5C5C] rounded-full p-3 w-full ring-transparent  caret-transparent transition-all  active:decoration-transparent outline-none ring-2 hover:ring-accent-dark inset-0" value={newMessage} onChange={(e) => {
+                <motion.input type="text" id="new-message" className="bg-[#5C5C5C] rounded-full p-3 w-full ring-transparent transition-all  active:decoration-transparent caret-white outline-none inset-0" value={newMessage} onChange={(e) => {
                     console.log(newMessage)
                     setNewMessage(e.target.value)
                 }} placeholder="Enter a new message..." />
@@ -71,7 +72,7 @@ export default function DisputesChatComponent({ from, to, messages, fullHeight, 
                     }
                     fetcher.submit(data, { method: 'post', action: `/${metadata.displayName}/disputes/sendMessage` });
                     setNewMessage('');
-                }} className="hover:animate-pulse hover:ring-purple-500 hover:drop-shadow-2xl active:ring-purple-400 ring-2 ring-transparent caret-white outline-none rounded-full p-1  transition-all"><img src={SendIcon} alt="sendicon"></img></motion.button>
+                }} className=" hover:ring-purple-500 hover:drop-shadow-2xl active:opacity-50 caret-white outline-none rounded-full p-1  transition-all"><img src={SendIcon} alt="sendicon"></img></motion.button>
             </motion.div>
 
         </div >)

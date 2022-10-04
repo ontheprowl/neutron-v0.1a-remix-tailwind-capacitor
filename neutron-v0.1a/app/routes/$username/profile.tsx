@@ -20,6 +20,9 @@ import { storage } from '~/firebase/neutron-config.server';
 import { deleteFirestoreDoc, getFirebaseDocs, setFirestoreDocFromData, updateFirestoreDocFromData } from '~/firebase/queries.server';
 import { requireUser } from '~/session.server';
 import { injectStyle } from 'react-toastify/dist/inject-style';
+import ProfileMobileUI from '~/components/pages/ProfileMobileUI';
+import LogoutButton from '~/components/LogoutButton';
+import { UIStore } from '~/stores/UIStore';
 
 
 
@@ -106,82 +109,88 @@ export default function Profile() {
 
     })
 
-    const [tab, setTab] = useState(1);
+    const [tab, setTab] = useState(2);
 
     return (
-        <div className="flex flex-col sm:flex-row h-full ml-3 ">
-            <div id="user-profile-panel" className="w-full sm:w-96 flex flex-col bg-bg-primary-dark h-auto sm:bg-bg-secondary-dark justify-start rounded-l-3xl ">
-                <div className="w-full sm:w-full sm:p-7 sm:flex sm:flex-col justify-between sm:space-y-4">
-                    {/* <img alt="cover" className="w-auto h-auto min-h-48 object-cover rounded-bl-[50px] rounded-br-[50px] rounded-tl-[50px] " src={PlaceholderCover}></img> */}
-                    <div className="flex flex-row justify-center">
-                        <button onClick={() => {
-                            const dpInput = document.getElementById("dp-input");
-                            console.log(`PP input element is  : ${dpInput}`)
-                            dpInput?.click()
-                        }}>
-                            <img alt="profile" src={profilePicture ? profilePicture : PlaceholderDP} className="h-32 w-32 mt-8 translate-y-[-50px] bg-[#e5e5e5] border-8 cursor-pointer hover:opacity-50 hover:ring-1 outline-none transition-all hover:ring-[#8364E8] border-solid border-black rounded-full self-center  object-contain"></img>
-                            <input type="file" name="dp-input" id="dp-input" onChange={(e) => {
-                                if (e?.currentTarget?.files) {
-                                    const file = e.currentTarget.files[0];
-                                    console.log(file)
-                                    const form = new FormData();
-                                    form.append('dpFile', file)
-                                    fetcher.submit(form, { method: "post", action: `/${userMetadata.displayName}/profile/uploadDP`, encType: 'multipart/form-data' })
-                                }
+        <>
+            <div className="hidden sm:flex sm:flex-row h-full sm:ml-3 ">
+                <div id="user-profile-panel" className="w-full sm:w-96 flex flex-col bg-bg-primary-dark h-auto sm:bg-bg-secondary-dark justify-start rounded-l-3xl ">
+                    <div className="w-full sm:w-full sm:p-7 sm:flex sm:flex-col justify-between sm:space-y-4">
+                        {/* <img alt="cover" className="w-auto h-auto min-h-48 object-cover rounded-bl-[50px] rounded-br-[50px] rounded-tl-[50px] " src={PlaceholderCover}></img> */}
+                        
+                        <div className="flex flex-row justify-center">
+                            <button onClick={() => {
+                                const dpInput = document.getElementById("dp-input");
+                                console.log(`PP input element is  : ${dpInput}`)
+                                dpInput?.click()
+                            }}>
+                                <img alt="profile" src={profilePicture ? profilePicture : PlaceholderDP} className="h-32 w-32 mt-8 translate-y-[-50px] bg-[#e5e5e5] border-8 cursor-pointer hover:opacity-50 hover:ring-1 outline-none transition-all hover:ring-[#8364E8] border-solid border-black rounded-full self-center  object-contain"></img>
+                                <input type="file" name="dp-input" id="dp-input" onChange={(e) => {
+                                    if (e?.currentTarget?.files) {
+                                        const file = e.currentTarget.files[0];
+                                        console.log(file)
+                                        const form = new FormData();
+                                        form.append('dpFile', file)
+                                        fetcher.submit(form, { method: "post", action: `/${userMetadata.displayName}/profile/uploadDP`, encType: 'multipart/form-data' })
+                                    }
 
 
-                            }} className="hidden"></input>
-                        </button>
+                                }} className="hidden"></input>
+                            </button>
 
+                        </div>
+                        <div className='flex flex-col space-y-3 translate-y-[-35px]'>
+                            <h1 className="prose prose-lg text-white self-center font-gilroy-black text-[30px]">{userMetadata?.firstName && userMetadata?.lastName ? userMetadata?.firstName + " " + userMetadata?.lastName : 'Your name'}</h1>
+                            <h1 className="prose prose-lg text-[#CDC1F6] self-center font-gilroy-black text-[22px] translate-y-[-20px]">@{userMetadata.displayName}</h1>
+                            <p className="prose prose-lg text-black text-center w-auto min-w-[101px] font-gilroy-bold self-center bg-white p-2 rounded-full text-[18px] translate-y-[-25px]"> {userMetadata.designation ? userMetadata.designation : 'What you do'}</p>
+                            <p className="prose prose-lg text-white self-center text-center font-gilroy-medium text-[18px]"> <u className='text-center'>Registered Email</u> <br></br> {userMetadata?.email} </p>
+                        </div>
+                        <div className="flex p-2 flex-row sm:flex-col m-3 justify-evenly sm:space-y-5 space-x-4 sm:space-x-0">
+                            <button onClick={() => {
+                                setTab(0)
+                            }} className={`transition-all p-3 border-2 text-left text-white prose prose-md rounded-lg ${tab == 0 ? ' border-transparent    bg-bg-primary-dark' : "active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-secondary-dark hover:bg-bg-primary-dark"}`}>Basic Details</button>
+                            <button onClick={() => {
+                                setTab(1)
+                            }} className={`transition-all p-3 border-2  whitespace-nowrap text-left text-white prose prose-md rounded-lg ${tab == 1 ? '   border-transparent bg-bg-primary-dark' : "active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-secondary-dark hover:bg-bg-primary-dark"}`}>Professional Information</button>
+                            <button onClick={() => {
+                                setTab(2)
+                            }} className={`transition-all p-3 border-2 text-left text-white prose prose-md rounded-lg ${tab == 2 ? '   border-transparent bg-bg-primary-dark' : "active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-secondary-dark hover:bg-bg-primary-dark"}`}>Account Information </button>
+                        </div>
                     </div>
-                    <div className='flex flex-col space-y-3 translate-y-[-35px]'>
-                        <h1 className="prose prose-lg text-white self-center font-gilroy-black text-[30px]">{userMetadata?.firstName + " " + userMetadata?.lastName}</h1>
-                        <h1 className="prose prose-lg text-[#CDC1F6] self-center font-gilroy-black text-[22px] translate-y-[-20px]">@{userMetadata.displayName}</h1>
-                        <p className="prose prose-lg text-black text-center w-auto min-w-[101px] font-gilroy-bold self-center bg-white p-2 rounded-full text-[18px] translate-y-[-25px]"> {userMetadata.designation}</p>
-                        <p className="prose prose-lg text-white self-center text-center font-gilroy-medium text-[18px]"> <u className='text-center'>Registered Email</u> <br></br> {userMetadata?.email} </p>
-                    </div>
-                    <div className="flex p-2 flex-row sm:flex-col m-3 justify-evenly sm:space-y-5 space-x-4 sm:space-x-0">
-                        <button onClick={() => {
-                            setTab(0)
-                        }} className={`transition-all p-3 border-2 text-left text-white prose prose-md rounded-lg ${tab == 0 ? ' border-transparent    bg-bg-primary-dark' : "active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-secondary-dark hover:bg-bg-primary-dark"}`}>Basic Details</button>
-                        <button onClick={() => {
-                            setTab(1)
-                        }} className={`transition-all p-3 border-2  whitespace-nowrap text-left text-white prose prose-md rounded-lg ${tab == 1 ? '   border-transparent bg-bg-primary-dark' : "active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-secondary-dark hover:bg-bg-primary-dark"}`}>Professional Information</button>
-                        <button onClick={() => {
-                            setTab(2)
-                        }} className={`transition-all p-3 border-2 text-left text-white prose prose-md rounded-lg ${tab == 2 ? '   border-transparent bg-bg-primary-dark' : "active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-secondary-dark hover:bg-bg-primary-dark"}`}>Account Information </button>
-                    </div>
+
                 </div>
+                <div id="profile-forms-container" className="flex flex-col w-auto sm:w-full bg-bg-secondary-dark border-2 rounded-xl m-5 mt-2 p-5 pt-1 border-purple-400">
+                    <AnimatePresence exitBeforeEnter>
+                        <motion.div
+                            key={tab}
+                            animate={{ opacity: 1, x: 0 }}
+                            initial={{ opacity: 0, x: 500 }}
+                            exit={{ opacity: 0, x: -10 }}
+                            transition={{ duration: 0.3 }}
+                            className="m-2"
+                        >
+                            {profileForms[tab]}
+                        </motion.div>
+                    </AnimatePresence>
 
+                </div>
+                <ToastContainer position="top-right"
+                    autoClose={2000}
+                    hideProgressBar={false}
+                    newestOnTop={false}
+                    closeOnClick
+                    rtl={false}
+                    theme="dark"
+                    limit={1}
+
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover></ToastContainer>
+                <MobileNavbarPadding size="large"></MobileNavbarPadding>
             </div>
-            <div id="profile-forms-container" className="flex flex-col w-auto sm:w-full bg-bg-secondary-dark border-2 rounded-xl m-5 mt-2 p-5 pt-1 border-purple-400">
-                <AnimatePresence exitBeforeEnter>
-                    <motion.div
-                        key={tab}
-                        animate={{ opacity: 1, x: 0 }}
-                        initial={{ opacity: 0, x: 500 }}
-                        exit={{ opacity: 0, x: -10 }}
-                        transition={{ duration: 0.3 }}
-                        className="m-2"
-                    >
-                        {profileForms[tab]}
-                    </motion.div>
-                </AnimatePresence>
+            <ProfileMobileUI></ProfileMobileUI>
+        </>
 
-            </div>
-            <ToastContainer position="bottom-center"
-                autoClose={2000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                theme="dark"
-                limit={1}
-
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover></ToastContainer>
-            <MobileNavbarPadding size="large"></MobileNavbarPadding>
-        </div>);
+    );
 
 }

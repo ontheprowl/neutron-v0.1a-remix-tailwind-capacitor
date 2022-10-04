@@ -1,4 +1,4 @@
-import { useLoaderData, useNavigate } from "@remix-run/react";
+import { useLoaderData, useNavigate, useSubmit } from "@remix-run/react";
 import { MouseEvent, useEffect, useState } from "react";
 import { injectStyle } from "react-toastify/dist/inject-style";
 import { Contract, ContractCreationStages, ContractStatus } from "~/models/contracts";
@@ -7,6 +7,8 @@ import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
 import { formatDateToReadableString } from "~/utils/utils";
 import ContractZeroState from "../contracts/ContractZeroState";
 import ChatIcon from "../inputs/ChatIcon";
+import PlaceholderDP from '~/assets/images/kartik.png'
+
 import DeleteIcon from "../inputs/DeleteIcon";
 import EditIcon from "../inputs/EditIcon";
 import PurpleWhiteButton from "../inputs/PurpleWhiteButton";
@@ -14,29 +16,40 @@ import ViewIcon from "../inputs/ViewIcon";
 import MobileNavbarPadding from "../layout/MobileNavbarPadding";
 import NeutronModal from "../layout/NeutronModal";
 import { ContractDraftedStatus, ContractPublishedStatus } from "../layout/Statuses";
+import { motion, useElementScroll, useViewportScroll } from "framer-motion";
 
 
 
 export default function DashboardMobileUI() {
 
+    const { scrollYProgress, scrollY } = useViewportScroll();
 
+    const [scrollPosition, setScrollPosition] = useState(scrollYProgress.get());
+    const [contractFilter, setContractFilter] = useState('');
+    const [currentContract, setCurrentContract] = useState(-1);
+    const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
+
+    const submit = useSubmit();
 
     useEffect(() => {
         injectStyle();
+        return scrollYProgress.onChange((latest) => {
+            setScrollPosition(latest);
+        })
     })
 
+    console.log("SCROLL POSITION IS " + scrollPosition);
     const userData: { contracts: Contract[], disputes: any[], metadata: any, ownerUsername: string } = useLoaderData();
 
     const contracts = userData.contracts;
-    const currentContract = contracts[0];
 
 
     const generateContractsList = () => {
-        return (<ul className=" mt-1 space-y-4 max-h-[512px] overflow-scroll snap-y snap-mandatory">
-            {contracts.map((contract: Contract, index: number) => {
+        return (<ul className=" mt-1 space-y-4 max-h-[95vh] h-full overflow-y-scroll p-2 rounded-xl bg-bg-primary-dark snap-y snap-mandatory transition-all">
+            {contracts.filter((value) => value.projectName?.includes(contractFilter)).map((contract: Contract, index: number) => {
                 return (<li onClick={() => {
                     setCurrentContract(index)
-                }} key={contract.id} className={`snap-center bg-bg-secondary-dark border-2 h-auto rounded-xl border-purple-400 dark:bg-gray-800 dark:border-gray-700 hover:bg-gradient-to-br from-violet-700 via-violet-400 to-violet-500 hover:bg-opacity-50 dark:hover:bg-gray-600 flex flex-col transition-all justify-between`}>
+                }} key={contract.id} className={`snap-center bg-bg-secondary-dark border-2 ${currentContract == index ? 'border-purple-400' : 'border-white'}  h-auto rounded-xl active:border-purple-400 focus:border-purple-400 dark:bg-gray-800 dark:border-gray-700 transition-all active:bg-bg-primary-dark focus:bg-bg-primary-dark flex flex-col justify-between`}>
 
                     <div className="flex flex-col justify-between p-4 space-y-2">
                         <div className="flex flex-row space-y-2">
@@ -57,27 +70,25 @@ export default function DashboardMobileUI() {
                                 {contract?.status == ContractStatus.Draft ? <ContractDraftedStatus></ContractDraftedStatus> : <ContractPublishedStatus></ContractPublishedStatus>}
                             </span>
                         </div>
+                        <div className={` p-3 justify-evenly  w-full space-x-2  ${currentContract == index ? 'flex flex-row' : 'hidden'}`}>
+
+                            {contract.status === ContractStatus.Draft && <EditIcon onClick={() => {
+                                navigate(`/${currentUserData?.displayName}/contracts/edit/${contract.id}`)
+                            }} className={'rounded-full border-2 border-transparent bg-transparent hover:bg-accent-dark transition-all  p-2'}></EditIcon>}
+                            <ViewIcon onClick={() => {
+                                navigate(`/${currentUserData?.displayName}/contracts/${contract.id}`)
+                            }} className={'rounded-full border-2 border-transparent bg-transparent hover:bg-accent-dark transition-all  p-2'}></ViewIcon>
+                            {contract.status === ContractStatus.Draft && <DeleteIcon onClick={() => {
+                                setDeleteConfirmationModal(!deleteConfirmationModal);
+                            }} className={'rounded-full border-2 border-transparent bg-transparent hover:bg-accent-dark transition-all  p-2'}></DeleteIcon>}
+                            {/* <ChatIcon onClick={function (event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
+                                                    throw new Error('Function not implemented.');
+                                                }} className={'rounded-full border-2 border-transparent bg-transparent hover:bg-accent-dark transition-all  p-2'}></ChatIcon> */}
+                        </div>
 
                     </div>
 
 
-                    <div className={` m-2 p-3 justify-between ${currentContract == index ? 'flex flex-row' : 'hidden'}`}>
-                        <ViewIcon onClick={() => {
-                            navigate(`${contract.id}`)
-                        }} className={''}></ViewIcon>
-                        <EditIcon onClick={function (event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
-                            throw new Error('Function not implemented.');
-                        }} className={''}></EditIcon>
-                        <DeleteIcon onClick={(e) => {
-                            let data = new FormData();
-                            data.append('id', contract.id);
-                            submit(data,
-                                { method: 'post' });
-                        }} className={''}></DeleteIcon>
-                        <ChatIcon onClick={function (event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
-                            throw new Error('Function not implemented.');
-                        }} className={''}></ChatIcon>
-                    </div>
 
 
                 </li>)
@@ -90,32 +101,40 @@ export default function DashboardMobileUI() {
     //     protectedFunds += Number.parseInt(contract?.contractValue?.replace('₹'));
     // })
 
-    const [contractsTab, setContractsTab] = useState(true);
     const currentUserData = userData.metadata;
 
     let navigate = useNavigate();
 
 
     return (
-        <div className={`flex flex-col sm:hidden space-y- h-full  text-center bg-transparent`}>
-            <div>
-                <h1 className="text-white text-[30px] text-left font-gilroy-black ml-8"> Welcome, {currentUserData?.displayName} </h1>
-                <h2 className="text-white text-[16px] text-left font-gilroy-medium ml-8">{formatDateToReadableString(new Date().getTime(), false, true)}</h2>
+        <div className={`flex flex-col sm:hidden space-y-3 h-full mt-12  text-center bg-transparent`}>
+            <div className={`flex flex-row justify-between transition-all ${scrollPosition > 0.45 ? `sticky py-5 pt-8 top-0 h-[115px] mt-0 ${primaryGradientDark}` : ''} z-30 `}>
+                <div className="flex flex-col">
+                    <h1 className={`text-white ${scrollPosition > 0.45 ? 'text-[25px]' : 'text-[25px] '} text-left font-gilroy-black ml-6`}> {scrollPosition > 0.45 ? 'Contracts' : `Welcome, ${currentUserData?.displayName}`}</h1>
+                    <h2 className="text-white text-[16px] text-left font-gilroy-regular ml-6 mb-3">{scrollPosition > 0.45 ? 'Track and manage your contracts' : formatDateToReadableString(new Date().getTime(), false, true)}</h2>
+                </div>
+                <div className="flex flex-col justify-center mr-6">
+                    <img onClick={() => {
+                        navigate(`/${currentUserData.displayName}/profile`)
+                    }} alt="profile" src={currentUserData.photoURL ? currentUserData.photoURL : PlaceholderDP} className="h-10 w-10  bg-[#e5e5e5] object-fill cursor-pointer hover:opacity-50 hover:ring-1 outline-none transition-all hover:ring-[#8364E8] border-solid border-black rounded-full self-center"></img>
+                </div>
+
+
             </div>
 
 
-            <div className={` w-auto m-8 rounded-xl p-1 ${primaryGradientDark} z-10 translate-y-10`}>
+            <motion.div className={` w-auto m-6 rounded-xl p-1  ${primaryGradientDark} z-10 translate-y-10`}>
                 <div className=" h-40 rounded-xl bg-bg-primary-dark text-white">
                     <div className="flex flex-col space-y-2 pt-6">
-                        <h1 className="text-[16px] font-gilroy-medium">Committed Funds</h1>
-                        <p className="font-gilroy-black text-[30px]"> Rs. 5402</p>
-                        <p className="font-gilroy-medium text-[14px]"> (57 Contracts)</p>
+                        <h1 className="text-[16px] font-gilroy-medium">Protected Funds</h1>
+                        <p className="font-gilroy-black text-[30px]"> ₹ 5402 </p>
+                        <p className="font-gilroy-medium text-[14px]"> ({currentUserData.contracts} Contracts)</p>
                     </div>
                 </div>
-            </div>
+            </motion.div>
             <div id="main-dash-section" className=' bg-bg-primary-dark h-full z-0 translate-y-[-40px] pt-32 p-8 flex flex-col'>
-                <button
-                    className={`w-full rounded-full p-3  h-14 self-start text-left ${primaryGradientDark} active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-white transition-all`}
+                <motion.button
+                    className={`w-full rounded-full p-3  h-14 self-start text-left  ${primaryGradientDark} active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-white transition-all`}
                     onClick={() => {
                         ContractDataStore.update((s) => { s.stage = ContractCreationStages.ClientInformation });
                         navigate(`/${currentUserData?.displayName}/contracts/create`)
@@ -130,8 +149,9 @@ export default function DashboardMobileUI() {
 
                     </div>
 
-                </button>
+                </motion.button>
 
+                {/*  Everything above this point should fade out as the user scrolls */}
                 {/* <div className="flex flex-row sm:hidden font-gilroy-black m-3 w-auto rounded-xl">
                     <button
                         className={`w-full rounded-lg ${contractsTab ? primaryGradientDark : 'bg-bg-primary-dark'}  p-3 text-white transition-all`}
@@ -151,40 +171,25 @@ export default function DashboardMobileUI() {
                         Disputes
                     </button>
                 </div> */}
-                <div className="flex flex-col sm:hidden mt-10 bg-bg-secondary-dark  text-white rounded-xl">
-                    {/* {contractsTab ? generateContractsList() : ''} */}
-                    {currentContract ?
-                        <div id="current-project-summary" className={`flex font-gilroy-regular flex-col sm:flex-row m-6 mt-2 w-auto rounded-xl h-full min-h-52 justify-between items-center`}>
-                            <div className="flex flex-col m-0.5 rounded-xl p-5 w-full text-left bg-bg-secondary-dark">
-                                <h2 className="prose prose-xl mb-3 text-white font-gilroy-black text-[24px]">
-                                    Current Project: {currentContract?.projectName}
-                                </h2>
-                                <p className="prose prose-md text-white break-all sm:text-left font-gilroy-regular text-[18px]">
-                                    {currentContract?.description}
-                                </p>
-                                {/* <div className="flex flex-col mt-2 text-left">
-                                    <h1 className="prose prose-sm text-white">Next Milestone</h1>
-                                    <h1 className="prose prose-md text-white">{currentContract?.hasMilestones ? currentContract?.milestones?.workMilestones[0].description : "Project has no milestones"}</h1>
-                                </div>
-                                <div className="flex flex-row justify-start space-x-5 items-center prose prose-lg font-gilroy-medium text-white mt-2 whitespace-nowrap max-w-sm mb-5 sm:text-left">
-                                    <span className='items-center'>Current Status :</span>
-                                    <span className='items-center mb-3'> {currentContract?.status == ContractStatus.Draft ? <ContractDraftedStatus></ContractDraftedStatus> : <ContractPublishedStatus></ContractPublishedStatus>}</span>
-                                </div> */}
-                                {currentContract?.projectName && currentUserData.email == currentContract.clientEmail && currentContract.isSigned ? <PurpleWhiteButton text="Pay Contract" onClick={function (event: MouseEvent<HTMLButtonElement, MouseEvent>): void {
-                                    throw new Error("Function not implemented.");
-                                } } /> : <></>}
+                <div className="flex flex-col sm:hidden mt-10 bg-bg-primary-dark text-white rounded-xl">
+                    <div className="flex flex-row bg-[#4d4d4d] h-10 mb-5 space-x-4 p-2 w-full border-2 border-gray-500 rounded-lg">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.5 17.5L14.5834 14.5833M16.6667 9.58333C16.6667 13.4954 13.4954 16.6667 9.58333 16.6667C5.67132 16.6667 2.5 13.4954 2.5 9.58333C2.5 5.67132 5.67132 2.5 9.58333 2.5C13.4954 2.5 16.6667 5.67132 16.6667 9.58333Z" stroke="#BCBCBC" stroke-width="1.66667" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
 
-                            </div>
+                        <input type="text" placeholder="Search" onChange={(e) => {
+                            setContractFilter(e.target.value);
+                        }} className="w-full bg-[#4d4d4d] border-0 text-white placeholder:text-white focus:border-transparent outline-none " />
 
-                            {/* onClick={() => {
-                                const payload = structurePayinPayload(currentContract, userData.ownerUsername, currentUserData);
-                                const formData = new FormData();
-                                formData.append("payload", JSON.stringify(payload))
-                                fetcher.submit(formData, { method: 'post', action: `${userData.ownerUsername}/handlers/payment` })
-                            }} */}
-                        </div> : <ContractZeroState></ContractZeroState>}
+                    </div>
+                    <div className="h-[95vh]">
+                        {contracts.length > 0 ? generateContractsList() : <ContractZeroState></ContractZeroState>}
+
+                    </div>
+
 
                 </div>
+
                 {/* {deleteConfirmationModal && <NeutronModal onConfirm={(e) => {
 
                     let data = new FormData();
@@ -195,9 +200,19 @@ export default function DashboardMobileUI() {
                     }
 
                 }} body={<p className="text-red-600">You're about to delete a contract</p>} toggleModalFunction={setDeleteConfirmationModal}></NeutronModal>} */}
-                        <MobileNavbarPadding></MobileNavbarPadding>
+                <MobileNavbarPadding></MobileNavbarPadding>
 
             </div>
+            {deleteConfirmationModal && <NeutronModal onConfirm={(e) => {
 
-        </div>)
+                let data = new FormData();
+                if (contracts[currentContract].id) {
+                    data.append('id', contracts[currentContract].id);
+                    submit(data,
+                        { method: 'post' });
+                }
+
+            }} body={<p className="text-red-600">You're about to delete a contract</p>} toggleModalFunction={setDeleteConfirmationModal}></NeutronModal>}
+
+        </div >)
 }

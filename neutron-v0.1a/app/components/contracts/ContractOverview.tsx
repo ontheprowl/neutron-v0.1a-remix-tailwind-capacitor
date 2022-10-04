@@ -104,6 +104,87 @@ function generateDeliverables(milestones: { [key: string]: any }) {
     return deliverablesArray
 }
 
+function generateDeliverablesForMobile(milestones: { [key: string]: any }) {
+    console.log("Milestones arriving to the generator are : ")
+    console.dir(milestones)
+    let deliverablesArray = []
+    for (const [key, value] of Object.entries(milestones)) {
+        const deliverable = { ...value }
+        if (deliverable.name == 'Advance') continue
+        if (key == "workMilestones") {
+            for (const [milestoneNumber, milestone] of Object.entries(value)) {
+                console.log("The milestone value over here is : ");
+                console.dir(milestone)
+                // deliverablesArray.push(
+                //     <div className="flex flex-row p-3 font-gilroy-medium space-x-20 w-full items-center justify-between">
+                //         {/* <img src={iconForDeliverableType(Number(milestone.submissionFormat))}
+                //             className="mr-3 h-7 " alt="progressLineActive">
+                //         </img> */}
+                //         <h2 className='text-center w-[200px] '>{milestone.name}</h2>
+                //         <p className="text-center w-[200px] whitespace-nowrap ">{milestone.description}</p>
+                //         <p className="text-center w-[200px] "> {formatDateToReadableString(new Date(milestone.date).getTime(), false, true)}</p>
+                //         <div className="flex flex-row  w-[300px] items-center justify-center space-x-8">
+                //             {milestone?.status ? DeliverableStatusGenerator(milestone.status) : <NotSubmittedStatus></NotSubmittedStatus>}
+                //             {milestone?.status && milestone?.status != DeliverableStatus.SubmittedExternally ?
+                //                 <a href={milestone.submissionPath} target="_blank" rel="noreferrer" key={milestone.name} >
+                //                     <svg className="border-2 border-transparent hover:bg-bg-secondary-dark transition-all active:ring-white active:ring-2 rounded-full w-10 h-10 p-1" width="16" height="20" viewBox="0 0 16 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                //                         <path d="M9.66634 1.89111V5.33323C9.66634 5.79994 9.66634 6.0333 9.75717 6.21156C9.83706 6.36836 9.96455 6.49584 10.1213 6.57574C10.2996 6.66656 10.533 6.66656 10.9997 6.66656H14.4418M5.49967 12.4998L7.99967 14.9998M7.99967 14.9998L10.4997 12.4998M7.99967 14.9998L7.99967 9.99984M9.66634 1.6665H5.33301C3.93288 1.6665 3.23281 1.6665 2.69803 1.93899C2.22763 2.17867 1.84517 2.56112 1.60549 3.03153C1.33301 3.56631 1.33301 4.26637 1.33301 5.6665V14.3332C1.33301 15.7333 1.33301 16.4334 1.60549 16.9681C1.84517 17.4386 2.22763 17.821 2.69803 18.0607C3.23281 18.3332 3.93288 18.3332 5.33301 18.3332H10.6663C12.0665 18.3332 12.7665 18.3332 13.3013 18.0607C13.7717 17.821 14.1542 17.4386 14.3939 16.9681C14.6663 16.4334 14.6663 15.7333 14.6663 14.3332V6.6665L9.66634 1.6665Z" stroke="white" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round" />
+                //                     </svg>
+                //                 </a> : <></>
+                //             }
+                //         </div>
+                //     </div>
+                //     // <a key={deliverable.name} href={deliverable.submissionPath ? deliverable.submissionPath : "#"}>
+                //     //     <div className="flex flex-row m-5 space-x-2 w-auto items-center justify-between">
+                //     //         <img src={iconForDeliverableType(Number(deliverable.submissionFormat))}
+                //     //             className="mr-3 h-7 " alt="progressLineActive">
+                //     //         </img>
+                //     //         <h2>{deliverable.name}</h2>
+                //     //         <p>{deliverable.description}</p>
+                //     //         <NotSubmittedStatus></NotSubmittedStatus>
+                //     //     </div>
+                //     // </a>
+
+
+                // )
+                deliverablesArray.push(
+                    <div key={milestoneNumber} className={`border-b p-2 border-t border-gray-400 dark:bg-gray-800 dark:border-gray-700 transition-all hover:bg-bg-primary-dark hover:bg-opacity-50 hover:border-accent-dark hover:drop-shadow-md rounded-xl dark:hover:bg-gray-600`}>
+                        <div className='flex flex-row justify-between items-center'>
+                            <div className=" p-2 font-medium text-left text-[16px] text-white dark:text-white whitespace-nowrap">
+                                {milestone.name}
+                            </div>
+                            <div className=" p-2 text-center text-white text-[14px] font-gilroy-medium">
+                                {formatDateToReadableString(milestone.date?.seconds ? new Date(milestone.date?.seconds * 1000).getTime() : new Date(milestone.date).getTime(), false, true)}
+                            </div>
+                        </div>
+
+
+                        <div className=" p-2 text-justify text-white font-gilroy-medium text-[14px] ">
+                            {milestone.description}
+                        </div>
+
+
+                        <div className=" p-2 text-center text-white flex flex-row justify-between items-center space-x-6">
+                            {milestone?.status ? DeliverableStatusGenerator(milestone.status) : <NotSubmittedStatus></NotSubmittedStatus>}
+
+                            {milestone?.status && milestone?.status != DeliverableStatus.SubmittedExternally ?
+                                <a href={milestone.submissionPath} target="_blank" rel="noreferrer" key={milestone.name} >
+                                    <svg className="border-2 border-transparent hover:bg-bg-secondary-dark self-center transition-all active:ring-white active:ring-2 rounded-full w-10 h-10 p-1" width="16" height="20" viewBox="0 0 16 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M9.66634 1.89111V5.33323C9.66634 5.79994 9.66634 6.0333 9.75717 6.21156C9.83706 6.36836 9.96455 6.49584 10.1213 6.57574C10.2996 6.66656 10.533 6.66656 10.9997 6.66656H14.4418M5.49967 12.4998L7.99967 14.9998M7.99967 14.9998L10.4997 12.4998M7.99967 14.9998L7.99967 9.99984M9.66634 1.6665H5.33301C3.93288 1.6665 3.23281 1.6665 2.69803 1.93899C2.22763 2.17867 1.84517 2.56112 1.60549 3.03153C1.33301 3.56631 1.33301 4.26637 1.33301 5.6665V14.3332C1.33301 15.7333 1.33301 16.4334 1.60549 16.9681C1.84517 17.4386 2.22763 17.821 2.69803 18.0607C3.23281 18.3332 3.93288 18.3332 5.33301 18.3332H10.6663C12.0665 18.3332 12.7665 18.3332 13.3013 18.0607C13.7717 17.821 14.1542 17.4386 14.3939 16.9681C14.6663 16.4334 14.6663 15.7333 14.6663 14.3332V6.6665L9.66634 1.6665Z" stroke="white" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </a> : <div className="bg-transparent"></div>
+                            }
+                        </div>
+
+
+                    </div>)
+            }
+        }
+
+    }
+    return deliverablesArray
+}
+
 export default function ContractOverview() {
 
     const loaderData = useLoaderData();
@@ -173,15 +254,37 @@ Escrow section
                 </div>
             </div> */}
             <div className="flex flex-col-reverse sm:flex-row w-auto h-full ">
-                <div id="contract-details" className="sm:flex sm:flex-col sm:basis-2/3 w-[800px] h-auto justify-start rounded-lg bg-bg-primary-dark text-white">
-                    <div className="flex flex-row mb-5 sm:justify-start font-gilroy-bold text-[20px] justify-center">
-                        <h2>Project Details</h2>
-                    </div>
-                    <div className="w-full break-all sm:h-72 p-3 hover:ring-2 hover:ring-white transition-all  rounded-lg sm:border-2 sm:border-solid border-gray-400 mb-4 font-gilroy-regular">
-                        {data.description}
+                <div id="contract-details" className="sm:flex sm:flex-col p-3 sm:p-0 sm:basis-2/3 sm:w-[800px] h-auto justify-start rounded-lg sm:bg-bg-primary-dark text-white">
+
+                    <div className='bg-bg-secondary-dark sm:bg-bg-primary-dark rounded-xl sm:rounded-none p-4 sm:p-0 mb-5 sm:mb-0'>
+                        <div className="flex flex-row mb-5 justify-start font-gilroy-bold text-[20px]">
+                            <h2>Project Details</h2>
+                        </div>
+                        <div className="w-full break-all sm:h-72 p-1 hover:ring-2 hover:ring-white transition-all  rounded-lg sm:border-2 sm:border-solid border-gray-400 mb-4 font-gilroy-regular">
+                            {data.description}
+                        </div>
                     </div>
 
-                    <div className="flex flex-row sm:justify-start justify-center mb-5 font-gilroy-bold text-[20px]">
+                    <div className='bg-bg-secondary-dark sm:hidden rounded-xl sm:rounded-none p-4 sm:p-0 mb-5 sm:mb-0'>
+                        <div className="flex flex-row justify-start mb-5 font-gilroy-bold text-[20px]">
+                            <h2>Deliverables</h2>
+                        </div>
+                        <div className="flex flex-col sm:hidden w-full h-auto justify-between  hover:ring-white hover:ring-2 transition-all active:ring-2 active:ring-white border-gray-400 rounded-xl text-white">
+                            {/* <div className="flex flex-row sm:p-3 space-x-4 sm:space-x-20 w-full items-center justify-between">
+                            {/* <img src={iconForDeliverableType(Number(milestone.submissionFormat))}
+                            className="mr-3 h-7 " alt="progressLineActive">
+                        </img> }
+                            <h2 className='text-center w-1/4 sm:w-[200px] '> Name </h2>
+                            <p className="text-center w-1/4 sm:w-[200px] whitespace-nowrap "> Description </p>
+                            <p className="text-center w-1/4 sm:w-[200px] "> Due Date </p>
+                            <div className="flex flex-row  w-1/4 sm:w-[300px] items-center justify-start space-x-8">
+                                Status
+                            </div>
+                        </div> */}
+                            {generateDeliverablesForMobile(milestones)}
+                        </div>
+                    </div>
+                    <div className="hidden sm:flex flex-row sm:justify-start justify-center mb-5 font-gilroy-bold text-[20px]">
                         <h2>Deliverables</h2>
                     </div>
                     <div className={`bg-[#202020] hidden sm:block p-3 rounded-xl border-2 border-solid border-purple-400 h-1/2 overflow-y-scroll`}>
@@ -210,22 +313,8 @@ Escrow section
                             </tbody>
                         </table>
                     </div>
-                    <div className="flex flex-col sm:hidden w-full h-auto justify-between hover:ring-white hover:ring-2 transition-all active:ring-2 active:ring-white border-gray-400 rounded-lg bg-bg-primary-dark text-white">
-                        <div className="flex flex-row p-3 space-x-20 w-full items-center justify-between">
-                            {/* <img src={iconForDeliverableType(Number(milestone.submissionFormat))}
-                            className="mr-3 h-7 " alt="progressLineActive">
-                        </img> */}
-                            <h2 className='text-center w-[200px] '> Name </h2>
-                            <p className="text-center w-[200px] whitespace-nowrap "> Description </p>
-                            <p className="text-center w-[200px] "> Due Date </p>
-                            <div className="flex flex-row  w-[300px] items-center justify-start space-x-8">
-                                Status
-                            </div>
-                        </div>
-                        {generateDeliverables(milestones)}
-                    </div>
                 </div>
-                <div id="contract-side-panel-section" className="flex flex-col m-4 sm:basis-1/3 sm:w-auto w-auto sm:m-0 sm:ml-5 sm:h-auto  sm:max-h-screen  justify-start bg-bg-secondary-dark  border-solid rounded-xl  text-white">
+                <div id="contract-side-panel-section" className="flex border-2 border-purple-400 sm:border-0 flex-col m-4 sm:basis-1/3 sm:w-auto w-auto sm:m-0 sm:ml-5 sm:h-auto  sm:max-h-screen  justify-start bg-bg-secondary-dark  border-solid rounded-xl  text-white">
                     <div
                         className="flex flex-row m-5 justify-between">
                         <h2 className={`prose prose-lg text-transparent bg-clip-text ${primaryGradientDark} `}>{stage == ContractSidePanelStages.ChatsPanel ? 'Contract Chat' : 'Contract Events'}</h2>

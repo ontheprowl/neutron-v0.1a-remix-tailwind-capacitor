@@ -32,6 +32,7 @@ import { useEffect, useState } from 'react';
 import NeutronModal from '~/components/layout/NeutronModal';
 import { ContractDataStore } from '~/stores/ContractStores';
 import DashboardMobileUI from '~/components/pages/DashboardMobileUI';
+import { UIStore } from '~/stores/UIStore';
 
 
 export const loader: LoaderFunction = async ({ request, params }) => {
@@ -82,7 +83,6 @@ export default function Dashboard() {
     })
 
     const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
-
     const submit = useSubmit();
     const userData: { contracts: Contract[], disputes: any[], metadata: any, ownerUsername: string } = useLoaderData();
 
@@ -93,6 +93,7 @@ export default function Dashboard() {
     //     protectedFunds += Number.parseInt(contract?.contractValue?.replace('₹'));
     // })
     const [contractSelectedForDeletion, setContractSelectedForDeletion] = useState(currentContract);
+    const [contractFilter, setContractFilter] = useState();
 
     const currentUserData = userData.metadata;
 
@@ -136,6 +137,7 @@ export default function Dashboard() {
                             <article className="">
                                 <h2 className="text-white text-[30px] font-gilroy-black">Contracts </h2>
                                 <p className="text-white text-[20px] font-gilroy-regular">Track and manage your contracts</p>
+
                             </article>
 
                         </div>
@@ -171,6 +173,16 @@ export default function Dashboard() {
                             </div>
                         </div>
                     </div>
+                    <div className="flex flex-row bg-[#4d4d4d] h-10 mb-2 ml-6 space-x-4 p-2 w-1/2 border-2 border-gray-500 rounded-lg">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.5 17.5L14.5834 14.5833M16.6667 9.58333C16.6667 13.4954 13.4954 16.6667 9.58333 16.6667C5.67132 16.6667 2.5 13.4954 2.5 9.58333C2.5 5.67132 5.67132 2.5 9.58333 2.5C13.4954 2.5 16.6667 5.67132 16.6667 9.58333Z" stroke="#BCBCBC" stroke-width="1.66667" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+
+                        <input type="text" placeholder="Search" onChange={(e) => {
+                            setContractFilter(e?.target?.value);
+                        }} className="w-full bg-[#4d4d4d] border-0 text-white placeholder:text-white focus:border-transparent outline-none " />
+
+                    </div>
                     {/* {currentContract ?
                     <div id="current-project-summary" className={`flex font-gilroy-regular flex-col sm:flex-row m-6 mt-2 w-auto rounded-xl h-auto min-h-52 ${primaryGradientDark} justify-between items-center`}>
                         <div className="flex flex-col m-0.5 rounded-xl p-5 w-full text-left bg-bg-secondary-dark">
@@ -201,66 +213,66 @@ export default function Dashboard() {
                     </div> : <ContractZeroState></ContractZeroState>}
                 <MobileNavbarPadding /> */}
 
-                    {currentContract ? <div className={`bg-[#202020] hidden sm:block p-3 rounded-xl border-2 border-solid border-purple-400 ${userData.contracts.length > 3 ? 'h-auto' : 'h-2/5'} m-6`}>
-                        <table className=" w-full h-auto text-sm text-left text-gray-500 dark:text-gray-400">
+                    {currentContract ? <div className={`bg-[#202020] hidden sm:table p-3 rounded-xl border-2 max-h-[70vh] border-solid border-purple-400 ${userData.contracts.length > 3 ? 'h-[65vh]' : 'h-2/5'} m-6`}>
+                        <table className=" w-full max-h-[70vh] overflow-y-scroll sm:block table-auto h-[65vh] text-sm text-left text-gray-500 dark:text-gray-400">
 
-                            <tbody>
-                                <tr className={` border-b dark:bg-gray-800 dark:border-gray-700 transition-all  hover:bg-opacity-50 hover:drop-shadow-md dark:hover:bg-gray-600`}>
+                            <tbody className='sm:block table-row-group'>
+                                <tr className={` border-b sm:flex sm:flex-row w-full dark:bg-gray-800 dark:border-gray-700 transition-all sticky top-0 pointer-events-none bg-bg-secondary-dark z-20  hover:bg-opacity-50 hover:drop-shadow-md dark:hover:bg-gray-600`}>
 
-                                    <th scope="row" className="px-6 py-4 font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                    <th scope="row" className="px-6 py-4 w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
                                         #
                                     </th>
-                                    <th scope="row" className="px-6 py-4 font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                    <th scope="row" className="px-6 py-4 w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
                                         Project Name
                                     </th>
-                                    <th scope="row" className="px-6 py-4 font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                    <th scope="row" className="px-6 py-4 w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
                                         Client Name
                                     </th>
-                                    <th scope="row" className="px-6 py-4 font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                    <th scope="row" className="px-6 py-4 w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
                                         Contract Value & Due Date
                                     </th>
-                                    <th scope="row" className="px-6 py-4 font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                    <th scope="row" className="px-6 py-4 w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
                                         Contract Status
                                     </th>
-                                    <th scope="row" className="px-6 py-4 font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                    <th scope="row" className="px-6 py-4  w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
                                         Issuer / Receiver
                                     </th>
-                                    <th scope="row" className="px-6 py-4 font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                    <th scope="row" className="px-6 py-4  w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
                                         Actions
                                     </th>
 
                                 </tr>
-                                {userData?.contracts.map((contract: Contract, index: number) => {
+                                {userData?.contracts.filter((contract) => contractFilter ? contract.projectName?.includes(contractFilter) : true).map((contract: Contract, index: number) => {
                                     console.log()
                                     return (
-                                        <tr key={contract.id} className={`border-b border-gray-400 dark:bg-gray-800 dark:border-gray-700 transition-all hover:bg-bg-primary-dark hover:bg-opacity-50 hover:border-accent-dark hover:drop-shadow-md dark:hover:bg-gray-600`}>
+                                        <tr key={contract.id} className={`border-b sm:flex sm:flex-row sm:justify-evenly sm:items-center w-full border-gray-400 dark:bg-gray-800 dark:border-gray-700 transition-all hover:bg-bg-primary-dark hover:bg-opacity-50 hover:border-accent-dark hover:drop-shadow-md dark:hover:bg-gray-600`}>
 
-                                            <td scope="row" className="px-6 py-4 font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                            <td scope="row" className="px-6 py-4 w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
                                                 {index + 1}
                                             </td>
-                                            <td className="px-6 py-4 text-center text-white ">
+                                            <td className="px-6 py-4 w-full text-center text-white ">
                                                 <Link to={`/${currentUserData?.displayName}/contracts/${contract.id}`} className="hover:underline ">
                                                     {contract.projectName}
                                                 </Link>
                                             </td>
-                                            <td className="px-6 py-4 text-center text-white">
+                                            <td className="px-6 py-4  w-full text-center text-white">
                                                 {contract.clientName}
                                             </td>
-                                            <td className="px-6 py-4 text-center text-white">
+                                            <td className="px-6 py-4 w-full text-center text-white">
 
                                                 {contract.contractValue}
                                                 <br></br>
                                                 {contract.isSigned ? formatDateToReadableString(contract.signedDate) : contract.startDate}
 
                                             </td>
-                                            <td className="  px-6 py-4 translate-y-[-5px] text-center justify-center items-center flex-row flex ">
+                                            <td className="  px-6 py-4 w-full translate-y-[-5px] text-center justify-center items-center flex-row flex ">
                                                 {contract?.status == ContractStatus.Draft ? <ContractDraftedStatus></ContractDraftedStatus> : <ContractPublishedStatus></ContractPublishedStatus>}
                                             </td>
-                                            <td className="  px-6 py-4 text-center text-white">
+                                            <td className="  px-6 py-4 w-full text-center text-white">
                                                 {contract?.creator === currentUserData.email ? 'Issuer' : 'Receiver'}
                                             </td>
-                                            <td className=' px-6 py-4 w-full flex flex-row justify-center '>
-                                                <div className=" max-w-fit w-full space-x-4 flex flex-row justify-between ">
+                                            <td className=' px-6 py-4 w-full min-w-[160px] flex flex-row justify-center '>
+                                                <div className=" max-w-fit w-full space-x-2 flex flex-row justify-evenly ">
 
                                                     {contract.status === ContractStatus.Draft && <EditIcon onClick={() => {
                                                         navigate(`/${currentUserData?.displayName}/contracts/edit/${contract.id}`)
@@ -297,6 +309,7 @@ export default function Dashboard() {
                     }
 
                 }} body={<p className="text-red-600">You're about to delete a contract</p>} toggleModalFunction={setDeleteConfirmationModal}></NeutronModal>}
+              
                 <ToastContainer position="bottom-center"
                     autoClose={2000}
                     hideProgressBar={false}

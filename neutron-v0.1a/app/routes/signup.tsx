@@ -12,7 +12,7 @@ import { useForm, useWatch } from "react-hook-form";
 import Icon from "~/assets/images/iconFull.svg"
 import { generateAuthUrl, authorizeAndExecute } from "~/firebase/gapis-config.server";
 import useWindowDimensions from "~/hooks/useWindowDimensions";
-import { createUserWithEmailAndPassword, getAuth, getRedirectResult, GoogleAuthProvider, sendEmailVerification, signInWithEmailAndPassword, signInWithRedirect, updateProfile, User } from "firebase/auth";
+import { createUserWithEmailAndPassword, getAuth, getRedirectResult, GoogleAuthProvider, RecaptchaVerifier, sendEmailVerification, signInWithEmailAndPassword, signInWithRedirect, updateProfile, User } from "firebase/auth";
 import { signUp } from "~/models/user.server";
 import { createUserSession, requireUser } from "~/session.server";
 import { addFirestoreDocFromData, getFirebaseDocs, setFirestoreDocFromData } from "~/firebase/queries.server";
@@ -86,7 +86,8 @@ export async function action({ request }: { request: Request }) {
       photoURL: '',
     })
 
-    await sendEmailVerification(user, { url: `http://${env.NODE_ENV === "development" ? "localhost:3000" : "test.neutron.money"}/auth/verification` });
+    await sendEmailVerification(user, { url: `http://${env.NODE_ENV === "development" ? "localhost:3000" : "test.neutron.money"}/auth/verification/google` });
+
 
     console.log("\n verification email sent \n");
     const userUIDRef = await setFirestoreDocFromData({ uid: user.uid, email: user.email, profileComplete: false }, 'userUIDS', `${displayName}`)
@@ -156,7 +157,7 @@ export default function Signup() {
 
 
     } else {
-      if (transition.type === "actionReload") {
+      if (transition.type === "actionSubmission") {
         toast(<div><h2>Please verify your email ID</h2></div>, { theme: "dark", type: "success" })
       }
     }
