@@ -65,7 +65,7 @@ export default function ProfileAccountInformationForm() {
 
     return (
         <>
-            <form className="max-h-[65vh] overflow-y-scroll p-3 sm:max-h-full border-2">
+            <form className="max-h-[65vh] overflow-y-scroll p-3 sm:max-h-full">
 
                 <div className="flex flex-col whitespace-nowrap sm:flex-row justify-between text-white items-center">
                     <h2 className="prose prose-lg font-gilroy-black text-[22px] sm:text-[30px] text-white"> Account Information (KYC) </h2>
