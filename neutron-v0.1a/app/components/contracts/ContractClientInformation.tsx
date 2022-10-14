@@ -23,7 +23,6 @@ export default function ContractClientInformation({ editMode }: { editMode?: boo
 
 
 
-    console.dir(users)
     function IsProfileComplete(v: any) {
         return validEmails.indexOf(v) != -1 && users.find((value) => {
             return (value.data.email == v && value.data.profileComplete == true)

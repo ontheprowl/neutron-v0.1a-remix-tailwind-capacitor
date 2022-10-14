@@ -168,6 +168,25 @@ export interface Contract {
   deliverables?: Array<Deliverable>;
 }
 
+
+export const DEFAULT_CONTRACT_STATE = {
+  stage: ContractCreationStages.ClientInformation,
+  creator: ContractCreator.IndividualClient,
+  viewStage: ContractViewStages.Overview,
+  sidePanelStage: ContractSidePanelStages.MilestonesPanel,
+  status: ContractStatus.Draft,
+  externalDeliverables: false,
+  deliverablesCount: 1,
+  hasAdvance: false,
+  hasDeliverables: false,
+  hasMilestones: false,
+  milestonesCount: 0,
+  deliverables: [],
+  milestones: [],
+  payoutTriggered: false,
+  template: 'design'
+};
+
 // export interface Template  {
 //   type: TemplateType;
 //   data: Contract;

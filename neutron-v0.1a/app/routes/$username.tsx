@@ -30,6 +30,8 @@ import LogoutButton from "~/components/LogoutButton";
 import { useEffect, useMemo, useState } from "react";
 import NeutronModal from "~/components/layout/NeutronModal";
 import { beamsClient } from "~/components/notifications/pusher-config.client";
+import { ContractDataStore } from "~/stores/ContractStores";
+import { DEFAULT_CONTRACT_STATE } from "~/models/contracts";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
 
@@ -41,10 +43,10 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
     const ownerUsername = params.username
     const contractID = params.contractID;
-    
-    
+
+
     const isOwner = await isViewerOwner(session, ownerUsername);
-    
+
 
     //* The next line exploits the order of execution of loaders to forward the responsibility of testing privilege for viewing a contract to the specific contract page itself.
     if (!isOwner && contractID == undefined) {
@@ -88,7 +90,7 @@ export default function CustomUserPage() {
     // * This effect ensures that the beamsClient is subscribing to all messages for the currently logged-in user
     useEffect(() => {
         beamsClient.start().then(() => { beamsClient.addDeviceInterest(metadata.id) });
-        
+
 
         // return () => { beamsClient.stop() }
     }, [metadata])
@@ -97,15 +99,24 @@ export default function CustomUserPage() {
     console.dir(data)
 
     let tab = UIStore.useState((s) => s.selectedTab);
+
+    let navigate = useNavigate();
+
+    // * Artifically stagger the rest of contract state with a timeout 
+    useEffect(() => {
+        setTimeout(() => {
+            ContractDataStore.replace(DEFAULT_CONTRACT_STATE);
+        }, 1000);
+    }, [navigate]);
+
     const date = useMemo(formatDateToReadableString, []);
 
-    
+
     const currentUserData = data.metadata;
 
 
     const [supportModal, setSupportModal] = useState(false)
 
-    let navigate = useNavigate();
 
     return (
         <div className="flex font-gilroy-bold h-auto w-full flex-col sm:flex-row bg-bg-primary-dark">
@@ -135,7 +146,9 @@ export default function CustomUserPage() {
                                         UIStore.update((s) => {
                                             s.selectedTab = "Home";
                                         });
+
                                         navigate('dashboard')
+
 
 
                                     }}
@@ -171,8 +184,10 @@ export default function CustomUserPage() {
                                         UIStore.update((s) => {
                                             s.selectedTab = "Disputes";
                                         });
+
                                         // TODO: Add logic on disputes parent layout page to redirect to /disputeID of the first active dispute
                                         navigate('disputes/')
+
 
                                     }}
                                     className={`rounded-lg transition-all flex border-2 border-transparent active:border-accent-dark  hover:bg-bg-secondary-dark w-full flex-row align-middle p-2 text-gray-100 sm:space-x-3 ${tab == "Disputes" ? 'bg-bg-secondary-dark' : ``}
@@ -224,7 +239,8 @@ export default function CustomUserPage() {
                                         UIStore.update((s) => {
                                             s.selectedTab = "Profile";
                                         });
-                                        navigate('profile')
+
+                                        navigate('profile');
 
                                     }}
                                         className={`rounded-lg transition-all flex flex-row align-middle p-2 text-gray-100 w-full border-2 border-transparent active:border-accent-dark  hover:bg-bg-secondary-dark  sm:space-x-3 ${tab == "Profile" ? 'bg-bg-secondary-dark' : ``}
