@@ -8,8 +8,6 @@ import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
 
 export function DeliverableStatusGenerator(status: DeliverableStatus) {
 
-    console.log("Status is :");
-    console.log(status)
     switch (status) {
         case DeliverableStatus.NotSubmitted:
             return <h3 className="font-medium text-black bg-gray-100 text-center rounded-full w-[160px] p-3"> Not Submitted </h3>

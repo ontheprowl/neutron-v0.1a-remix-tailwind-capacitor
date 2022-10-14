@@ -1,7 +1,7 @@
 import { useFetcher, useLoaderData, useNavigate, useSubmit } from "@remix-run/react";
 import { useState } from "react";
-import { Dispute, DisputeStatus, DisputeType } from "~/models/disputes";
-import { ContractDataStore } from "~/stores/ContractStores";
+import type { Dispute} from "~/models/disputes";
+import { DisputeStatus, DisputeType } from "~/models/disputes";
 import { generateTextForDisputeType } from "~/utils";
 import DisputesChatComponent from "../disputes/DisputesChatComponent";
 import BackArrowButton from "../inputs/BackArrowButton";

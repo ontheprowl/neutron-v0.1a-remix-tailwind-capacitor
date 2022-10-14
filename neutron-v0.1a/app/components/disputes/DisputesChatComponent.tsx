@@ -59,7 +59,6 @@ export default function DisputesChatComponent({ from, to, messages, fullHeight, 
             </ul>
             <motion.div className={`ml-4 mr-4 ${disabled ? 'opacity-40' : ''} rounded-full flex-row flex justify-between space-x-3 p-1 bg-[#5C5C5C] text-white placeholder:text-white`}>
                 <motion.input type="text" id="new-message" className="bg-[#5C5C5C] rounded-full p-3 w-full ring-transparent transition-all  active:decoration-transparent caret-white outline-none inset-0" value={newMessage} onChange={(e) => {
-                    console.log(newMessage)
                     setNewMessage(e.target.value)
                 }} placeholder="Enter a new message..." />
                 <motion.button onClick={disabled ? () => { } : () => {

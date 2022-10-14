@@ -74,10 +74,8 @@ export function checkForSpecificEvent(events: NeutronEvent[], specifiedEvent: Co
 }
 
 export const structurePayinPayload = (contract: Contract, ownerUsername: string, payingUserData: { id: string, email: string, displayName: string, phoneNumber: string }, environment?: string) => {
-    console.log("PAYING USER DATA IS ")
-    console.dir(payingUserData)
-
-    // console.log("ENV IS : " + window.ENV.NODE_ENV);
+    
+    // 
     const value = contract?.contractValue?.replace("₹", '').replace(',', '');
     const totalValue: number = parseInt(value);
     const orderId = crypto.randomUUID();
@@ -90,7 +88,7 @@ export const structurePayinPayload = (contract: Contract, ownerUsername: string,
         },
         order_id: orderId,
         order_meta: {
-            return_url: `https://${environment === "development" ? "localhost:3000" : "test.neutron.money"}/${ownerUsername}/payment/success/${contract.id}?order_id={order_id}&order_token={order_token}`,
+            return_url: `https://${environment === "development" ? "localhost:3000" : "app.neutron.money"}/${ownerUsername}/payment/success/${contract.id}?order_id={order_id}&order_token={order_token}`,
             order_id: orderId,
             order_token: contract.id,
         },

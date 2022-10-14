@@ -65,54 +65,54 @@ export default function ProfileProfInformationForm() {
         })
     } className="max-h-[65vh] overflow-y-scroll p-3 sm:max-h-full">
 
-        <h2 className="prose prose-lg  text-white font-gilroy-black text-[30px]"> Professional Information </h2>
+        <h2 className="prose prose-lg  text-white font-gilroy-black text-center sm:text-left  text-[22px] sm:text-[30px]"> Professional Information </h2>
         <div className="relative w-auto mt-2  sm:mt-5 sm:mb-5 flex flex-col ">
             <span className=" prose prose-md text-white mb-5">Designation</span>
             <input type="text" id="designation"  {...register('designation', {
-                required: 'This field is required'
-            })} defaultValue={userMetadata.designation} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="What do you do tho?" required />
-            <div className="w-full h-10 mt-3">
+                required: true
+            })} defaultValue={userMetadata.designation} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Describe your profession" required />
+            <div className="w-full h-6 mt-3">
                 <ErrorMessage errors={errors} name='designation' render={(data) => {
                     return <span className="text-red-500 whitespace-nowrap sm:p-2 sm:m-3 z-10">{data.message}</span>
                 }} />
             </div>
             <div className="flex items-end mt-2 flex-col space-y-2 sm:space-y-0 sm:space-x-3 sm:flex-row w-full">
-                <div className=" space-y-3 w-full h-auto">
+                <div className=" space-y-3 w-full h-auto sm:basis-1/3">
                     <span className=" prose prose-md text-white">Experience ( in years )</span>
-                    <input  {...register('experience', { required: 'This field is required', maxLength: { value: 3, message: 'Please enter a number of years less than a human life-span' } })} type="number" placeholder="e.g : 5 years" defaultValue={userMetadata.experience} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg invalid:border-red-500 placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
-                    <div className="w-full h-10 mt-3 text-left">
+                    <input  {...register('experience', { required: false })} type="number" max={50} placeholder="e.g : 5 years" defaultValue={userMetadata.experience} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg invalid:border-red-500 placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
+                    <div className="w-full h-6  mt-3 text-left">
                         <ErrorMessage errors={errors} name='experience' render={(data) => {
-                            return <span className="text-red-500 whitespace-nowrap sm:p-2 sm:m-3 z-10">{data.message}</span>
+                            return <span className="text-red-500 whitespace-nowrap z-10">{data.message}</span>
                         }} />
                     </div>
 
                 </div>
 
 
-                <div className=" space-y-3 w-full">
+                <div className=" space-y-3 w-full sm:basis-1/3">
                     <span className=" prose prose-md text-white">Location</span>
-                    <input  {...register('location', { required: 'This field is required', maxLength: { value: 20, message: 'Location exceeds maximum length of 20' } })} type="text" placeholder="e.g : Mumbai, India" defaultValue={userMetadata.location} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg invalid:border-red-500 placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
+                    <input  {...register('location', { required: false, maxLength: { value: 20, message: 'Location exceeds maximum length of 20' } })} type="text" placeholder="e.g : Mumbai, India" defaultValue={userMetadata.location} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg invalid:border-red-500 placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
                     {/* <CountrySelect formFieldName="location" defaultValue={() => 'India'} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " id={""} /> */}
-                    <div className="w-full h-10 mt-3 text-left">
+                    <div className="w-full h-6  mt-3 text-left">
                         <ErrorMessage errors={errors} name='location' render={(data) => {
-                            return <span className="text-red-500 whitespace-nowrap sm:p-2 sm:m-3 z-10">{data.message}</span>
+                            return <span className="text-red-500 whitespace-nowrap z-10">{data.message}</span>
                         }} />
                     </div>
                 </div>
-                <div className=" space-y-3 w-full h-auto">
+                <div className=" space-y-3 w-full h-auto sm:basis-1/3">
                     <span className=" prose prose-md text-white">Working Language</span>
-                    <input  {...register('language', { required: 'This field is required', maxLength: { value: 10, message: 'Language name exceeds maximum length of 10' } })} type="text" placeholder="e.g : English" defaultValue={userMetadata.language} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg invalid:border-red-500 placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
-                    <div className="w-full h-10 mt-3 text-left">
+                    <input  {...register('language', { required: false, maxLength: { value: 10, message: 'Language name exceeds maximum length of 10' } })} type="text" placeholder="e.g : English" defaultValue={userMetadata.language} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg invalid:border-red-500 placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
+                    <div className="w-full h-6 mt-3 text-left">
                         <ErrorMessage errors={errors} name='language' render={(data) => {
-                            return <span className="text-red-500 whitespace-nowrap sm:p-2 sm:m-3 z-10">{data.message}</span>
+                            return <span className="text-red-500 whitespace-nowrap z-10">{data.message}</span>
                         }} />
                     </div>
 
                 </div>
 
             </div>
-            <div className="flex flex-col sm:flex-row w-full space-y-3 sm:space-y-0 sm:space-x-4">
-                <div className="flex flex-col justify-start space-y-2 ">
+            <div className="flex flex-col sm:flex-row  w-full space-y-3 sm:space-y-0 sm:space-x-4">
+                <div className="flex flex-col justify-start space-y-2 sm:basis-1/2">
                     <h2 className="prose prose-md text-white  text-[16px]"> Type of Work </h2>
                     <select id="work-type-select" {...register('workType')} defaultValue={userMetadata.workType} className=" bg-[#4A4A4A] p-3  text-white text-sm rounded-lg placeholder-white block w-auto h-auto dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white ">
                         <option value="Accounting & Finance">Accounting & Finance</option>
@@ -163,7 +163,7 @@ export default function ProfileProfInformationForm() {
                     </select>
                 </div>
 
-                <div className="flex flex-col justify-start space-y-2 ">
+                <div className="flex flex-col justify-start space-y-2 sm:basis-1/2">
                     <h2 className="prose prose-md text-white text-[16px]"> What best describes your business? </h2>
                     <select id="business-type-select" {...register('businessType')} defaultValue={userMetadata.businessType} className=" bg-[#4A4A4A] p-3  text-white text-sm rounded-lg placeholder-white block w-auto h-auto dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white ">
                         <option value="Just starting out">Just starting out</option>
@@ -195,7 +195,7 @@ export default function ProfileProfInformationForm() {
             </div>
         </div>
         <button
-            className={`w-40 hover:opacity-75 rounded-lg mt-2 self-start ${primaryGradientDark} p-3 border-2 border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-black font-gilroy-black font-[18px] transition-all`}
+            className={`w-40 hover:opacity-75 rounded-lg mt-2 self-start ${primaryGradientDark} p-3 border-2 border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-white font-gilroy-black font-[18px] transition-all`}
             type="submit"
         >
             {saveButtonStates(fetcher.state)}

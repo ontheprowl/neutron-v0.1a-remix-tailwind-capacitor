@@ -1,8 +1,9 @@
 import { useFetcher, useLoaderData, useSubmit } from "@remix-run/react";
-import { ActionFunction, LoaderFunction, redirect } from "@remix-run/server-runtime";
+import type { ActionFunction, LoaderFunction} from "@remix-run/server-runtime";
+import { redirect } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
-import { get, onValue, query, ref } from "firebase/database";
-import { SetStateAction, useState } from "react";
+import { get, query, ref } from "firebase/database";
+import { useState } from "react";
 import DisputesChatComponent from "~/components/disputes/DisputesChatComponent";
 import FormButton from "~/components/inputs/FormButton";
 import NeutronModal from "~/components/layout/NeutronModal";
@@ -10,9 +11,11 @@ import { DisputeSeverityGenerator } from "~/components/layout/Statuses";
 import DisputeViewMobileUI from "~/components/pages/DisputeViewMobileUI";
 import { db } from "~/firebase/neutron-config.server";
 import { deleteFirestoreDoc, getSingleDoc, sendEvent } from "~/firebase/queries.server";
-import { Dispute, DisputeType } from "~/models/disputes";
-import { DisputeSeverity, DisputeStatus } from "~/models/disputes";
-import { ContractEvent, EventType, NeutronEvent } from "~/models/events";
+import type { Dispute} from "~/models/disputes";
+import { DisputeType } from "~/models/disputes";
+import { DisputeStatus } from "~/models/disputes";
+import type { NeutronEvent } from "~/models/events";
+import { ContractEvent, EventType } from "~/models/events";
 import { requireUser } from "~/session.server";
 import { generateTextForDisputeType } from "~/utils";
 
@@ -21,8 +24,6 @@ export const loader: LoaderFunction = async ({ request, params }) => {
     console.log("SERVER SIDE LOADER")
     const session = await requireUser(request, true);
     const disputeID = params.disputeID;
-    const viewerUsername = session?.metadata?.displayName;
-    const ownerUsername = params.username;
     console.log("DISPUTE ID IS : " + disputeID)
 
 

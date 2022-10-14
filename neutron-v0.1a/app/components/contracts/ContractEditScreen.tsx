@@ -1,6 +1,6 @@
 import { useFormContext } from "react-hook-form"
 import { Contract, ContractCreationStages, ContractCreator, ContractStatus } from "~/models/contracts";
-import { animateScroll, Link as ScrollLink } from 'react-scroll';
+import { animateScroll, Link as ScrollLink, scroller } from 'react-scroll';
 import GenericContractTemplate from '~/components/contracts/GenericContractTemplate';
 import TransparentButton from "../inputs/TransparentButton";
 import FormButton from "../inputs/FormButton";
@@ -21,7 +21,7 @@ import { useState } from "react";
 
 
 
-export default function ContractEditScreen({ viewMode }: { viewMode?: boolean }) {
+export default function ContractEditScreen({ viewMode, editMode }: { viewMode?: boolean, editMode?: boolean }) {
     const loaderData = useLoaderData();
     const { username } = useParams();
 
@@ -32,10 +32,8 @@ export default function ContractEditScreen({ viewMode }: { viewMode?: boolean })
 
     const publishContractStates = (transition: Transition) => {
         const isPublished = transition.submission?.formData.get('isPublished');
-        console.log("isPublished [PUBLISH STATES GENERATOR ] ")
-        console.log(isPublished);
         if (isPublished === "true") {
-            switch (transition.state) {
+            switch (fetcher.state) {
                 case "idle":
                     return (<span> Publish Contract</span>);
                 case "submitting":
@@ -50,15 +48,13 @@ export default function ContractEditScreen({ viewMode }: { viewMode?: boolean })
 
     }
 
-    const draftContractStates = (state: string) => {
+    const draftContractStates = (transition: Transition) => {
         const isPublished = transition.submission?.formData.get('isPublished');
-        console.log("isPublished [DRAFT STATES GENERATOR ] ")
-        console.log(isPublished);
 
         if (isPublished != "true") {
-            switch (transition.state) {
+            switch (fetcher.state) {
                 case "idle":
-                    return (<span> Draft Contract</span>);
+                    return (<span> Save as Draft</span>);
                 case "submitting":
                     return (<span>Drafting Contract</span>);
                 case "loading":
@@ -66,18 +62,13 @@ export default function ContractEditScreen({ viewMode }: { viewMode?: boolean })
             }
         }
         else {
-            return (<span>Draft Contract</span>)
+            return (<span>Save as Draft</span>)
         }
 
     }
     const transition = useTransition();
     const formMethods = useFormContext();
 
-
-    console.log("events here are:")
-    if (viewMode) {
-        console.dir(events)
-    }
     let metadata = loaderData.metadata;
 
     const status = ContractDataStore.useState(s => s.status)
@@ -85,7 +76,7 @@ export default function ContractEditScreen({ viewMode }: { viewMode?: boolean })
 
     return (
         <div className="flex flex-col sm:flex-row space-y-5 sm:space-x-10 justify-start">
-            <div className="bg-white h-[90vh] sm:h-auto w-auto basis-2/3 ring-1 ring-bg-secondary-dark  bg-opacity-90">
+            <div className="bg-white h-[90vh]  sm:h-auto w-auto basis-2/3 ring-1 ring-bg-secondary-dark  bg-opacity-90">
                 <GenericContractTemplate viewMode={viewMode}></GenericContractTemplate>
             </div>
             <div className="flex flex-col h-auto w-full basis-1/3 ">
@@ -132,11 +123,9 @@ export default function ContractEditScreen({ viewMode }: { viewMode?: boolean })
 
                         </div>} */}
                         {!viewMode &&
-                            <div className="flex flex-row space-x-6">
+                            <div className="flex flex-col sm:flex-row space-y-6 sm:space-y-0 sm:space-x-6 w-full">
                                 <FormButton submit={true} text={publishContractStates(transition)} ></FormButton>
                                 <TransparentButton variant="light" text={draftContractStates(transition)} onClick={(e) => {
-                                    console.log("This contract is being saved to drafts")
-                                    console.log("This is the contract creation data")
                                     let data: {
                                         [x: string]: any;
                                     } = { ...formMethods.getValues(), isPublished: false };
@@ -162,8 +151,8 @@ export default function ContractEditScreen({ viewMode }: { viewMode?: boolean })
                                     data = { ...data, clientID: clientAdditionalDetails.uid, providerID: providerAdditionalDetails.uid, clientUsername: clientAdditionalDetails.username, providerUsername: providerAdditionalDetails.username, viewers: JSON.stringify([providerAdditionalDetails.uid, clientAdditionalDetails.uid]) };
 
                                     for (const [key, value] of Object.entries(data)) {
-                                        console.log(" KEY IS : " + key)
-                                        if (key.includes('attachment')) {
+                                        if (key.includes('attachment') && typeof value != "string") {
+
                                             data[key] = value.item(0)
                                         }
 
@@ -176,16 +165,13 @@ export default function ContractEditScreen({ viewMode }: { viewMode?: boolean })
                                         }
 
                                         if (key === 'milestones') {
-                                            console.log("REDUNDANT MILESTONES DETECTED")
-                                            continue;
+                                            data[key] = JSON.stringify(value);
                                         }
 
                                         formdata.append(key, data[key]);
 
                                     }
 
-                                    console.log("This is the contract creation data ( after pre-processing ) [DRAFTS] ")
-                                    console.dir(data);
 
                                     fetcher.submit(formdata, { method: "post", encType: 'multipart/form-data' });
 
@@ -197,12 +183,47 @@ export default function ContractEditScreen({ viewMode }: { viewMode?: boolean })
 
 
                 </div>
-                <div className="hidden sm:flex sm:flex-col border-2 border-purple-400 rounded-xl m-5 mt-2">
+                <div className={`flex flex-col border-2 border-purple-400 rounded-xl m-5 mt-2`}>
 
-                    <ContractCustomizationComponent viewMode={viewMode}></ContractCustomizationComponent>
+                    <div className="flex flex-col m-5">
+                        {!viewMode && <><h1 className="prose prose-lg text-white mb-2"> Edit Contract</h1>
+                            <div className="flex flex-col mt-3 w-full space-y-4">
+                                <button type="button" onClick={() => {
+                                    ContractDataStore.update(s => {
+                                        s.stage = 0;
+                                    })
+                                }} className={`transition-all p-3 border-2 border-white text-left text-white prose prose-md rounded-lg active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-primary-dark hover:border-accent-dark`}>Client Information </button>
+                                <button type="button" onClick={() => {
+                                    ContractDataStore.update(s => {
+                                        s.stage = 1;
+                                    })
+                                }} className={`transition-all p-3 border-2 border-white text-left text-white prose prose-md rounded-lg active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-primary-dark hover:border-accent-dark`}>Scope of Work </button>
+                                <button type="button" onClick={() => {
+                                    ContractDataStore.update(s => {
+                                        s.stage = 2;
+                                    })
+                                }} className={`transition-all p-3 border-2 border-white text-left text-white prose prose-md rounded-lg active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-primary-dark hover:border-accent-dark`}>Payment and Milestones </button>
+                            </div></>}
+                        <div className="hidden sm:flex sm:flex-col">
+                            <h1 className="prose prose-lg text-white mt-3 mb-2"> Contract Shortcuts</h1>
+                            <div className="flex flex-col mt-3 w-full space-y-4">
+                                <button type="button" onClick={() => {
+                                    scroller.scrollTo('scope-of-work', { containerId: 'contract-container' });
+
+                                }} className={`transition-all p-3 border-2 border-white text-left text-white prose prose-md rounded-lg active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-primary-dark hover:border-accent-dark`}>Exhibit A - Scope of Work</button>
+                                <button type="button" onClick={() => {
+                                    scroller.scrollTo('exhibit-b', { containerId: 'contract-container' });
+
+                                }} className={`transition-all p-3 border-2 border-white text-left text-white prose prose-md rounded-lg active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-primary-dark hover:border-accent-dark`}>Exhibit B - Payment and Milestones</button>
+                                <button type="button" onClick={() => {
+                                    scroller.scrollTo('dispute-resolution', { containerId: 'contract-container' });
+
+                                }} className={`transition-all p-3 border-2 border-white text-left text-white prose prose-md rounded-lg active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-primary-dark hover:border-accent-dark`}>Clause 26 - Dispute Resolution</button>
+                            </div>
+                        </div>
+                    </div>
 
                 </div>
-                <MobileNavbarPadding></MobileNavbarPadding>
                 <MobileNavbarPadding></MobileNavbarPadding>
 
             </div>

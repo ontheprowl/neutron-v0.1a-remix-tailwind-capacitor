@@ -96,6 +96,7 @@ export enum ContractCreator {
 }
 
 export interface Contract {
+  isPublished?: string;
   clientPAN?: string;
   clientAadhaar?: string;
 

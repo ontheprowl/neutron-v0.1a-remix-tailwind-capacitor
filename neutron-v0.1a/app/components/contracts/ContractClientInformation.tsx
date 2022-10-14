@@ -44,7 +44,6 @@ export default function ContractClientInformation({ editMode }: { editMode?: boo
     const errors = formMethods.formState.errors;
     const trigger = formMethods.trigger;
 
-    const [showModal, setShowModal] = useState(true);
 
 
 
@@ -74,84 +73,87 @@ export default function ContractClientInformation({ editMode }: { editMode?: boo
 
     const creator = ContractDataStore.useState(s => s.creator);
 
-    console.log("The creator of this contract is :" + creator)
 
 
     return (
         <div>
-            <div className="flex flex-row items-center space-x-3">
-                <AccentedToggle name="isClient" states={{
-                    default: <div className="text-white">
-                        <span className="font-gilroy-black inline sm:hidden">I am the</span>
+            <div id="relationship_definition" className={`${editMode ? 'hidden' : ''}`}>
+                <div className="flex flex-row items-center space-x-3">
+                    <AccentedToggle name="isClient" states={{
+                        default: <div className="text-white">
+                            <span className="font-gilroy-black inline sm:hidden">I am the</span>
 
-                        <h1 className="font-gilroy-black">Employer</h1>
-                        <span className="font-gilroy-bold hidden sm:inline">Are you requesting the service?</span>
-                    </div>, toggled: <div className="text-white">
-                        <span className="font-gilroy-black inline sm:hidden">I am the</span>
-                        <h1 className="font-gilroy-black">Service Provider</h1>
-                        <span className="font-gilroy-bold hidden sm:inline">Are you providing the service?</span>
-                    </div>
-                }} onToggle={() => {
-                    if (creator === ContractCreator.IndividualServiceProvider) {
-                        ContractDataStore.update((s: Contract) => {
-                            s.creator = ContractCreator.IndividualClient
-                        })
-                        formMethods.unregister('providerName');
-                        formMethods.unregister('providerEmail');
-                    } else {
-                        ContractDataStore.update((s: Contract) => {
-                            s.creator = ContractCreator.IndividualServiceProvider
-                        })
-                        formMethods.unregister('clientName');
-                        formMethods.unregister('clientEmail');
-                    }
-                }}></AccentedToggle>
-            </div>
+                            <h1 className="font-gilroy-black">Employer</h1>
+                            <span className="font-gilroy-bold hidden sm:inline">Are you requesting the service?</span>
+                        </div>, toggled: <div className="text-white">
+                            <span className="font-gilroy-black inline sm:hidden">I am the</span>
+                            <h1 className="font-gilroy-black">Service Provider</h1>
+                            <span className="font-gilroy-bold hidden sm:inline">Are you providing the service?</span>
+                        </div>
+                    }} onToggle={() => {
+                        if (creator === ContractCreator.IndividualServiceProvider) {
+                            ContractDataStore.update((s: Contract) => {
+                                s.creator = ContractCreator.IndividualClient
+                            })
+                            formMethods.unregister('providerName');
+                            formMethods.unregister('providerEmail');
+                        } else {
+                            ContractDataStore.update((s: Contract) => {
+                                s.creator = ContractCreator.IndividualServiceProvider
+                            })
+                            formMethods.unregister('clientName');
+                            formMethods.unregister('clientEmail');
+                        }
+                    }}></AccentedToggle>
+                </div>
 
-            <h2 className="prose prose-lg mb-5 sm:mb-0 mt-5 text-white font-gilroy-black text-[30px]"> Counter-Party Details </h2>
-            <label htmlFor="simple-search" className="sr-only">{creator === ContractCreator.IndividualServiceProvider ? 'Employer Name ' : 'Service Provider Name'}</label>
-            <div className="flex flex-col sm:flex-row relative w-auto sm:items-end space-y-5 sm:space-x-10 justify-start align-middle">
-                {/* <div className="relative w-auto ">
+                <h2 className="prose prose-lg mb-5 sm:mb-0 mt-5 text-white font-gilroy-black text-[30px]"> Counter-Party Details </h2>
+                <label htmlFor="simple-search" className="sr-only">{creator === ContractCreator.IndividualServiceProvider ? 'Employer Name ' : 'Service Provider Name'}</label>
+                <div className="flex flex-col sm:flex-row relative w-auto sm:items-end space-y-5 sm:space-x-10 justify-start align-middle">
+                    {/* <div className="relative w-auto ">
                     <div className="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
                         <svg className="w-5 h-5 text-white dark:text-black" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path></svg>
                     </div>
                     <input type="text" id="existing-client" className=" bg-[#4A4A4A] pt-3 pb-3 pl-10 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Search for an existing client" required />
 
                 </div> */}
-                <div className=" space-y-3 w-full">
-                    <span className=" prose prose-md text-white font-gilroy-regular text-[18px]">{creator === ContractCreator.IndividualServiceProvider ? 'Employer Email ' : 'Service Provider Email'}<MandatoryAsterisk /></span>
-                    <input type="text" id="client-email" defaultValue={creator === ContractCreator.IndividualServiceProvider ? clientEmail : providerEmail} {...formMethods.register(creator === ContractCreator.IndividualServiceProvider ? 'clientEmail' : 'providerEmail', {
-                        required: true, pattern: {
-                            value: ValidationPatterns.emailValidationPattern,
-                            message: 'Not a valid email ID '
-                        }, validate: (v) => {
-                            return IsProfileComplete(v) || 'Either there is no Neutron account with this email ID, or the associated profile is not complete.';
-                        }
-                    })}
-                        className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="e.g : businessman@business.biz" required />
+                    <div className=" space-y-3 w-full">
+                        <span className=" prose prose-md text-white font-gilroy-regular text-[18px]">{creator === ContractCreator.IndividualServiceProvider ? 'Employer Email ' : 'Service Provider Email'}<MandatoryAsterisk /></span>
+                        <input type="text" id="client-email" defaultValue={creator === ContractCreator.IndividualServiceProvider ? clientEmail : providerEmail} {...formMethods.register(creator === ContractCreator.IndividualServiceProvider ? 'clientEmail' : 'providerEmail', {
+                            required: true, pattern: {
+                                value: ValidationPatterns.emailValidationPattern,
+                                message: 'Not a valid email ID '
+                            }, validate: (v) => {
+                                return IsProfileComplete(v) || 'This email ID is not associated with a KYC-complete Neutron profile';
+                            }
+                        })}
+                            className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg outline-none placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="e.g : businessman@business.biz" required />
 
-                    <div className="w-full h-5 mt-3 text-left">
-                        <ErrorMessage errors={errors} name={creator === ContractCreator.IndividualServiceProvider ? 'clientEmail' : 'providerEmail'} render={(data) => {
-                            return <span className="text-red-500 p-0 m-1 z-10">{data.message}</span>
-                        }} />
+                        <div className="w-full h-5 mt-3 text-left">
+                            <ErrorMessage errors={errors} name={creator === ContractCreator.IndividualServiceProvider ? 'clientEmail' : 'providerEmail'} render={(data) => {
+                                return <span className="text-red-500 p-0 m-1 z-10">{data.message}</span>
+                            }} />
+                        </div>
                     </div>
-                </div>
 
-                <div className="hidden sm:flex sm:h-20 w-5 border-l-gray-500 border-l-2"></div>
-                <div className=" space-y-3 w-full">
-                    <span className=" prose prose-md text-white font-gilroy-regular text-[18px]">{creator === ContractCreator.IndividualServiceProvider ? 'Employer Name ' : 'Service Provider Name'} (Autofilled)</span>
-                    <input type="text" id="client-name" defaultValue={creator === ContractCreator.IndividualServiceProvider ? returnUsername(clientEmail) : returnUsername(providerEmail)} {...formMethods.register(creator === ContractCreator.IndividualServiceProvider ? 'clientName' : 'providerName')} readOnly className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="e.g : Acme Corp" required />
-                    <div className="w-full h-5 mt-3 text-left">
-                        <ErrorMessage errors={errors} name={creator === ContractCreator.IndividualServiceProvider ? 'clientName' : 'providerName'} render={(data) => {
-                            return <span className="text-red-500 p-0 m-1 z-10">{data.message}</span>
-                        }} />
+                    <div className="hidden sm:flex sm:h-20 w-5 border-l-gray-500 border-l-2"></div>
+                    <div className=" space-y-3 w-full">
+                        <span className=" prose prose-md text-white font-gilroy-regular text-[18px]">{creator === ContractCreator.IndividualServiceProvider ? 'Employer Name ' : 'Service Provider Name'} (Autofilled)</span>
+                        <input type="text" id="client-name" defaultValue={creator === ContractCreator.IndividualServiceProvider ? returnUsername(clientEmail) : returnUsername(providerEmail)} {...formMethods.register(creator === ContractCreator.IndividualServiceProvider ? 'clientName' : 'providerName')} readOnly className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="e.g : Acme Corp" required />
+                        <div className="w-full h-5 mt-3 text-justify">
+                            <ErrorMessage errors={errors} name={creator === ContractCreator.IndividualServiceProvider ? 'clientName' : 'providerName'} render={(data) => {
+                                return <span className="text-red-500 p-0 m-1 z-10">{data.message}</span>
+                            }} />
+                        </div>
                     </div>
+
                 </div>
+                <hr className="w-full mt-5 border-solid border-gray-500"></hr>
 
             </div>
+
             <label htmlFor="simple-search" className="sr-only">Search through contacts</label>
 
-            <hr className="w-full mt-5 border-solid border-gray-500"></hr>
 
             <h2 className="prose prose-lg mt-3 text-white font-gilroy-bold text-[24px]"> Basic Details </h2>
             <div className="relative w-full mt-2 mb-5 sm:mt-5 sm:mb-5 flex flex-col ">
@@ -206,32 +208,32 @@ export default function ContractClientInformation({ editMode }: { editMode?: boo
                     toast("Invalid values detected for contract fields!", { theme: 'dark', type: 'warning' })
                 } else {
                     if (creator == ContractCreator.IndividualServiceProvider) {
-                        console.log("Creator is the service Provider ");
 
                         formMethods.setValue('providerEmail', metadata?.email);
-                        formMethods.setValue('providerName', metadata?.firstName + " " +  metadata?.lastName);
+                        formMethods.setValue('providerName', metadata?.firstName + " " + metadata?.lastName);
                         formMethods.setValue('providerPAN', metadata?.PAN);
                         formMethods.setValue('providerAadhaar', metadata?.aadhaar);
-                        formMethods.setValue('providerAddress', metadata?.address + ", " + metadata?.city +", " + metadata?.state + " - " + metadata?.pincode );
+                        formMethods.setValue('providerAddress', metadata?.address + ", " + metadata?.city + ", " + metadata?.state + " - " + metadata?.pincode);
                         formMethods.setValue('creator', metadata?.email);
                     }
                     else {
-                        console.log("The creator is the client ");
                         formMethods.setValue('clientEmail', metadata?.email);
-                        formMethods.setValue('clientName', metadata?.firstName + " " +  metadata?.lastName);
+                        formMethods.setValue('clientName', metadata?.firstName + " " + metadata?.lastName);
                         formMethods.setValue('clientPAN', metadata?.PAN);
                         formMethods.setValue('clientAadhaar', metadata?.aadhaar);
-                        formMethods.setValue('clientAddress', metadata?.address + ", " + metadata?.city +", " + metadata?.state + " - " + metadata?.pincode );
+                        formMethods.setValue('clientAddress', metadata?.address + ", " + metadata?.city + ", " + metadata?.state + " - " + metadata?.pincode);
                         formMethods.setValue('creator', metadata?.email);
 
                     }
                     ContractDataStore.update(s => {
                         s.stage = ContractCreationStages.ScopeOfWork;
 
-                        s.clientName = formMethods.getValues('clientName');
-                        s.clientEmail = formMethods.getValues('clientEmail')
-                        s.providerName = formMethods.getValues('providerName');
-                        s.providerEmail = formMethods.getValues('providerEmail');
+                        if (!editMode) {
+                            s.clientName = formMethods.getValues('clientName');
+                            s.clientEmail = formMethods.getValues('clientEmail')
+                            s.providerName = formMethods.getValues('providerName');
+                            s.providerEmail = formMethods.getValues('providerEmail');
+                        }
                         s.projectName = formMethods.getValues('projectName');
                         s.startDate = formMethods.getValues('startDate');
                         s.endDate = formMethods.getValues('endDate');
@@ -241,7 +243,6 @@ export default function ContractClientInformation({ editMode }: { editMode?: boo
                 }
 
             }} text="Continue"></FormButton>
-            {showModal && !editMode && <NeutronModal onConfirm={() => { setShowModal(false) }} heading={<p>Important Notice</p>} body={<p>Neutron provides generic contracts, but it may not contain important clauses for your country.<br></br><br></br> You can use and modify the contracts as you like, but it's provided 'as is' and to be used at your own risk. <br></br> <br></br><span className="text-purple-500 break-normal">Contracts can only be created between two Neutron users whose profiles and KYC have been completed</span> </p>} toggleModalFunction={setShowModal}></NeutronModal>}
 
         </div >);
 }

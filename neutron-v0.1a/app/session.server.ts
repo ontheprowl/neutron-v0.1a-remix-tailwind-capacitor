@@ -100,7 +100,6 @@ export async function getUserSession(request: Request, autoRedirect?: boolean) {
   }
 
   if (!token) {
-    console.log("No valid token");
     return null;
   }
 
@@ -109,7 +108,6 @@ export async function getUserSession(request: Request, autoRedirect?: boolean) {
 
     return { token: tokenUser, metadata: metadata ? metadata : undefined };
   } catch (error) {
-    console.log(error);
     if (autoRedirect) throw redirect("/login");
   }
 }

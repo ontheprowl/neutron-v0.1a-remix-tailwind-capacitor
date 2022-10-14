@@ -27,16 +27,12 @@ import { formatDateToReadableString } from '~/utils/utils';
 
 
 function generateDeliverables(milestones: { [key: string]: any }) {
-    console.log("Milestones arriving to the generator are : ")
-    console.dir(milestones)
     let deliverablesArray = []
     for (const [key, value] of Object.entries(milestones)) {
         const deliverable = { ...value }
         if (deliverable.name == 'Advance') continue
         if (key == "workMilestones") {
             for (const [milestoneNumber, milestone] of Object.entries(value)) {
-                console.log("The milestone value over here is : ");
-                console.dir(milestone)
                 deliverablesArray.push(
                     <div className="flex flex-row p-3 font-gilroy-medium space-x-20 w-full items-center justify-between">
                         {/* <img src={iconForDeliverableType(Number(milestone.submissionFormat))}
@@ -79,8 +75,6 @@ function generateDeliverables(milestones: { [key: string]: any }) {
 export default function ContractOverview_Backup() {
 
     const loaderData = useLoaderData();
-    console.log("LOADERDATA AT OVERVIEW")
-    console.dir(loaderData)
     let data = ContractDataStore.useState();
     let events, messages, from, to;
 

@@ -25,8 +25,8 @@ export default function ContractZeroState() {
         </div>
         <div className="flex flex-row justify-center mt-2">
             <div className="flex flex-col justify-start text-center ">
-                <h1 className="prose prose-lg font-gilroy-bold text-white text-[25px] mt-5">Your Contracts List is Empty!</h1>
-                <p className="prose prose-sm font-gilroy-regular text-white text-[18px] mb-5">You do not have any contracts right now...</p>
+                <h1 className="prose prose-lg font-gilroy-bold text-white text-[25px] mt-5">Your Contracts List is empty</h1>
+                <p className="prose prose-sm font-gilroy-regular text-white text-[18px] mb-5">You do not have any contracts right now</p>
                 <FormButton text={'Create Contract'} size="full"
                     onClick={() => { navigate(`/${currentUserData.displayName}/contracts/create`) }}
                 />

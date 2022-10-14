@@ -1,4 +1,4 @@
-import * as React from 'react'
+import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion';
 import { Form, useActionData, useLoaderData, useNavigate, useSubmit } from '@remix-run/react';
 import { useForm, FormProvider, useFormContext } from 'react-hook-form';
@@ -19,7 +19,7 @@ import { getDownloadURL, ref, uploadBytes, uploadBytesResumable, uploadString, U
 import { addDoc, collection } from 'firebase/firestore';
 import { EventEmitter } from 'stream';
 import MobileNavbarPadding from '~/components/layout/MobileNavbarPadding';
-import { addFirestoreDocFromData, getFirebaseDocs, getSingleDoc, sendEvent, setFirestoreDocFromData } from '~/firebase/queries.server';
+import { addFirestoreDocFromData, getFirebaseDocs, getSingleDoc, sendEvent, setFirestoreDocFromData, updateFirestoreDocFromData } from '~/firebase/queries.server';
 import { requireUser } from '~/session.server';
 import { unstable_parseMultipartFormData as parseMultipartFormData } from '@remix-run/server-runtime';
 import createFirebaseStorageFileHandler from '~/firebase/FirebaseUploadHandler';
@@ -29,11 +29,17 @@ import { ContractCreator, ContractStatus } from '~/models/contracts';
 import { ToastContainer } from 'react-toastify';
 import { useEffect } from 'react';
 import { injectStyle } from 'react-toastify/dist/inject-style';
+import NeutronModal from '~/components/layout/NeutronModal';
 
 
 
 const stages = [<ContractClientInformation key={0}></ContractClientInformation>, <ContractScopeOfWork key={1}></ContractScopeOfWork>, <ContractPaymentDetails key={3}></ContractPaymentDetails>, <ContractEditScreen key={4}></ContractEditScreen>];
 
+/**
+ * Create Contract - Loader Function 
+ * @param param0 
+ * @returns 
+ */
 export const loader: LoaderFunction = async ({ request }) => {
     const session = await requireUser(request, true);
     const users = await getFirebaseDocs('userUIDS');
@@ -63,13 +69,12 @@ export const action: ActionFunction = async ({ request }) => {
         }
 
         // TODO : Clean up the milestones processing.  Small workaround for now.
-        if (key === "milestonesProcessed") {
-            const actualMilestonesKey = "milestones";
-            data[actualMilestonesKey] = value;
-        }
-        else {
-            data[key] = value;
-        }
+
+        // * OLD LOGIC - Clean up milestonesProcessed during finalContractData creation.
+        // * NEW LOGIC - Clean up milestonesProcessed conditionally only if isPublished is true (Contract is being published)
+
+        data[key] = value;
+
 
     }
 
@@ -92,21 +97,31 @@ export const action: ActionFunction = async ({ request }) => {
     const finalContractData = { ...data }
 
 
-    console.log("FINAL CONTRACT DATA IS ")
-    console.log(finalContractData)
+
+
 
 
 
     if (finalContractData?.isPublished == "true") {
+
+        if (finalContractData?.milestonesProcessed) {
+            const actualMilestonesKey = "milestones";
+            finalContractData[actualMilestonesKey] = finalContractData?.milestonesProcessed;
+            delete finalContractData?.milestonesProcessed;
+        }
         const contractRef = await addFirestoreDocFromData({ ...data, status: ContractStatus.Published }, `contracts`);
         const numberOfContracts = new Number(session?.metadata?.contracts);
 
         const contractCreationEvent: NeutronEvent = { event: ContractEvent.ContractPublished, type: EventType.ContractEvent, payload: { data: { ...data }, message: 'A contract was created' }, uid: session?.metadata?.id, id: contractRef.id }
         const eventPublished = await sendEvent(contractCreationEvent, finalContractData?.viewers);
-        const metadataRef = await setFirestoreDocFromData({ ...session?.metadata, contracts: numberOfContracts.valueOf() + 1 }, `metadata`, session?.metadata?.id);
+        const metadataRef = await updateFirestoreDocFromData({ contracts: numberOfContracts.valueOf() + 1, funds: { escrowedFunds: session?.metadata?.funds?.escrowedFunds ? finalContractData?.contractNumericValue + session?.metadata?.funds?.escrowedFunds : finalContractData?.contractNumericValue } }, `metadata`, session?.metadata?.id);
+        const counterPartyMetadataRef = await updateFirestoreDocFromData({ funds: { escrowedFunds: session?.metadata?.funds?.escrowedFunds ? finalContractData?.contractNumericValue + session?.metadata?.funds?.escrowedFunds : finalContractData?.contractNumericValue } }, `metadata`, finalContractData?.creator == finalContractData?.clientEmail ? finalContractData?.providerID : finalContract?.clientID);
+
         return redirect(`/${session?.metadata?.displayName}/contracts/${contractRef.id}`)
 
     } else {
+
+
         const contractRef = await addFirestoreDocFromData({ ...data, status: ContractStatus.Draft }, `contracts`);
 
         const contractDraftEvent: NeutronEvent = { event: ContractEvent.ContractDrafted, type: EventType.ContractEvent, payload: { data: { ...data }, message: 'A contract was drafted' }, uid: session?.metadata?.id, id: contractRef.id }
@@ -136,6 +151,8 @@ export default function ContractCreation() {
 
 
     const creator = ContractDataStore.useState(s => s.creator);
+    const [showModal, setShowModal] = useState(true);
+
 
     useEffect(() => {
         injectStyle();
@@ -161,26 +178,26 @@ export default function ContractCreation() {
 
                 <ContractProcessStepper />
             </div>
-            <div className={`bg-[#2A2A2A] p-3 rounded-lg border-2 border-solid border-purple-400 h-50 sm:h-auto m-6`}>
+            <div className={`sm:bg-[#2A2A2A] p-3 rounded-lg sm:border-2 sm:border-solid sm:border-purple-400 h-50 sm:h-auto sm:m-6`}>
                 <FormProvider {...methods}>
                     <form onSubmit={
                         methods.handleSubmit(async (data) => {
-                            console.log("HANDLE SUBMIT HAS BEEN INVOKED")
-                            console.log("This is the contract creation data")
+
+
                             console.dir(data);
                             data = { ...data, isPublished: true }
                             const formdata = new FormData();
 
                             //TODO: Creator specific contract 
                             // if (creator == ContractCreator.IndividualServiceProvider) {
-                            //     console.log("Creator is the service Provider ");
+                            //     
 
                             //     data = { ...data, providerEmail: metadata?.email, providerName: metadata?.firstName + ' ' + metadata?.lastName, creator: metadata?.email }
                             //     console.dir(data)
 
                             // }
                             // else {
-                            //     console.log("The creator is the client ");
+                            //     
                             //     data = { ...data, clientEmail: metadata?.email, clientName: metadata?.firstName + ' ' + metadata?.lastName, creator: metadata?.email }
                             //     console.dir(data)
 
@@ -203,8 +220,19 @@ export default function ContractCreation() {
                                 }
 
                                 if (key === 'milestones') {
-                                    console.log("REDUNDANT MILESTONES DETECTED")
+
                                     continue;
+                                }
+
+                                if (key == "contractValue") {
+
+                                    formdata.append('contractNumericValue', value.replace('₹', '').replace(',', ''));
+
+                                }
+
+                                if (key == "basePay") {
+
+                                    formdata.append('basePayValue', value.replace('₹', '').replace(',', ''));
                                 }
 
 
@@ -220,14 +248,14 @@ export default function ContractCreation() {
 
                             }
 
-                            console.log("This is the contract creation data ( after pre-processing ) [ SUBMIT EVENT] ")
+
                             console.dir(data);
 
 
                             submit(formdata, { method: "post", encType: 'multipart/form-data' });
 
                         }, (errors) => {
-                            console.log(errors)
+
                         })
                     }>
                         <AnimatePresence exitBeforeEnter>
@@ -237,7 +265,7 @@ export default function ContractCreation() {
                                 initial={{ opacity: 0, x: 500 }}
                                 exit={{ opacity: 0, x: -10 }}
                                 transition={{ duration: 0.2 }}
-                                className="m-2"
+                                className="sm:m-2"
                             >
                                 {stages[stage]}
                             </motion.div>
@@ -246,7 +274,6 @@ export default function ContractCreation() {
                 </FormProvider>
             </div>
             <ToastContainer position="bottom-center"
-                autoClose={2000}
                 hideProgressBar={false}
                 newestOnTop={false}
                 closeOnClick
@@ -258,6 +285,8 @@ export default function ContractCreation() {
                 draggable
                 pauseOnHover></ToastContainer>
             <MobileNavbarPadding />
+            {showModal && <NeutronModal onConfirm={() => { setShowModal(false) }} heading={<p>Important Notice</p>} body={<p>This is a generic contract, which may not contain clauses as required by your country of residence<br></br><br></br> You can use and modify the contracts as you like, but their legal validity is restricted to Indian jurisdictions <br></br> <br></br><span className="text-purple-500 break-normal">Please note - Contracts can only be created between two Neutron users whose profiles and KYC have been completed</span> </p>} toggleModalFunction={setShowModal}></NeutronModal>}
+
 
         </div >
     )

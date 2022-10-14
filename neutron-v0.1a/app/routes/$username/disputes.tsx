@@ -1,7 +1,6 @@
 import { json, LoaderFunction, redirect } from "@remix-run/node";
 import { Outlet, useLoaderData, useNavigate } from "@remix-run/react";
-import { onValue, push, query, ref, set } from "firebase/database";
-import { collection, getDocs, where } from "firebase/firestore";
+import { collection, getDocs, where, query } from "firebase/firestore";
 import { ParamHTMLAttributes, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import DisputesChatComponent from "~/components/disputes/DisputesChatComponent";
@@ -158,7 +157,7 @@ export default function DisputesIndex() {
 
     const [selectedIndex, setSelectedIndex] = useState(0)
 
-    console.log(selectedIndex)
+    
 
     let navigate = useNavigate();
 
@@ -166,14 +165,10 @@ export default function DisputesIndex() {
     const metadata = data.metadata;
     const messages = data.result;
     const disputes: Dispute[] = data.disputes;
-    console.log("disputes")
-    console.dir(disputes)
-
+    
     const selectedDispute = disputes[selectedIndex];
 
 
-    console.log("messages on client side ")
-    console.dir(messages)
 
     return (
         <>

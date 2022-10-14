@@ -22,7 +22,6 @@ import DefaultSpinner from "../layout/DefaultSpinner";
 
 export default function RequestRevisionForm({ milestone, milestoneIndex, toggleModalFunction }: { milestone: Milestone, milestoneIndex: number, toggleModalFunction?: Dispatch<SetStateAction<boolean>> }) {
 
-    console.log("Milestone Index : " + milestoneIndex)
     const { contract, metadata, ownerUsername } = useLoaderData();
 
 

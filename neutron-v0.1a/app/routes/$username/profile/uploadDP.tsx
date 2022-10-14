@@ -1,9 +1,11 @@
-import { ActionFunction, json, redirect, UploadHandler, unstable_parseMultipartFormData as parseMultipartFormData } from "@remix-run/server-runtime";
-import { getDownloadURL, getStorage, ref, uploadBytes, uploadBytesResumable, UploadResult, UploadTask, UploadTask, UploadTaskSnapshot, UploadTaskSnapshot } from "firebase/storage";
+import type { ActionFunction } from "@remix-run/server-runtime";
+import { json, redirect, unstable_parseMultipartFormData as parseMultipartFormData } from "@remix-run/server-runtime";
+import type { UploadTaskSnapshot } from "firebase/storage";
+import { getDownloadURL, ref, uploadBytesResumable, } from "firebase/storage";
 import createFirebaseStorageFileHandler from "~/firebase/FirebaseUploadHandler";
 
 import { storage } from "~/firebase/neutron-config.server";
-import { deleteFirestoreDoc, setFirestoreDocFromData } from "~/firebase/queries.server";
+import { setFirestoreDocFromData } from "~/firebase/queries.server";
 import { requireUser } from "~/session.server";
 
 export const action: ActionFunction = async ({ request }) => {
@@ -21,14 +23,14 @@ export const action: ActionFunction = async ({ request }) => {
             const storageRef = ref(storage, `users/images/${session.metadata?.id}/${filename}`)
             console.log("ref generated")
 
-            const snapshot: UploadTaskSnapshot = await uploadBytesResumable( storageRef, buffer.buffer );
+            const snapshot: UploadTaskSnapshot = await uploadBytesResumable(storageRef, buffer.buffer);
             console.log(snapshot.metadata)
             console.log('Profile Picture uploaded to storage....');
-            while(snapshot.state != "success"){
+            while (snapshot.state != "success") {
                 console.log("Still running")
             }
             return getDownloadURL(snapshot.ref)
-            
+
         }, session: session
     }));
 

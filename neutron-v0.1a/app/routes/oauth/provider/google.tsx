@@ -7,7 +7,7 @@ export async function loader({ request }: { request: Request }) {
 }
 
 export async function action({ request }: { request: Request }) {
-    console.log("REQUEST ARRIVES AT GOOGLE OAUTH PROVIDER")
+    
     const session = await requireUser(request);
 
     if (!session) {

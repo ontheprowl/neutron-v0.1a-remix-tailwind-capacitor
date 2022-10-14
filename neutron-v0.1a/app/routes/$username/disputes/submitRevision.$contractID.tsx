@@ -1,9 +1,12 @@
-import { ActionFunction, json } from "@remix-run/server-runtime";
+import type { ActionFunction } from "@remix-run/server-runtime";
+import { json } from "@remix-run/server-runtime";
 import { randomUUID } from "crypto";
 import { redirectBack } from "remix-utils";
-import { addFirestoreDocFromData, getSingleDoc, sendEvent, updateFirestoreDocFromData } from "~/firebase/queries.server";
-import { DeliverableStatus, Milestone, MilestoneStatus, Revision } from "~/models/contracts";
-import { ContractEvent, EventType, NeutronEvent } from "~/models/events";
+import { getSingleDoc, sendEvent, updateFirestoreDocFromData } from "~/firebase/queries.server";
+import type { Revision } from "~/models/contracts";
+import { DeliverableStatus } from "~/models/contracts";
+import type { NeutronEvent } from "~/models/events";
+import { ContractEvent, EventType } from "~/models/events";
 import { requireUser } from "~/session.server";
 
 

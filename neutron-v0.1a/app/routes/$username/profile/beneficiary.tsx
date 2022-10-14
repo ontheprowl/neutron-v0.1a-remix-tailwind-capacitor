@@ -1,4 +1,4 @@
-import { ActionFunction } from "@remix-run/server-runtime";
+import type { ActionFunction } from "@remix-run/server-runtime";
 import { json } from "remix-utils";
 import { getFirebaseDocs, setFirestoreDocFromData, updateFirestoreDocFromData } from "~/firebase/queries.server";
 import { requireUser } from "~/session.server";

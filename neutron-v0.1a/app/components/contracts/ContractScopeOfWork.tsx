@@ -39,7 +39,7 @@ export default function ContractScopeOfWork({ editMode }: { editMode?: boolean }
     return (
         <div className="flex flex-col w-full h-auto space-y-5">
             <div className="flex flex-row space-x-3">
-                <div className="hidden sm:inline hover:drop-shadow-md  transition-all h-12 translate-y-[8px]  rounded-full">
+                <div className="sm:inline hover:drop-shadow-md  transition-all h-12 translate-y-[8px]  rounded-full">
                     <BackArrowButton className="p-2 ring-2 ring-transparent hover:bg-bg-secondary-dark hover:ring-purple-400 transition-all rounded-full" onClick={() => {
                         ContractDataStore.update(s => { s.stage = s.stage - 1 })
 
@@ -108,14 +108,18 @@ export default function ContractScopeOfWork({ editMode }: { editMode?: boolean }
                 <textarea defaultValue={description} {...formMethods.register('description', { required: true, minLength: { value: 10, message: 'The job description needs to be at least 140 characters long' } })} id="job-description" className=" bg-[#4A4A4A] h-32 pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white  text-sm rounded-lg placeholder-white w-full dark:bg-gray-700 dark:border-gray-600  dark:placeholder-white dark:text-white placeholder:overflow-ellipsis sm:overflow-visible" placeholder="The clearer you define your work, the better. Spell out what you'll do, including deliverables and dates. If necessary, you can attach a more detailed Statement of Work." required />
                 <div className="hidden sm:flex sm:h-30 w-5 border-l-gray-500 border-l-2 ml-3"></div>
 
-                <article className="prose prose-sm text-white break-normal font-gilroy-regular">A clear, complete Scope of Work outlines the work to be done, how it will be completed and by whom, and the expected outcomes. By knowing exactly what a Scope is and what it should contain, you can get your budget estimate off to a strong start, setting your project up for success even before kick-off.</article>
+                <article className="hidden prose prose-sm sm:block text-white break-normal font-gilroy-regular">A clear, complete Scope of Work outlines the work to be done, how it will be completed and by whom, and the expected outcomes. By knowing exactly what a Scope is and what it should contain, you can get your budget estimate off to a strong start, setting your project up for success even before kick-off.</article>
             </div >
             <div className="w-full h-8 mt-2 text-left">
                 <ErrorMessage errors={errors} name='description' render={(data) => {
                     return <span className="text-red-500 p-2 flex-wrap z-10">{data.message}</span>
                 }} />
             </div>
-            <h2 className="prose prose-md text-white mt-2 font-gilroy-bold text-[24px]"> Supporting Document</h2>
+            <div className=" flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 sm:items-center">
+                <h2 className="prose prose-md text-white font-gilroy-bold text-[24px] whitespace-nowrap"> Supporting Document </h2>
+
+                {editMode && typeof formMethods.getValues("attachment") == "string" && !formMethods.getValues("attachment").includes('null')  && <a className="hover:underline text-white text-[14px]" href={formMethods.getValues('attachment')}>Current Attached Document</a>}
+            </div>
 
             <input type="file" {...formMethods.register('attachment')} placeholder="Attach a relevant document" className="block w-auto max-w-fit text-sm bg-[#4A4A4A] text-white rounded-lg cursor-pointer dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 font-gilroy-regular text-[14px]" />
 

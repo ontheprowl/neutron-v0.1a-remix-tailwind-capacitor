@@ -22,10 +22,11 @@ const variants = {
 
 
 
-export default function AccentedToggle({ name, states, onToggle, variant }: { name: string, variant?: 'neutron-purple' | 'neutron-yellow', states?: { default: string, toggled: string }, onToggle?: React.MouseEventHandler }) {
+export default function AccentedToggle({ name, states, onToggle, variant, control }: { name: string, variant?: 'neutron-purple' | 'neutron-yellow', states?: { default: string, toggled: string }, control?: boolean, onToggle?: React.MouseEventHandler }) {
 
     const formMethods = useFormContext();
-    const [isOn, setIsOn] = useState(false)
+    const [isOn, setIsOn] = useState(control ? control : false)
+
 
     const toggleSwitch = () => setIsOn(!isOn)
 
@@ -47,7 +48,7 @@ export default function AccentedToggle({ name, states, onToggle, variant }: { na
         <div onClick={onToggle ? (e) => {
             onToggle(e)
             toggleSwitch()
-        } : toggleSwitch} className={variant && variant == "neutron-purple" ? `flex flex-start p-1 w-14 h-8 bg-bg-primary-dark cursor-pointer rounded-full   whitespace-nowrap ${isOn && 'place-content-end'} ${isOn ? primaryGradientDark: 'bg-gray-400'} ` : `flex flex-start w-48 bg-bg-primary-dark border-2 cursor-pointer border-accent-dark rounded-full whitespace-nowrap ${isOn && 'place-content-end'}`}>
+        } : toggleSwitch} className={variant && variant == "neutron-purple" ? `flex flex-start p-1 w-14 h-8 bg-bg-primary-dark cursor-pointer rounded-full   whitespace-nowrap ${isOn && 'place-content-end'} ${isOn ? primaryGradientDark : 'bg-gray-400'} ` : `flex flex-start w-48 bg-bg-primary-dark border-2 cursor-pointer border-accent-dark rounded-full whitespace-nowrap ${isOn && 'place-content-end'}`}>
 
             <motion.div
                 className={variant && variant == "neutron-purple" ? " flex items-center justify-center p-3 w-5 h-5 rounded-full bg-white" : "flex items-center justify-center p-3 rounded-full bg-accent-dark"}

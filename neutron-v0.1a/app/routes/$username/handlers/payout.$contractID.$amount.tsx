@@ -1,20 +1,20 @@
-import { ActionFunction, json } from "@remix-run/server-runtime";
-import { RSA_PKCS1_OAEP_PADDING } from "constants";
-import { publicDecrypt, publicEncrypt, randomUUID } from "crypto";
+import type { ActionFunction} from "@remix-run/server-runtime";
+import { json } from "@remix-run/server-runtime";
+import { publicEncrypt, randomUUID } from "crypto";
 import { readFileSync } from "fs";
 
 import moment from 'moment'
 import { env } from "process";
 import { getSingleDoc, sendEvent } from "~/firebase/queries.server";
-import { ContractEvent, EventType, NeutronEvent } from "~/models/events";
-import { Beneficiary } from "~/models/user";
+import type { NeutronEvent } from "~/models/events";
+import { ContractEvent, EventType } from "~/models/events";
+import type { Beneficiary } from "~/models/user";
 
-const PAYOUTS_TEST_CLIENT_ID = 'CF129414CB1AVAM7ILBNF68P879G';
-const PAYOUTS_TEST_CLIENT_SECRET = '0cf612cee0fc074d6f7306d7da05e42bd302ab14';
-const PAYOUTS_TEST_GET_BENFICIARY_ENDPOINT = 'https://payout-gamma.cashfree.com/payout/v1/getBeneficiary/';
-const PAYOUTS_TEST_ADD_BENEFICIARY_ENDPOINT = 'https://payout-gamma.cashfree.com/payout/v1/addBeneficiary';
-const PAYOUTS_TEST_AUTHORIZE_ENDPOINT = 'https://payout-gamma.cashfree.com/payout/v1/authorize';
-const PAYOUTS_TEST_REQUEST_TRANSFER_ENDPOINT = 'https://payout-gamma.cashfree.com/payout/v1/requestTransfer';
+// const PAYOUTS_TEST_CLIENT_ID = 'CF129414CB1AVAM7ILBNF68P879G';
+// const PAYOUTS_TEST_CLIENT_SECRET = '0cf612cee0fc074d6f7306d7da05e42bd302ab14';
+// const PAYOUTS_TEST_GET_BENFICIARY_ENDPOINT = 'https://payout-gamma.cashfree.com/payout/v1/getBeneficiary/';
+// const PAYOUTS_TEST_ADD_BENEFICIARY_ENDPOINT = 'https://payout-gamma.cashfree.com/payout/v1/addBeneficiary';
+// const PAYOUTS_TEST_AUTHORIZE_ENDPOINT = 'https://payout-gamma.cashfree.com/payout/v1/authorize';
 const PAYOUTS_PROD_GET_BENFICIARY_ENDPOINT = 'https://payout-api.cashfree.com/payout/v1/getBeneficiary/';
 const PAYOUTS_PROD_ADD_BENEFICIARY_ENDPOINT = 'https://payout-api.cashfree.com/payout/v1/addBeneficiary';
 const PAYOUTS_PROD_AUTHORIZE_ENDPOINT = 'https://payout-api.cashfree.com/payout/v1/authorize';

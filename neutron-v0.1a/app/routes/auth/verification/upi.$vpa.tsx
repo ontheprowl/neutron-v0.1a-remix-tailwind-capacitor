@@ -1,4 +1,4 @@
-import { ActionFunction } from "@remix-run/server-runtime";
+import type { ActionFunction } from "@remix-run/server-runtime";
 
 
 

@@ -13,6 +13,9 @@ import { useMemo } from 'react'
 import CreateContractMobileButton from "../inputs/CreateContractMobileButton";
 import DisputesButton from "../DisputesButton";
 import LogoutButton from "../LogoutButton";
+import { ContractDataStore } from "~/stores/ContractStores";
+import { DEFAULT_USER_STATE } from "~/models/user";
+import HomeButton from "../HomeButton";
 
 
 
@@ -22,8 +25,6 @@ export default function BottomNav() {
     let tab = UIStore.useState((s) => s.selectedTab);
     const date = useMemo(formatDateToReadableString, []);
 
-    console.log(tab);
-
     let navigate = useNavigate();
     return (
         <div className="flex flex-row w-full p-3 px-5 justify-between bg-[#202020] space-x-12   shadow-lg sm:hidden">
@@ -32,16 +33,16 @@ export default function BottomNav() {
                 className={`transition-all flex flex-col align-middle text-[14px] focus:opacity-50  active:opacity-60 `}
                 onClick={() => {
                     UIStore.update(s => {
-                        s.selectedTab = "Contracts"
+                        s.selectedTab = "Home"
                     })
                     navigate("dashboard")
 
                 }}
             >
                 <div className=" flex flex-row justify-center">
-                    <ContractsButton selected={tab === "Contracts"} />
+                    <HomeButton selected={tab === "Home"} />
                 </div>
-                <h1 className={`transition-all ${tab === "Contracts" ? 'text-purple-400' : 'text-white'}`}>Contracts</h1>
+                <h1 className={`transition-all ${tab === "Home" ? 'text-purple-400' : 'text-white'}`}>Home</h1>
             </div>
 
 

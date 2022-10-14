@@ -16,7 +16,7 @@ module.exports = (
   // cy.task('log', whateverYouWantInTheTerminal)
   on("task", {
     log(message) {
-      console.log(message);
+      
       return null;
     },
   });

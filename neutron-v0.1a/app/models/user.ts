@@ -14,11 +14,10 @@ export type UserState = {
 };
 
 export type Funds = {
-    disbursedFunds?:number,
-    committedFunds?:number,
-    disputedFunds?:number,
-    totalFunds?:number
-}
+  disbursedFunds?: number;
+  escrowedFunds?: number;
+  disputedFunds?: number;
+};
 
 export const DEFAULT_USER_STATE: UserState = {
   contracts: 0,
@@ -27,12 +26,11 @@ export const DEFAULT_USER_STATE: UserState = {
   profileUrl: "",
   age: 18,
   email: "",
-  funds:{
-    disbursedFunds:0,
-    committedFunds:0,
-    disputedFunds:0,
-    totalFunds:0
-  }
+  funds: {
+    disbursedFunds: 0,
+    escrowedFunds: 0,
+    disputedFunds: 0,
+  },
 };
 
 export type Password = {
@@ -40,14 +38,14 @@ export type Password = {
 };
 
 export type Beneficiary = {
-  beneId: string,
-  name: string,
-  email: string,
-  phone: string,
-  bankAccount: string,
-  ifsc: string,
-  address1: string,
-  city: string,
-  state: string,
-  pincode: string
-}
+  beneId: string;
+  name: string;
+  email: string;
+  phone: string;
+  bankAccount: string;
+  ifsc: string;
+  address1: string;
+  city: string;
+  state: string;
+  pincode: string;
+};

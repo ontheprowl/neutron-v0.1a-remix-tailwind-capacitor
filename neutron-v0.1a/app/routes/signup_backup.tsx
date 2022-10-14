@@ -46,12 +46,12 @@ export async function loader({ request }: { request: Request }) {
 
   //     // The signed-in user info.
   //     const user = result.user;
-  //     console.log(`GOOGLE OAUTH AUTHENTICATED USER IS : ${user}`)
+  //     
   //   }).catch((error) => {
   //     // Handle Errors here.
   //     const errorCode = error.code;
   //     const errorMessage = error.message;
-  //     console.log(`Error during oAuth flow.... error is : ${error.message}`)
+  //     
   //     // The email of the user's account used.
   //     const email = error.customData.email;
   //     // The AuthCredential type that was used.
@@ -85,7 +85,7 @@ export async function action({ request }: { request: Request }) {
     })
 
     await sendEmailVerification(user, { url: `http://${env.NODE_ENV === "development" ? "localhost:3000" : "test.neutron.money"}/auth/verification` });
-    console.log("\n verification email sent \n");
+    
     const userUIDRef = await setFirestoreDocFromData({ uid: user.uid, email: user.email, profileComplete: false }, 'userUIDS', `${displayName}`)
 
     const ref = await setFirestoreDocFromData({
@@ -95,7 +95,7 @@ export async function action({ request }: { request: Request }) {
     const token = await user.getIdToken();
     return createUserSession({ request: request, metadata: { 'path': ref.path }, userId: token, remember: true, redirectTo: `/login` })
   } catch (e) {
-    console.log("\n Error during signup form submission being logged : \n ");
+    
     console.dir(e)
     const neutronError = new NeutronError(e);
     return json({ type: neutronError.type, message: neutronError.message });
@@ -122,7 +122,7 @@ export default function Signup() {
   let submit = useSubmit();
 
   const userNames = data.usernames;
-  console.log(userNames)
+  
   let navigate = useNavigate();
   // const [user, loading, error] = useAuthState(auth);
 
@@ -146,7 +146,7 @@ export default function Signup() {
   useEffect(() => {
     const neutronError = actionData as NeutronError;
     if (neutronError) {
-      console.log("ERROR DURING LOGIN")
+      
       console.dir(neutronError);
       toast(<div><h2>{neutronError.message}</h2></div>, { theme: "dark", type: "error" })
 
@@ -180,7 +180,7 @@ export default function Signup() {
               <form
                 className=" space-y-1"
                 onSubmit={handleSubmit((data) => {
-                  console.log(data.email, data.password, data.displayName);
+                  
                   const form = new FormData();
                   form.append('email', data.email);
                   form.append('password', data.password)
@@ -278,7 +278,6 @@ export default function Signup() {
 
       </div>
       <ToastContainer position="bottom-center"
-        autoClose={2000}
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick

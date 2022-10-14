@@ -37,7 +37,7 @@ import { UIStore } from '~/stores/UIStore';
 
 export const loader: LoaderFunction = async ({ request, params }) => {
 
-    // console.log(auth.currentUser)
+    // 
     const session = await requireUser(request, true);
 
     const ownerUsername = params.username;
@@ -47,10 +47,13 @@ export const loader: LoaderFunction = async ({ request, params }) => {
     // const disputesQuery = query(collection(firestore, 'disputes'), limit(5));
     const contractsData = await getDocs(contractsQuery);
     // const disputesData = await getDocs(disputesQuery)
+
+    const contracts: { [x: string]: any }[] = contractsData.docs.map((document) => {
+        return { id: document.id, ...document.data() };
+    });
+
     return json({
-        contracts: contractsData.docs.map((document) => {
-            return { id: document.id, ...document.data() };
-        }).sort((a, b) => { return b.startDate - a.startDate }), disputes: [],
+        contracts: contracts.sort((a, b) => { return b.startDate - a.startDate }), disputes: [],
         metadata: session.metadata, ownerUsername: ownerUsername
     });
 }
@@ -61,14 +64,15 @@ export const action: ActionFunction = async ({ request }) => {
     const session = await requireUser(request, true);
     const data = await request.formData();
     const id = data.get('id');
-    console.log(data);
+    
+
     const docRef = doc(firestore, `contracts/${id}`);
 
     await deleteDoc(docRef);
     const numberOfContracts = new Number(session?.metadata?.contracts);
 
     const metadataRef = await setFirestoreDocFromData({ ...session?.metadata, contracts: numberOfContracts.valueOf() - 1 }, `metadata`, session?.metadata?.id);
-    console.log(`Contract deleted from firestore with id ${id}`);
+    
     return redirect(`${session?.metadata?.displayName}/dashboard`)
 
 }
@@ -84,7 +88,8 @@ export default function Dashboard() {
 
     const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
     const submit = useSubmit();
-    const userData: { contracts: Contract[], disputes: any[], metadata: any, ownerUsername: string } = useLoaderData();
+    const userData: { contracts: Contract[], disputes: any[], metadata: any, ownerUsername: string} = useLoaderData();
+
 
     const currentContract: Contract = userData.contracts[0]
 
@@ -163,7 +168,7 @@ export default function Dashboard() {
                                 >
                                     <div className='flex flex-row space-x-2 justify-center items-center'>
                                         <svg width="21" height="20" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M10.4993 4.16602V15.8327M4.66602 9.99935H16.3327" stroke="white" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round" />
+                                            <path d="M10.4993 4.16602V15.8327M4.66602 9.99935H16.3327" stroke="white" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
                                         </svg>
                                         <h1 className=''>Add Contract</h1>
 
@@ -173,16 +178,16 @@ export default function Dashboard() {
                             </div>
                         </div>
                     </div>
-                    <div className="flex flex-row bg-[#4d4d4d] h-10 mb-2 ml-6 space-x-4 p-2 w-1/2 border-2 border-gray-500 rounded-lg">
+                    {userData.contracts.length > 0 && <div className="flex flex-row bg-[#4d4d4d] h-10 mb-2 ml-6 space-x-4 p-2 w-1/2 border-2 border-gray-500 rounded-lg">
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M17.5 17.5L14.5834 14.5833M16.6667 9.58333C16.6667 13.4954 13.4954 16.6667 9.58333 16.6667C5.67132 16.6667 2.5 13.4954 2.5 9.58333C2.5 5.67132 5.67132 2.5 9.58333 2.5C13.4954 2.5 16.6667 5.67132 16.6667 9.58333Z" stroke="#BCBCBC" stroke-width="1.66667" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M17.5 17.5L14.5834 14.5833M16.6667 9.58333C16.6667 13.4954 13.4954 16.6667 9.58333 16.6667C5.67132 16.6667 2.5 13.4954 2.5 9.58333C2.5 5.67132 5.67132 2.5 9.58333 2.5C13.4954 2.5 16.6667 5.67132 16.6667 9.58333Z" stroke="#BCBCBC" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
 
                         <input type="text" placeholder="Search" onChange={(e) => {
                             setContractFilter(e?.target?.value);
                         }} className="w-full bg-[#4d4d4d] border-0 text-white placeholder:text-white focus:border-transparent outline-none " />
 
-                    </div>
+                    </div>}
                     {/* {currentContract ?
                     <div id="current-project-summary" className={`flex font-gilroy-regular flex-col sm:flex-row m-6 mt-2 w-auto rounded-xl h-auto min-h-52 ${primaryGradientDark} justify-between items-center`}>
                         <div className="flex flex-col m-0.5 rounded-xl p-5 w-full text-left bg-bg-secondary-dark">
@@ -214,7 +219,7 @@ export default function Dashboard() {
                 <MobileNavbarPadding /> */}
 
                     {currentContract ? <div className={`bg-[#202020] hidden sm:table p-3 rounded-xl border-2 max-h-[70vh] border-solid border-purple-400 ${userData.contracts.length > 3 ? 'h-[65vh]' : 'h-2/5'} m-6`}>
-                        <table className=" w-full max-h-[70vh] overflow-y-scroll sm:block table-auto h-[65vh] text-sm text-left text-gray-500 dark:text-gray-400">
+                        <table className={`w-full max-h-[70vh] overflow-y-scroll sm:block table-auto ${userData.contracts.length > 3 ? 'h-[65vh]' : 'h-auto'} text-sm text-left text-gray-500 dark:text-gray-400`}>
 
                             <tbody className='sm:block table-row-group'>
                                 <tr className={` border-b sm:flex sm:flex-row w-full dark:bg-gray-800 dark:border-gray-700 transition-all sticky top-0 pointer-events-none bg-bg-secondary-dark z-20  hover:bg-opacity-50 hover:drop-shadow-md dark:hover:bg-gray-600`}>
@@ -243,7 +248,7 @@ export default function Dashboard() {
 
                                 </tr>
                                 {userData?.contracts.filter((contract) => contractFilter ? contract.projectName?.includes(contractFilter) : true).map((contract: Contract, index: number) => {
-                                    console.log()
+                                    
                                     return (
                                         <tr key={contract.id} className={`border-b sm:flex sm:flex-row sm:justify-evenly sm:items-center w-full border-gray-400 dark:bg-gray-800 dark:border-gray-700 transition-all hover:bg-bg-primary-dark hover:bg-opacity-50 hover:border-accent-dark hover:drop-shadow-md dark:hover:bg-gray-600`}>
 
@@ -309,9 +314,8 @@ export default function Dashboard() {
                     }
 
                 }} body={<p className="text-red-600">You're about to delete a contract</p>} toggleModalFunction={setDeleteConfirmationModal}></NeutronModal>}
-              
+
                 <ToastContainer position="bottom-center"
-                    autoClose={2000}
                     hideProgressBar={false}
                     newestOnTop={false}
                     closeOnClick

@@ -11,9 +11,6 @@ import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
 
 
 export default function RaiseDisputeForm({ milestone, milestoneIndex, client, toggleModalFunction }: { milestone: Milestone, client?: boolean, milestoneIndex: number, toggleModalFunction?: Dispatch<SetStateAction<boolean>> }) {
-    console.log("Milestone Index : " + milestoneIndex)
-    console.log("Milestone for the dispute form is ")
-    console.dir(milestone)
     const { contract, metadata, ownerUsername } = useLoaderData();
 
     const methods = useForm();

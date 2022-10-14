@@ -32,7 +32,7 @@ import { injectStyle } from 'react-toastify/dist/inject-style';
 
 
 
-const stages = [<ContractClientInformation editMode key={0}></ContractClientInformation>, <ContractScopeOfWork editMode key={1}></ContractScopeOfWork>, <ContractPaymentDetails editMode key={3}></ContractPaymentDetails>, <ContractEditScreen key={4}></ContractEditScreen>];
+const stages = [<ContractClientInformation editMode key={0}></ContractClientInformation>, <ContractScopeOfWork editMode key={1}></ContractScopeOfWork>, <ContractPaymentDetails editMode key={3}></ContractPaymentDetails>, <ContractEditScreen editMode key={4}></ContractEditScreen>];
 
 export const loader: LoaderFunction = async ({ request, params }) => {
     const session = await requireUser(request, true);
@@ -81,6 +81,12 @@ export const action: ActionFunction = async ({ request, params }) => {
 
     const finalContractData = { ...data, }
 
+    // * Creator parameter should not be replaced 
+
+    delete finalContractData['creator'];
+    delete finalContractData['viewers'];
+    // * Temporary workaround
+    
     if (finalContractData?.isPublished == "true") {
         const contractRef = await updateFirestoreDocFromData({ ...data, status: ContractStatus.Published }, `contracts`, `${contractID}`);
         const contractCreationEvent: NeutronEvent = { event: ContractEvent.ContractPublished, type: EventType.ContractEvent, payload: { data: { ...data }, message: 'A contract was created' }, uid: session?.metadata?.id, id: contractRef.id }
@@ -152,7 +158,6 @@ export default function ContractEdit() {
                             data = { ...data, isPublished: true }
                             const formdata = new FormData();
 
-                            //TODO: Creator specific contract 
                             if (creator == ContractCreator.IndividualServiceProvider) {
                                 console.log("Creator is the service Provider ");
 
@@ -172,7 +177,7 @@ export default function ContractEdit() {
                             data = { ...data, clientID: clientAdditionalDetails.uid, providerID: providerAdditionalDetails.uid, clientUsername: clientAdditionalDetails.username, providerUsername: providerAdditionalDetails.username, externalDeliverables: data.externalDeliverables == "true" ? true : false };
                             for (const [key, value] of Object.entries(data)) {
 
-                                if (key.includes('attachment')) {
+                                if (key.includes('attachment') && typeof value == typeof FileList) {
                                     data[key] = value.item(0)
                                 }
                                 if (key.includes('deliverable')) {
@@ -201,9 +206,6 @@ export default function ContractEdit() {
 
                             }
 
-                            console.log("This is the contract creation data ( after pre-processing ) [ SUBMIT EVENT] ")
-                            console.dir(data);
-
 
                             submit(formdata, { method: "post", encType: 'multipart/form-data' });
 
@@ -227,7 +229,6 @@ export default function ContractEdit() {
                 </FormProvider>
             </div>
             <ToastContainer position="bottom-center"
-                autoClose={2000}
                 hideProgressBar={false}
                 newestOnTop={false}
                 closeOnClick

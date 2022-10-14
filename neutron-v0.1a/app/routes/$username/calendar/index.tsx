@@ -1,9 +1,8 @@
-import { json, LoaderFunction } from "@remix-run/server-runtime";
+import type { LoaderFunction } from "@remix-run/server-runtime";
+import { json } from "@remix-run/server-runtime";
 import { useLoaderData } from "@remix-run/react";
-import { Scheduler } from "~/components/scheduler/Scheduler";
 import { listEvents } from "~/firebase/calendar-apis.server";
 import { authorizeAndExecute } from "~/firebase/gapis-config.server";
-import { formatDateToReadableString } from "~/utils/utils";
 
 
 

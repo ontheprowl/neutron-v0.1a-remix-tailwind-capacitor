@@ -31,9 +31,8 @@ export default function MilestoneFormEntry({ milestoneNumber }: { milestoneNumbe
         milestonePercentageNumber = parseInt(milestonePercentage.replace("%", ''));
     }
 
-    console.log("Milestones count is " + milestoneNumber)
     const minDate = milestoneNumber >= 1 ? prevEndDate : startDate;
-    console.log(`minDate for ${milestoneNumber} is : ` + minDate)
+    
 
     //formMethods.setValue(`milestones.${milestoneNumber}.value`, milestonePercentageNumber / 100 * contractValueNumber);
 

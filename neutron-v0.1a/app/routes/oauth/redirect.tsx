@@ -16,7 +16,7 @@ const TOKEN_PATH = "tokens.json"
 export async function action({ request }: { request: Request }) {
     const session = await requireUser(request, true);
 
-    console.log(await request.json());
+    
 
     return redirect(`/${session?.metadata?.displayName}/dashboard`)
 
@@ -34,11 +34,11 @@ export const loader: LoaderFunction = async ({ request }) => {
             if (tokens.access_token && tokens.refresh_token) {
                 oAuth2Client.setCredentials(tokens);
                 const tokenInfoUID: string = (await oAuth2Client.getTokenInfo(tokens.access_token)).sub;
-                console.log(tokens);
+                
                 const buffer = fs.readFileSync('token-uids.json');
                 const tokenUIDMappings = JSON.parse(buffer.toString());
                 const userUID = tokenUIDMappings[tokenInfoUID];
-                console.log(`User ID is ${userUID}`);
+                
                 if (userUID) {
                     return json({ status: 'user already' })
 
@@ -56,7 +56,7 @@ export const loader: LoaderFunction = async ({ request }) => {
                     const photoURL = result.data.photos[0]?.url;
                     const uid = randomUUID();
 
-                    console.log(`User details from google are : \n`);
+                    
                     console.dir(result.data);
 
 
@@ -67,12 +67,12 @@ export const loader: LoaderFunction = async ({ request }) => {
                     // CREATE FIREBASE USER, WITH NEW UID
                     await adminAuth.createUser({ uid: uid, email: email, password: password, displayName: name, photoURL: photoURL });
 
-                    console.log(`Firebase user successfully created`);
+                    
 
                     // MAP TOKEN UID TO FIREBASE UID
                     tokenUIDMappings[tokenInfoUID] = uid;
 
-                    console.log(`Token mapping complete`);
+                    
 
                     // WRITE NEW MAPPING TO MAPPING FILE
                     fs.writeFileSync(`token-uids.json`, JSON.stringify(tokenUIDMappings))
@@ -100,7 +100,7 @@ export const loader: LoaderFunction = async ({ request }) => {
             }
 
 
-            // console.log('Token stored to',);
+            // 
 
         }
     } catch (e) {

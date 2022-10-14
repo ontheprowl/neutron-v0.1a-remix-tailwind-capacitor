@@ -1,7 +1,6 @@
-import { useActionData, useLoaderData } from "@remix-run/react";
+import { useLoaderData } from "@remix-run/react";
 import { redirect } from "@remix-run/server-runtime";
-import { json } from "remix-utils";
-import { credentials, oAuth2Client } from "~/firebase/gapis-config.server";
+import { oAuth2Client } from "~/firebase/gapis-config.server";
 import fs from 'fs';
 import { requireUser } from "~/session.server";
 

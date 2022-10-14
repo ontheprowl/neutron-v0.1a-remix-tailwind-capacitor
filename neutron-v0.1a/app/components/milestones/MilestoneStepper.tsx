@@ -34,7 +34,7 @@ export default function MilestoneStepper() {
     //     ENV = window.ENV;
     // }
 
-    // console.log("ENV IS : " + ENV.NODE_ENV);
+    // 
 
 
     const data = useLoaderData();
@@ -44,7 +44,7 @@ export default function MilestoneStepper() {
 
     const { contract, metadata, ownerUsername, node_env } = data as { contract: Contract, metadata: { [x: string]: any }, ownerUsername: string, node_env: string };
 
-    console.log("Environment value is : " + node_env);
+    
     const [loading, setLoading] = useState<boolean>(true);
     const [targetMilestoneInfo, setTargetMilestoneInfo] = useState<{ milestone: Milestone, milestoneIndex?: string | undefined, nextMilestoneIndex?: string | undefined }>();
     const [approvalModal, setApprovalModal] = useState<boolean>(false);
@@ -61,8 +61,8 @@ export default function MilestoneStepper() {
     }, [setLoading, contractEvents])
 
     const sortedEvents = contractEvents.sort((a, b) => (a?.timestamp - b?.timestamp))
-    console.log("Sorted events are : ")
-    console.log(sortedEvents)
+    
+    
     const milestones = contract.milestones
 
 
@@ -89,7 +89,7 @@ export default function MilestoneStepper() {
                     form.append("contract", JSON.stringify(contract))
                     //TODO : Need to set this flag on the last milestone
                     if (targetMilestoneInfo?.milestone.isLastMilestone) {
-                        console.log("LAST MILESTONE IDENTIFIED");
+                        
                         form.append("isLastMilestone", Boolean(true).toString());
                     }
                     else {
@@ -173,7 +173,7 @@ export default function MilestoneStepper() {
                     {/* {approve && metadata.email == contract.clientEmail ?
                         <div className="flex flex-col justify-start space-y-3 p-3">
                             <FormButton onClick={() => {
-                                console.log("MILESTONE INDEX FOR APPROVAL :" + nextMilestoneIndex)
+                                
                                 console.dir("MILESTONE GOING TO APPROVAL ACTION :")
                                 console.dir(milestone);
                                 setTargetMilestoneInfo({ milestone: milestone, nextMilestoneIndex: Number(nextMilestoneIndex) + 1 });
@@ -202,7 +202,7 @@ export default function MilestoneStepper() {
                                         form.append("externallyDelivered", 'true');
                                         form.append("milestone", JSON.stringify(milestone));
                                         if (milestone.isLastMilestone) {
-                                            console.log("LAST MILESTONE IDENTIFIED");
+                                            
                                             form.append("isLastMilestone", Boolean(true).toString());
                                             form.append("milestoneIndex", contract.milestones.workMilestones.length - 1);
                                         } else {
@@ -224,7 +224,7 @@ export default function MilestoneStepper() {
                                             form.append("deliverableFile", file);
                                             form.append("milestone", JSON.stringify(milestone));
                                             if (milestone.isLastMilestone) {
-                                                console.log("LAST MILESTONE IDENTIFIED");
+                                                
                                                 form.append("isLastMilestone", Boolean(true).toString());
                                                 form.append("milestoneIndex", Object.keys(contract?.milestones?.workMilestones).length - 1);
                                             } else {
@@ -267,7 +267,7 @@ export default function MilestoneStepper() {
                     {approve && metadata.email == contract.clientEmail ?
                         <div className="flex flex-col justify-start space-y-3 p-3">
                             <FormButton onClick={() => {
-                                console.log("MILESTONE INDEX FOR APPROVAL :" + nextMilestoneIndex)
+                                
                                 console.dir("MILESTONE GOING TO APPROVAL ACTION :")
                                 console.dir(milestone);
                                 setTargetMilestoneInfo({ milestone: milestone, nextMilestoneIndex: Number(nextMilestoneIndex) + 1 });
@@ -296,7 +296,7 @@ export default function MilestoneStepper() {
                                         form.append("externallyDelivered", 'true');
                                         form.append("milestone", JSON.stringify(milestone));
                                         if (milestone.isLastMilestone) {
-                                            console.log("LAST MILESTONE IDENTIFIED");
+                                            
                                             form.append("isLastMilestone", Boolean(true).toString());
                                             form.append("milestoneIndex", contract.milestones.workMilestones.length - 1);
                                         } else {
@@ -319,7 +319,7 @@ export default function MilestoneStepper() {
                                                 form.append("deliverableFile", file);
                                                 form.append("milestone", JSON.stringify(milestone));
                                                 if (milestone.isLastMilestone) {
-                                                    console.log("LAST MILESTONE IDENTIFIED");
+                                                    
                                                     form.append("isLastMilestone", Boolean(true).toString());
                                                     form.append("milestoneIndex", Object.keys(contract?.milestones?.workMilestones).length - 1);
                                                 } else {
@@ -383,12 +383,12 @@ export default function MilestoneStepper() {
 
         let milestone = event?.payload?.data.queuedMilestone;
         let nextMilestoneIndex = event?.payload?.data.nextMilestoneIndex;
-        console.log("INDEX IN THE STEP EVENT  : " + eventIndex);
+        
 
         switch (event?.event) {
 
             case ContractEvent.ContractDrafted:
-                return <MilestoneStep key={event.timestamp} index={eventIndex} status={variant} name={variant == MilestoneStatus.Completed ? `Contract was drafted and then published by ${contract.providerName}` : `Contract has been drafted by ${contract.providerName}`} subline={variant == MilestoneStatus.Completed ? formatDateToReadableString(event.timestamp, false, true) : 'Current Status'} />
+                return <MilestoneStep key={event.timestamp} index={eventIndex} status={variant} name={variant == MilestoneStatus.Completed ? `Contract was drafted and then published by ${contract.creator == contract.clientEmail? contract.clientName : contract.providerName}` : `Contract has been drafted by ${contract.creator == contract.clientEmail? contract.clientName : contract.providerName}`} subline={variant == MilestoneStatus.Completed ? formatDateToReadableString(event.timestamp, false, true) : 'Current Status'} />
 
             case ContractEvent.ContractPublished:
 
@@ -433,7 +433,7 @@ export default function MilestoneStepper() {
                     </div>)
 
             case ContractEvent.ContractDisputeRegistered:
-                console.log("Dispute registered event")
+                
                 const pausedMilestone = event?.payload?.data?.currentMilestone;
                 const registeredDispute: Dispute = event?.payload?.data?.dispute;
                 return (
@@ -499,11 +499,11 @@ export default function MilestoneStepper() {
         let milestoneArray: JSX.Element[] = [];
         for (let currentIndex = 0; currentIndex < events.length - 1; currentIndex++) {
             const currentEvent = events[currentIndex]
-            console.log(`Event ${currentIndex}`);
+            
             console.dir(currentEvent)
             milestoneArray.push(generateStepForEvent(currentEvent, MilestoneStatus.Completed, currentIndex))
         }
-        console.log(`Event ${events.length - 1}`);
+        
         console.dir(events[events.length - 1]);
         milestoneArray.push(generateStepForEvent(events[events.length - 1], MilestoneStatus.Current, events.length - 1))
         // milestoneArray.push(

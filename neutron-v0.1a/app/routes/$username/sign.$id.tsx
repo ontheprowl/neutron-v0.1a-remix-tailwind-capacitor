@@ -1,6 +1,8 @@
-import { ActionFunction, json, LoaderFunction, redirect } from "@remix-run/server-runtime";
+import type { ActionFunction, LoaderFunction } from "@remix-run/server-runtime";
+import { redirect } from "@remix-run/server-runtime";
 import { getSingleDoc, sendEvent, updateFirestoreDocFromData } from "~/firebase/queries.server";
-import { ContractEvent, EventType, NeutronEvent } from "~/models/events";
+import type { NeutronEvent } from "~/models/events";
+import { ContractEvent, EventType } from "~/models/events";
 import { requireUser } from "~/session.server";
 
 

@@ -1,6 +1,5 @@
 
 import type { LoaderFunction } from "@remix-run/server-runtime";
-import type { ExternalScriptsFunction } from "remix-utils";
 
 import PDFViewer from "~/components/deliverables/PDFViewer.client";
 

@@ -14,10 +14,8 @@ export const action: ActionFunction = async ({ request }) => {
         body: data,
     }).then((response) => {
         let data = response.json();
-        console.log(data);
         return data;
     }).then((data) => {
-        console.log(data);
         window.location.replace(data.paymentLink);
     });
 

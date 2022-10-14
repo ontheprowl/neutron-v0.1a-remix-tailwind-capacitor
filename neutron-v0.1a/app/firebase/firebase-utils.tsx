@@ -1,6 +1,7 @@
 import type { Auth } from "firebase/auth";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { getDownloadURL, ref, uploadBytesResumable, UploadTaskSnapshot } from "firebase/storage";
+import type { UploadTaskSnapshot } from "firebase/storage";
+import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { storage } from "./neutron-config.server";
 
 

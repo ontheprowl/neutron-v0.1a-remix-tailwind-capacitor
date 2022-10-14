@@ -1,5 +1,5 @@
 import { useFetcher, useLoaderData } from "@remix-run/react";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { ToastContainer } from "react-toastify";
 import { injectStyle } from "react-toastify/dist/inject-style";
@@ -21,15 +21,17 @@ export default function ProfileMobileUI() {
 
     const data = useLoaderData();
     const fetcher = useFetcher();
+
+
     const userMetadata = data.metadata;
     const profilePicture = userMetadata.photoURL;
-    console.dir("PROFILE PICTURE IS : " + profilePicture)
 
     useEffect(() => {
         injectStyle();
-
-
+      
     })
+
+
 
     const [tab, setTab] = useState(0);
     const [logoutConfirmationModal, setLogoutConfirmationModal] = useState(false);
@@ -49,14 +51,14 @@ export default function ProfileMobileUI() {
                     <div className="flex flex-row justify-center">
                         <button onClick={() => {
                             const dpInput = document.getElementById("dp-input");
-                            console.log(`PP input element is  : ${dpInput}`)
+
                             dpInput?.click()
                         }}>
                             <img alt="profile" src={profilePicture ? profilePicture : PlaceholderDP} className="h-20 w-20 mt-8 translate-y-[-30px] bg-[#e5e5e5] border-8 cursor-pointer hover:opacity-50 hover:ring-1 outline-none transition-all hover:ring-[#8364E8] border-solid border-black rounded-full self-center  object-contain"></img>
                             <input type="file" name="dp-input" id="dp-input" onChange={(e) => {
                                 if (e?.currentTarget?.files) {
                                     const file = e.currentTarget.files[0];
-                                    console.log(file)
+
                                     const form = new FormData();
                                     form.append('dpFile', file)
                                     fetcher.submit(form, { method: "post", action: `/${userMetadata.displayName}/profile/uploadDP`, encType: 'multipart/form-data' })
@@ -88,7 +90,7 @@ export default function ProfileMobileUI() {
                 </div>
 
             </div>
-            <div id="profile-forms-container" className="flex flex-col w-auto sm:w-full bg-bg-secondary-dark border-2 rounded-xl m-5 mt-2 p-5 pt-1 border-purple-400">
+            <div id="profile-forms-container" className="flex flex-col w-auto sm:w-full bg-bg-secondary-dark border-2 rounded-xl m-5 mt-2 pt-2 border-purple-400">
                 {/* <AnimatePresence exitBeforeEnter> */}
                 <motion.div
                     layout
@@ -97,7 +99,7 @@ export default function ProfileMobileUI() {
                     initial={{ opacity: 0, x: 500 }}
                     exit={{ opacity: 0, x: -10 }}
                     transition={{ duration: 0.3 }}
-                    className="m-2"
+                    className=" m-2"
                 >
                     {profileForms[tab]}
                 </motion.div>
@@ -114,7 +116,6 @@ export default function ProfileMobileUI() {
                 });
             }} heading={<h1> You are about to log out of the Neutron app </h1>} body={<p> Are you sure you want to proceed?</p>} toggleModalFunction={setLogoutConfirmationModal}></NeutronModal>}
             <ToastContainer position="bottom-center"
-                autoClose={2000}
                 hideProgressBar={false}
                 newestOnTop={false}
                 closeOnClick

@@ -36,7 +36,7 @@ export async function loader({ request }: { request: Request }) {
   const session = await requireUser(request);
 
   if (session && getAuth().currentUser?.emailVerified) {
-    console.log('Session retrieved from cookies....')
+    
     return redirect(`/${session?.metadata?.displayName}/dashboard`)
   }
 
@@ -49,12 +49,12 @@ export async function loader({ request }: { request: Request }) {
 
   //     // The signed-in user info.
   //     const user = result.user;
-  //     console.log(`GOOGLE OAUTH AUTHENTICATED USER IS : ${user}`)
+  //     
   //   }).catch((error) => {
   //     // Handle Errors here.
   //     const errorCode = error.code;
   //     const errorMessage = error.message;
-  //     console.log(`Error during oAuth flow.... error is : ${error.message}`)
+  //     
   //     // The email of the user's account used.
   //     const email = error.customData.email;
   //     // The AuthCredential type that was used.
@@ -87,17 +87,18 @@ export async function action({ request }: { request: Request }) {
 
     const firstLogin = Boolean(metadata?.firstLogin);
 
-    //* Send Welcome Email on First Login (SIB Template #13)
-    if (!firstLogin && !(email == "test@test.com" || email == "demo@neutron-demo.com" || email=="tester@neutronalpha.in")) {
-      const emailResult = await sendTeamEmail(email, user?.displayName, { "FIRSTNAME": user?.displayName }, 13);
-      const updateLoginMetadataRef = await updateFirestoreDocFromData({ firstLogin: true }, 'metadata', `${user.uid}`);
-      console.dir(emailResult)
 
-    }
-    console.log(`Current user is : ${user.email}`)
+    
     const token = await user.getIdToken();
-    console.log("EMAIL VERFIED ? " + user.emailVerified)
-    if (user.emailVerified || email == "test@test.com" || email == "demo@neutron-demo.com" || email=="tester@neutronalpha.in") {
+    
+    if (user.emailVerified || email == "test@test.com" || email == "demo@neutron-demo.com" || email == "tester@neutronalpha.in") {
+      //* Send Welcome Email on First Login (SIB Template #13)
+      if (!firstLogin && !(email == "test@test.com" || email == "demo@neutron-demo.com" || email == "tester@neutronalpha.in")) {
+        const emailResult = await sendTeamEmail(email, user?.displayName, { "FIRSTNAME": user?.displayName }, 13);
+        const updateLoginMetadataRef = await updateFirestoreDocFromData({ firstLogin: true }, 'metadata', `${user.uid}`);
+        console.dir(emailResult)
+
+      }
       return createUserSession({ request: request, metadata: { path: ref.path }, userId: token, remember: true, redirectTo: profileComplete ? `/${user.displayName}/dashboard` : `/${user.displayName}/profile` })
     } else {
       throw new Error("neutron-auth/email-not-verified");
@@ -122,16 +123,16 @@ export default function Login() {
       case "submitting":
         return (<span>Logging you in</span>)
       case "loading":
-        return (<DefaultSpinner></DefaultSpinner>)
+        return (<DefaultSpinner size="regular"></DefaultSpinner>)
     }
   }
   const data = useLoaderData();
   const actionData = useActionData();
-  console.log(actionData)
+  
   let submit = useSubmit();
   const transition = useTransition();
   const parsedData = JSON.parse(data);
-  console.log(parsedData)
+  
   // const [user, loading, error] = useAuthState(auth);
 
   const { register, handleSubmit } = useForm();
@@ -140,21 +141,19 @@ export default function Login() {
     injectStyle();
     const neutronError = actionData as NeutronError;
     if (neutronError) {
-      console.log("ERROR DURING LOGIN")
-      console.dir(neutronError);
       toast(<div><h2>{neutronError.message}</h2></div>, { theme: "dark", type: "error" })
 
     }
 
 
     // if (!loading && user && !error) {
-    //   console.log(user);
+    //   
     //   setTimeout(() => {
     //     if (parsedData.gapi_scopes_valid) {
     //       navigate("/session/dashboard");
     //     }
     //     else {
-    //       console.log(parsedData)
+    //       
 
     //       window.location.href = parsedData.authurl;
     //     }
@@ -176,7 +175,7 @@ export default function Login() {
             <div className="flex flex-col w-full h-full justify-center">
               <div className="bg-bg-primary-dark rounded-lg text-left self-center sm:w-[500px]">
                 <h1
-                  className={`text-left sm:ml-0 font-gilroy-black text-white text-[40px]`}
+                  className={`text-left sm:ml-0 font-gilroy-black text-white text-[30px]`}
                 >
                   Login
                 </h1>
@@ -186,7 +185,7 @@ export default function Login() {
                     <form
                       className=" space-y-6"
                       onSubmit={handleSubmit((data) => {
-                        console.log(data.email, data.password);
+                        
                         const form = new FormData();
                         form.append('email', data.email);
                         form.append('password', data.password)
@@ -194,45 +193,46 @@ export default function Login() {
                       })}
                     >
                       <div className="sm:text-left space-y-3 w-full">
-                        <span className=" prose prose-md text-white font-gilroy-black text-[25px]">Email</span>
+                        <span className=" prose prose-md text-white font-gilroy-black text-[22px]">Email</span>
                         <input  {...register('email')} type="text" placeholder="e.g: name@example.com" className=" transition-all bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 caret-bg-accent-dark focus:outline-none focus:border-accent-dark focus:ring-2 focus:ring-accent-dark text-white active:caret-yellow-400 text-sm rounded-lg placeholder-[#C1C1C1] block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white font-gilroy-medium font-[18px] " />
                       </div>
 
                       <div className="sm:text-left space-y-3 w-full">
-                        <span className=" prose prose-md text-white font-gilroy-black text-[25px]">Password</span>
+                        <span className=" prose prose-md text-white font-gilroy-black text-[22px]">Password</span>
                         <input {...register('password')} type="password" placeholder="Enter Password" className=" transition-all bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 caret-bg-accent-dark focus:outline-none focus:border-accent-dark focus:ring-2 focus:ring-accent-dark text-white active:caret-yellow-400 text-sm rounded-lg placeholder-[#C1C1C1] block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white font-gilroy-medium font-[18px] " />
                       </div>
 
-                      <div className="flex flex-row justify-start">
+                      <div className="flex flex-col sm:flex-row  items-center justify-start space-y-4 sm:space-y-0 sm:space-x-4">
                         <button
-                          className="w-40 rounded-lg mt-5 self-start  bg-accent-dark p-3 border-2 border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-black font-gilroy-black font-[18px] transition-all"
+                          className="w-full basis-1/2 rounded-lg  bg-accent-dark p-3 border-2 border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-black font-gilroy-black font-[18px] transition-all"
                           type="submit"
                         >
                           {loginButtonStates(transition.state)}
                         </button>
+                        {/* <button className="pointer-auto w-full basis-1/2  transition-all outline-none" onClick={async () => {
+
+                          // signInWithRedirect(auth, googleProvider);
+
+                          // As this API can be used for sign-in, linking and reauthentication,
+                          // check the operationType to determine what triggered this redirect
+                          // operation.
+                          // const operationType = result.operationType;
+
+                        }}>
+
+                          <div className="rounded-xl bg-white hover:ring-2 hover:ring-accent-dark active:ring-2 outine-none p-3 flex flex-row space-x-5 w-auto justify-between ">
+                            <img src={GoogleIcon} alt="Google Icon" />
+
+                            <h1>Sign Up With Google</h1>
+                          </div>
+                        </button> */}
                       </div>
 
                     </form>
-                    <Link to="/signup" className="hover:underline decoration-white"><span className="text-white">Don't have an account? <span className="font-gilroy-black">Sign Up </span></span></Link>
+                    <Link to="/signup" className="hover:underline decoration-white self-start mt-2"><span className="text-white">Don't have an account? <span className="font-gilroy-black">Sign Up </span></span></Link>
 
                     <div className="flex flex-row w-full">
-                      <button className="pointer-auto  transition-all outline-none" onClick={async () => {
 
-                        // signInWithRedirect(auth, googleProvider);
-
-                        // As this API can be used for sign-in, linking and reauthentication,
-                        // check the operationType to determine what triggered this redirect
-                        // operation.
-                        // const operationType = result.operationType;
-
-                      }}>
-
-                        <div className="rounded-xl bg-white hover:ring-2 hover:ring-accent-dark active:ring-2 outine-none p-3 flex flex-row space-x-5 w-auto justify-between ">
-                          <img src={GoogleIcon} alt="Google Icon" />
-
-                          <h1>Sign Up With Google</h1>
-                        </div>
-                      </button>
 
                     </div>
                   </div>
@@ -265,7 +265,7 @@ export default function Login() {
               <form
                 className=" space-y-6"
                 onSubmit={handleSubmit((data) => {
-                  console.log(data.email, data.password);
+                  
                   const form = new FormData();
                   form.append('email', data.email);
                   form.append('password', data.password)
@@ -327,7 +327,6 @@ export default function Login() {
 
       </div>
       <ToastContainer position="bottom-center"
-        autoClose={2000}
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick

@@ -67,19 +67,20 @@ export const loader: LoaderFunction = async ({ request }) => {
   });
 };
 export function ErrorBoundary({ error }) {
-  // let navigate = useNavigate();
-  // useEffect(() => {
-  //   setTimeout(() => {
-  //     navigate("/");
-  //   }, 2000);
-  // });
+  let navigate = useNavigate();
+  useEffect(() => {
+    setTimeout(() => {
+      navigate("/");
+    }, 2000);
+  },[navigate]);
+  
   let location = useLocation();
   let matches = useMatches();
 
   React.useEffect(() => {
     let mounted = isMount;
     isMount = false;
-   
+
     if ("serviceWorker" in navigator) {
 
       if (navigator.serviceWorker.controller) {
@@ -126,13 +127,13 @@ export function ErrorBoundary({ error }) {
         <div className="h-screen w-full flex flex-col justify-center bg-bg-primary-dark align-middle">
 
           <div className="flex flex-col-reverse items-center sm:items-stretch sm:flex-row justify-center space-x-10 ">
-            <div className="flex flex-col sm:hidden items-center">
+            <div className="flex flex-col sm:hidden items-center border-2">
               <DefaultSpinner size="large"></DefaultSpinner>
 
             </div>
             <div
               id="error-details"
-              className="flex flex-col w-full sm:w-[500px] p-10 text-center sm:text-left justify-between"
+              className="flex flex-col w-auto sm:w-[500px] p-10 text-center sm:text-left justify-between border-2"
             >
 
               <div>
@@ -156,7 +157,7 @@ export function ErrorBoundary({ error }) {
                 </span>
               </span>
             </div>
-            <div className=" h-56 w-56 sm:h-[414px] sm:w-[471px] flex flex-row items-center">
+            <div className=" h-56 w-56 sm:h-[414px] sm:w-[471px] flex flex-row items-center border-2">
               <svg
                 className='h-full w-full'
                 viewBox="0 0 471 414"

@@ -23,7 +23,6 @@ export default function DeliverableFormEntry({ deliverableNumber }: { deliverabl
                     ContractDataStore.update((s) => {
                         s.deliverablesCount += 1;
                     });
-                    console.log(`number of deliverables is : ${deliverableNumber}`);
                 }} className={""} />
                 {deliverableNumber > 0 ? <CrossButton onClick={() => {
                     ContractDataStore.update((s) => {

@@ -1,19 +1,15 @@
-
-
-import { useFetcher, useLoaderData, useTransition } from '@remix-run/react';
-import { ActionFunction, json, LoaderFunction, redirect } from '@remix-run/server-runtime';
-import { collection, query } from 'firebase/firestore';
+import { useFetcher, useLoaderData } from '@remix-run/react';
+import type { ActionFunction, LoaderFunction} from '@remix-run/server-runtime';
+import { json, redirect } from '@remix-run/server-runtime';
 import { getStream, ref } from 'firebase/storage';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { FormProvider, useForm, useFormContext } from 'react-hook-form';
 import PlaceholderDP from '~/assets/images/kartik.png'
-import FormButton from '~/components/inputs/FormButton';
 import MobileNavbarPadding from '~/components/layout/MobileNavbarPadding';
 import ProfileAccountInformationForm from '~/components/profile/ProfileAccountInformationForm';
 import ProfileBasicDetailsForm from '~/components/profile/ProfileBasicDetailsForm';
 import ProfileProfInformationForm from '~/components/profile/ProfileProfInformationForm';
-import { toast, ToastContainer } from "react-toastify";
+import {  ToastContainer } from "react-toastify";
 
 import { downloadGooglePhotosImage } from '~/firebase/gapis-config.server';
 import { storage } from '~/firebase/neutron-config.server';
@@ -21,8 +17,7 @@ import { deleteFirestoreDoc, getFirebaseDocs, setFirestoreDocFromData, updateFir
 import { requireUser } from '~/session.server';
 import { injectStyle } from 'react-toastify/dist/inject-style';
 import ProfileMobileUI from '~/components/pages/ProfileMobileUI';
-import LogoutButton from '~/components/LogoutButton';
-import { UIStore } from '~/stores/UIStore';
+import NeutronModal from '~/components/layout/NeutronModal';
 
 
 
@@ -30,15 +25,12 @@ export const loader: LoaderFunction = async ({ request }) => {
     const session = await requireUser(request, true);
 
     if (session) {
-        console.log(session.metadata)
         const photoURL: string = session.metadata?.photoURL;
 
         if (photoURL && photoURL != "undefined") {
             if (photoURL.includes("firebasestorage")) {
-                console.log('dp is present')
                 const dpStream = getStream(ref(storage, session?.metadata?.photoURL))
                 const result = dpStream.read();
-                console.log(result)
                 session.metadata.profilePicture = result;
 
             }
@@ -46,7 +38,6 @@ export const loader: LoaderFunction = async ({ request }) => {
                 let buffer = Buffer.alloc(10000);
                 let resultString = '';
                 downloadGooglePhotosImage(photoURL, buffer, resultString);
-                console.log("result string is :" + resultString);
             }
 
         }
@@ -88,28 +79,19 @@ export default function Profile() {
     const fetcher = useFetcher();
     const userMetadata = data.metadata;
     const profilePicture = userMetadata.photoURL;
-    console.dir("PROFILE PICTURE IS : " + profilePicture)
 
     useEffect(() => {
         injectStyle();
-        if ('scrollRestoration' in window.history) {
-            window.history.scrollRestoration = 'manual';
-        }
-
-        // if (transition.type === "actionReload") {
-        //     toast(<div><h2>Details saved!</h2></div>, { theme: "dark", type: "success" })
-
-        // }
-
-        return () => {
-            if ('scrollRestoration' in window.history) {
-                window.history.scrollRestoration = 'auto';
-            }
-        }
-
     })
 
-    const [tab, setTab] = useState(2);
+
+
+    const kycComplete = () => {
+        return userMetadata?.panVerified && userMetadata?.bankVerified && userMetadata?.aadhaarVerified;
+    };
+
+    const [tab, setTab] = useState(0);
+    const [profileModal, setProfileModal] = useState(!kycComplete());
 
     return (
         <>
@@ -117,18 +99,16 @@ export default function Profile() {
                 <div id="user-profile-panel" className="w-full sm:w-96 flex flex-col bg-bg-primary-dark h-auto sm:bg-bg-secondary-dark justify-start rounded-l-3xl ">
                     <div className="w-full sm:w-full sm:p-7 sm:flex sm:flex-col justify-between sm:space-y-4">
                         {/* <img alt="cover" className="w-auto h-auto min-h-48 object-cover rounded-bl-[50px] rounded-br-[50px] rounded-tl-[50px] " src={PlaceholderCover}></img> */}
-                        
+
                         <div className="flex flex-row justify-center">
                             <button onClick={() => {
                                 const dpInput = document.getElementById("dp-input");
-                                console.log(`PP input element is  : ${dpInput}`)
                                 dpInput?.click()
                             }}>
                                 <img alt="profile" src={profilePicture ? profilePicture : PlaceholderDP} className="h-32 w-32 mt-8 translate-y-[-50px] bg-[#e5e5e5] border-8 cursor-pointer hover:opacity-50 hover:ring-1 outline-none transition-all hover:ring-[#8364E8] border-solid border-black rounded-full self-center  object-contain"></img>
                                 <input type="file" name="dp-input" id="dp-input" onChange={(e) => {
                                     if (e?.currentTarget?.files) {
                                         const file = e.currentTarget.files[0];
-                                        console.log(file)
                                         const form = new FormData();
                                         form.append('dpFile', file)
                                         fetcher.submit(form, { method: "post", action: `/${userMetadata.displayName}/profile/uploadDP`, encType: 'multipart/form-data' })
@@ -142,7 +122,7 @@ export default function Profile() {
                         <div className='flex flex-col space-y-3 translate-y-[-35px]'>
                             <h1 className="prose prose-lg text-white self-center font-gilroy-black text-[30px]">{userMetadata?.firstName && userMetadata?.lastName ? userMetadata?.firstName + " " + userMetadata?.lastName : 'Your name'}</h1>
                             <h1 className="prose prose-lg text-[#CDC1F6] self-center font-gilroy-black text-[22px] translate-y-[-20px]">@{userMetadata.displayName}</h1>
-                            <p className="prose prose-lg text-black text-center w-auto min-w-[101px] font-gilroy-bold self-center bg-white p-2 rounded-full text-[18px] translate-y-[-25px]"> {userMetadata.designation ? userMetadata.designation : 'What you do'}</p>
+                            {userMetadata.designation && userMetadata.designation.length > 1 && <p className="prose prose-lg text-black text-center w-auto min-w-[101px] font-gilroy-bold self-center bg-white p-2 rounded-full text-[18px] translate-y-[-25px]"> {userMetadata.designation} </p>}
                             <p className="prose prose-lg text-white self-center text-center font-gilroy-medium text-[18px]"> <u className='text-center'>Registered Email</u> <br></br> {userMetadata?.email} </p>
                         </div>
                         <div className="flex p-2 flex-row sm:flex-col m-3 justify-evenly sm:space-y-5 space-x-4 sm:space-x-0">
@@ -175,7 +155,6 @@ export default function Profile() {
 
                 </div>
                 <ToastContainer position="top-right"
-                    autoClose={2000}
                     hideProgressBar={false}
                     newestOnTop={false}
                     closeOnClick
@@ -189,6 +168,7 @@ export default function Profile() {
                 <MobileNavbarPadding size="large"></MobileNavbarPadding>
             </div>
             <ProfileMobileUI></ProfileMobileUI>
+            {profileModal && <NeutronModal onConfirm={() => { setProfileModal(false) }} heading={<p>Please complete your profile information</p>} body={<p>Your KYC verification needs to be complete before you begin transacting on Neutron</p>} toggleModalFunction={setProfileModal}></NeutronModal>}
         </>
 
     );

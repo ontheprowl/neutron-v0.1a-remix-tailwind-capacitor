@@ -126,9 +126,9 @@ export default function DashboardMobileUI() {
             <motion.div className={` w-auto m-6 rounded-xl p-1  ${primaryGradientDark} z-10 translate-y-10`}>
                 <div className=" h-40 rounded-xl bg-bg-primary-dark text-white">
                     <div className="flex flex-col space-y-2 pt-6">
-                        <h1 className="text-[16px] font-gilroy-medium">Protected Funds</h1>
-                        <p className="font-gilroy-black text-[30px]"> ₹ 5402 </p>
-                        <p className="font-gilroy-medium text-[14px]"> ({currentUserData.contracts} Contracts)</p>
+                        <h1 className="text-[16px] font-gilroy-medium">Funds In Escrow</h1>
+                        <p className="font-gilroy-black text-[30px]"> ₹{currentUserData.funds.escrowedFunds} </p>
+                        <p className="font-gilroy-medium text-[14px]"> ({currentUserData.contracts} Active Contract{currentUserData.contracts != 1 ? 's' : ''})</p>
                     </div>
                 </div>
             </motion.div>
@@ -143,7 +143,7 @@ export default function DashboardMobileUI() {
                 >
                     <div className='flex flex-row space-x-2 justify-center items-center'>
                         <svg width="21" height="20" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M10.4993 4.16602V15.8327M4.66602 9.99935H16.3327" stroke="white" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M10.4993 4.16602V15.8327M4.66602 9.99935H16.3327" stroke="white" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                         <h1 className=''>Add Contract</h1>
 
@@ -174,7 +174,7 @@ export default function DashboardMobileUI() {
                 <div className="flex flex-col sm:hidden mt-10 bg-bg-primary-dark text-white rounded-xl">
                     <div className="flex flex-row bg-[#4d4d4d] h-10 mb-5 space-x-4 p-2 w-full border-2 border-gray-500 rounded-lg">
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M17.5 17.5L14.5834 14.5833M16.6667 9.58333C16.6667 13.4954 13.4954 16.6667 9.58333 16.6667C5.67132 16.6667 2.5 13.4954 2.5 9.58333C2.5 5.67132 5.67132 2.5 9.58333 2.5C13.4954 2.5 16.6667 5.67132 16.6667 9.58333Z" stroke="#BCBCBC" stroke-width="1.66667" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M17.5 17.5L14.5834 14.5833M16.6667 9.58333C16.6667 13.4954 13.4954 16.6667 9.58333 16.6667C5.67132 16.6667 2.5 13.4954 2.5 9.58333C2.5 5.67132 5.67132 2.5 9.58333 2.5C13.4954 2.5 16.6667 5.67132 16.6667 9.58333Z" stroke="#BCBCBC" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
 
                         <input type="text" placeholder="Search" onChange={(e) => {
@@ -182,7 +182,7 @@ export default function DashboardMobileUI() {
                         }} className="w-full bg-[#4d4d4d] border-0 text-white placeholder:text-white focus:border-transparent outline-none " />
 
                     </div>
-                    <div className="h-[95vh]">
+                    <div className={`${contracts.length > 0 ? 'h-[95vh]' : 'h-auto'}`}>
                         {contracts.length > 0 ? generateContractsList() : <ContractZeroState></ContractZeroState>}
 
                     </div>

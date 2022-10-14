@@ -1,4 +1,5 @@
-import { ActionFunction, LoaderFunction, redirect } from "@remix-run/server-runtime";
+import type { ActionFunction } from "@remix-run/server-runtime";
+import { redirect } from "@remix-run/server-runtime";
 import { env } from "process";
 import { json } from "remix-utils";
 

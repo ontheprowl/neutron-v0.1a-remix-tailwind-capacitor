@@ -41,10 +41,10 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
     const ownerUsername = params.username
     const contractID = params.contractID;
-    console.log(`The contract ID in params is ${contractID}`)
-    console.log("username is :" + ownerUsername)
+    
+    
     const isOwner = await isViewerOwner(session, ownerUsername);
-    console.log(`value of isOwner is ${isOwner}`)
+    
 
     //* The next line exploits the order of execution of loaders to forward the responsibility of testing privilege for viewing a contract to the specific contract page itself.
     if (!isOwner && contractID == undefined) {
@@ -88,7 +88,9 @@ export default function CustomUserPage() {
     // * This effect ensures that the beamsClient is subscribing to all messages for the currently logged-in user
     useEffect(() => {
         beamsClient.start().then(() => { beamsClient.addDeviceInterest(metadata.id) });
-        console.log("BEAMS CLIENT REGISTERED WITH INTEREST ID : " + metadata.id)
+        
+
+        // return () => { beamsClient.stop() }
     }, [metadata])
 
     const [rotation, cycleRotation] = useCycle([0, 180, 360]);
@@ -97,7 +99,7 @@ export default function CustomUserPage() {
     let tab = UIStore.useState((s) => s.selectedTab);
     const date = useMemo(formatDateToReadableString, []);
 
-    console.log(tab);
+    
     const currentUserData = data.metadata;
 
 
@@ -107,8 +109,8 @@ export default function CustomUserPage() {
 
     return (
         <div className="flex font-gilroy-bold h-auto w-full flex-col sm:flex-row bg-bg-primary-dark">
-            <aside className="hidden sm:h-auto sm:flex sm:w-auto" aria-label="Sidebar">
-                <div className=" h-screen flex flex-col items-center justify-between rounded p-3  bg-bg-primary-dark  dark:bg-gray-800">
+            <aside className="hidden sm:h-auto sm:min-h-screen sm:flex sm:w-auto" aria-label="Sidebar">
+                <div className=" h-auto flex flex-col items-center justify-between rounded p-3  bg-bg-primary-dark  dark:bg-gray-800">
 
                     <div className="w-full place-items-center ">
                         <motion.a
@@ -140,8 +142,8 @@ export default function CustomUserPage() {
                                     className={`rounded-lg transition-all w-full flex flex-row align-middle p-2 text-gray-100 border-2 border-transparent active:border-accent-dark  hover:bg-bg-secondary-dark  sm:space-x-3 ${tab == "Home" ? 'bg-bg-secondary-dark' : ``}
                                 `}
                                 >
-                                    <ContractsButton />
-                                    <h1 className="text-[18px]">Contracts</h1>
+                                    <HomeButton />
+                                    <h1 className="text-[18px]">Home</h1>
                                 </button>
                             </li>
 
@@ -254,8 +256,8 @@ export default function CustomUserPage() {
                             </ul>
                         </div>
                         <div id="profile-funds-summary" className={`text-white text-left p-4 w-full self-start  rounded-xl ${primaryGradientDark}`}>
-                            <h1 className="font-gilroy-bold text-[14px]">Protected Funds</h1>
-                            <h2 className="font-gilroy-black text-[20px]">₹{currentUserData.committedFunds ? currentUserData.committedFunds : '0'}</h2>
+                            <h1 className="font-gilroy-bold text-[14px]">Funds In Escrow</h1>
+                            <h2 className="font-gilroy-black text-[20px]">₹{currentUserData.funds.escrowedFunds ? currentUserData.funds.escrowedFunds : '0'}</h2>
                             <p className="font-gilroy-bold text-[14px] mt-5"> {currentUserData.contracts} Active Contract{currentUserData.contracts != 1 ? 's' : ''}</p>
                         </div>
                         <div className="flex flex-row p-5 pb-0 pt-0 items-center border-t-2 border-gray-300 justify-end space-x-2 ">

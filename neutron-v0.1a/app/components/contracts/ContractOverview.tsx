@@ -27,16 +27,12 @@ import { formatDateToReadableString } from '~/utils/utils';
 
 
 function generateDeliverables(milestones: { [key: string]: any }) {
-    console.log("Milestones arriving to the generator are : ")
-    console.dir(milestones)
     let deliverablesArray = []
     for (const [key, value] of Object.entries(milestones)) {
         const deliverable = { ...value }
         if (deliverable.name == 'Advance') continue
         if (key == "workMilestones") {
             for (const [milestoneNumber, milestone] of Object.entries(value)) {
-                console.log("The milestone value over here is : ");
-                console.dir(milestone)
                 // deliverablesArray.push(
                 //     <div className="flex flex-row p-3 font-gilroy-medium space-x-20 w-full items-center justify-between">
                 //         {/* <img src={iconForDeliverableType(Number(milestone.submissionFormat))}
@@ -89,7 +85,7 @@ function generateDeliverables(milestones: { [key: string]: any }) {
                             {milestone?.status && milestone?.status != DeliverableStatus.SubmittedExternally ?
                                 <a href={milestone.submissionPath} target="_blank" rel="noreferrer" key={milestone.name} >
                                     <svg className="border-2 border-transparent hover:bg-bg-secondary-dark self-center transition-all active:ring-white active:ring-2 rounded-full w-10 h-10 p-1" width="16" height="20" viewBox="0 0 16 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M9.66634 1.89111V5.33323C9.66634 5.79994 9.66634 6.0333 9.75717 6.21156C9.83706 6.36836 9.96455 6.49584 10.1213 6.57574C10.2996 6.66656 10.533 6.66656 10.9997 6.66656H14.4418M5.49967 12.4998L7.99967 14.9998M7.99967 14.9998L10.4997 12.4998M7.99967 14.9998L7.99967 9.99984M9.66634 1.6665H5.33301C3.93288 1.6665 3.23281 1.6665 2.69803 1.93899C2.22763 2.17867 1.84517 2.56112 1.60549 3.03153C1.33301 3.56631 1.33301 4.26637 1.33301 5.6665V14.3332C1.33301 15.7333 1.33301 16.4334 1.60549 16.9681C1.84517 17.4386 2.22763 17.821 2.69803 18.0607C3.23281 18.3332 3.93288 18.3332 5.33301 18.3332H10.6663C12.0665 18.3332 12.7665 18.3332 13.3013 18.0607C13.7717 17.821 14.1542 17.4386 14.3939 16.9681C14.6663 16.4334 14.6663 15.7333 14.6663 14.3332V6.6665L9.66634 1.6665Z" stroke="white" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M9.66634 1.89111V5.33323C9.66634 5.79994 9.66634 6.0333 9.75717 6.21156C9.83706 6.36836 9.96455 6.49584 10.1213 6.57574C10.2996 6.66656 10.533 6.66656 10.9997 6.66656H14.4418M5.49967 12.4998L7.99967 14.9998M7.99967 14.9998L10.4997 12.4998M7.99967 14.9998L7.99967 9.99984M9.66634 1.6665H5.33301C3.93288 1.6665 3.23281 1.6665 2.69803 1.93899C2.22763 2.17867 1.84517 2.56112 1.60549 3.03153C1.33301 3.56631 1.33301 4.26637 1.33301 5.6665V14.3332C1.33301 15.7333 1.33301 16.4334 1.60549 16.9681C1.84517 17.4386 2.22763 17.821 2.69803 18.0607C3.23281 18.3332 3.93288 18.3332 5.33301 18.3332H10.6663C12.0665 18.3332 12.7665 18.3332 13.3013 18.0607C13.7717 17.821 14.1542 17.4386 14.3939 16.9681C14.6663 16.4334 14.6663 15.7333 14.6663 14.3332V6.6665L9.66634 1.6665Z" stroke="white" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
                                 </a> : <div className="bg-transparent"></div>
                             }
@@ -105,16 +101,12 @@ function generateDeliverables(milestones: { [key: string]: any }) {
 }
 
 function generateDeliverablesForMobile(milestones: { [key: string]: any }) {
-    console.log("Milestones arriving to the generator are : ")
-    console.dir(milestones)
     let deliverablesArray = []
     for (const [key, value] of Object.entries(milestones)) {
         const deliverable = { ...value }
         if (deliverable.name == 'Advance') continue
         if (key == "workMilestones") {
             for (const [milestoneNumber, milestone] of Object.entries(value)) {
-                console.log("The milestone value over here is : ");
-                console.dir(milestone)
                 // deliverablesArray.push(
                 //     <div className="flex flex-row p-3 font-gilroy-medium space-x-20 w-full items-center justify-between">
                 //         {/* <img src={iconForDeliverableType(Number(milestone.submissionFormat))}
@@ -170,7 +162,7 @@ function generateDeliverablesForMobile(milestones: { [key: string]: any }) {
                             {milestone?.status && milestone?.status != DeliverableStatus.SubmittedExternally ?
                                 <a href={milestone.submissionPath} target="_blank" rel="noreferrer" key={milestone.name} >
                                     <svg className="border-2 border-transparent hover:bg-bg-secondary-dark self-center transition-all active:ring-white active:ring-2 rounded-full w-10 h-10 p-1" width="16" height="20" viewBox="0 0 16 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M9.66634 1.89111V5.33323C9.66634 5.79994 9.66634 6.0333 9.75717 6.21156C9.83706 6.36836 9.96455 6.49584 10.1213 6.57574C10.2996 6.66656 10.533 6.66656 10.9997 6.66656H14.4418M5.49967 12.4998L7.99967 14.9998M7.99967 14.9998L10.4997 12.4998M7.99967 14.9998L7.99967 9.99984M9.66634 1.6665H5.33301C3.93288 1.6665 3.23281 1.6665 2.69803 1.93899C2.22763 2.17867 1.84517 2.56112 1.60549 3.03153C1.33301 3.56631 1.33301 4.26637 1.33301 5.6665V14.3332C1.33301 15.7333 1.33301 16.4334 1.60549 16.9681C1.84517 17.4386 2.22763 17.821 2.69803 18.0607C3.23281 18.3332 3.93288 18.3332 5.33301 18.3332H10.6663C12.0665 18.3332 12.7665 18.3332 13.3013 18.0607C13.7717 17.821 14.1542 17.4386 14.3939 16.9681C14.6663 16.4334 14.6663 15.7333 14.6663 14.3332V6.6665L9.66634 1.6665Z" stroke="white" stroke-width="1.67" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M9.66634 1.89111V5.33323C9.66634 5.79994 9.66634 6.0333 9.75717 6.21156C9.83706 6.36836 9.96455 6.49584 10.1213 6.57574C10.2996 6.66656 10.533 6.66656 10.9997 6.66656H14.4418M5.49967 12.4998L7.99967 14.9998M7.99967 14.9998L10.4997 12.4998M7.99967 14.9998L7.99967 9.99984M9.66634 1.6665H5.33301C3.93288 1.6665 3.23281 1.6665 2.69803 1.93899C2.22763 2.17867 1.84517 2.56112 1.60549 3.03153C1.33301 3.56631 1.33301 4.26637 1.33301 5.6665V14.3332C1.33301 15.7333 1.33301 16.4334 1.60549 16.9681C1.84517 17.4386 2.22763 17.821 2.69803 18.0607C3.23281 18.3332 3.93288 18.3332 5.33301 18.3332H10.6663C12.0665 18.3332 12.7665 18.3332 13.3013 18.0607C13.7717 17.821 14.1542 17.4386 14.3939 16.9681C14.6663 16.4334 14.6663 15.7333 14.6663 14.3332V6.6665L9.66634 1.6665Z" stroke="white" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
                                 </a> : <div className="bg-transparent"></div>
                             }
@@ -188,8 +180,6 @@ function generateDeliverablesForMobile(milestones: { [key: string]: any }) {
 export default function ContractOverview() {
 
     const loaderData = useLoaderData();
-    console.log("LOADERDATA AT OVERVIEW")
-    console.dir(loaderData)
     let data = ContractDataStore.useState();
     let events, messages, from, to;
 
@@ -210,7 +200,9 @@ export default function ContractOverview() {
     ]
 
 
-    const milestones = data.milestones
+    const draft = data?.isPublished;
+    const milestones = draft ? data.milestonesProcessed : data.milestones
+
 
 
 
@@ -260,7 +252,7 @@ Escrow section
                         <div className="flex flex-row mb-5 justify-start font-gilroy-bold text-[20px]">
                             <h2>Project Details</h2>
                         </div>
-                        <div className="w-full break-all sm:h-72 p-1 hover:ring-2 hover:ring-white transition-all  rounded-lg sm:border-2 sm:border-solid border-gray-400 mb-4 font-gilroy-regular">
+                        <div className="w-full break-normal sm:h-72 p-1 hover:ring-2 hover:ring-white transition-all  rounded-lg sm:border-2 sm:border-solid border-gray-400 mb-4 font-gilroy-regular">
                             {data.description}
                         </div>
                     </div>

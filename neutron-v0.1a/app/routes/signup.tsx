@@ -1,4 +1,4 @@
-import { Form, Link, useActionData, useLoaderData, useNavigate, useSubmit, useTransition } from "@remix-run/react";
+import { Form, Link, useActionData, useFetcher, useLoaderData, useNavigate, useSubmit, useTransition } from "@remix-run/react";
 
 import { useAuthState } from "react-firebase-hooks/auth";
 import { adminAuth, auth, googleProvider } from "../firebase/neutron-config.server";
@@ -86,7 +86,7 @@ export async function action({ request }: { request: Request }) {
       photoURL: '',
     })
 
-    await sendEmailVerification(user, { url: `http://${env.NODE_ENV === "development" ? "localhost:3000" : "test.neutron.money"}/auth/verification/google` });
+    await sendEmailVerification(user, { url: `http://${env.NODE_ENV === "development" ? "localhost:3000" : "app.neutron.money"}/auth/verification/google` });
 
 
     console.log("\n verification email sent \n");
@@ -126,7 +126,6 @@ export default function Signup() {
   let submit = useSubmit();
 
   const userNames = data.usernames;
-  console.log(userNames)
   let navigate = useNavigate();
   // const [user, loading, error] = useAuthState(auth);
 
@@ -137,21 +136,20 @@ export default function Signup() {
 
   const { handleSubmit, register, trigger, formState: { errors }, control } = useForm();
 
-  const displayName = useWatch({ control, name: 'displayName' })
-  const email = useWatch({ control, name: 'email' })
-  const password = useWatch({ control, name: 'password' })
+  const displayName = useWatch({ control, name: 'displayName' });
+  const email = useWatch({ control, name: 'email' });
+  const password = useWatch({ control, name: 'password' });
+  const passwordConfirmation = useWatch({ control, name: 'passwordConfirmation' });
 
   useEffect(() => {
     injectStyle();
     trigger();
 
-  }, [displayName, email, password, trigger, transition])
+  }, [displayName, email, password, passwordConfirmation, trigger, transition])
 
   useEffect(() => {
     const neutronError = actionData as NeutronError;
     if (neutronError) {
-      console.log("ERROR DURING LOGIN")
-      console.dir(neutronError);
       toast(<div><h2>{neutronError.message}</h2></div>, { theme: "dark", type: "error" })
 
 
@@ -161,7 +159,7 @@ export default function Signup() {
         toast(<div><h2>Please verify your email ID</h2></div>, { theme: "dark", type: "success" })
       }
     }
-  }, [actionData, transition])
+  }, [actionData])
 
   return (
     <div className=" sm:h-screen w-full justify-center bg-bg-primary-dark align-middle">
@@ -174,19 +172,18 @@ export default function Signup() {
           ></img>
           <div id="form-container" className=" w-full h-full flex flex-row justify-center mt-10 sm:mt-0">
             <div className="flex flex-col w-full h-full justify-center">
-              <div className="bg-bg-primary-dark rounded-lg text-left self-center p-5 sm:w-[500px]">
+              <div className="bg-bg-primary-dark rounded-lg text-left self-center p-2 sm:w-[500px]">
                 <h1
-                  className={`text-left sm:ml-0 font-gilroy-black text-white text-[40px]`}
+                  className={`text-left sm:ml-0 font-gilroy-black text-white text-[30px]`}
                 >
                   Sign Up
                 </h1>
 
                 <div className=" flex flex-col sm:flex-row items-start space-y-2 sm:space-y-0  w-full justify-between">
-                  <div className="flex flex-col justify-items-start space-y-2 mt-5 w-full ">
+                  <div className="flex flex-col justify-items-start space-y-2 mt-2 w-full ">
                     <form
-                      className=" space-y-1"
+
                       onSubmit={handleSubmit((data) => {
-                        console.log(data.email, data.password, data.displayName);
                         const form = new FormData();
                         form.append('email', data.email);
                         form.append('password', data.password)
@@ -195,67 +192,77 @@ export default function Signup() {
                       })}
                     >
                       <div className="text-left space-y-1 w-full">
-                        <span className=" prose prose-md text-white font-gilroy-black text-[25px]">Username <MandatoryAsterisk></MandatoryAsterisk></span>
+                        <span className=" prose prose-md text-white font-gilroy-black text-[22px]">Username <MandatoryAsterisk></MandatoryAsterisk></span>
                         <input  {...register('displayName', {
                           required: true, validate: (v) => {
                             return IsUsernameAvailable(v) || 'This username is already taken';
                           }
-                        })} type="text" placeholder="e.g: name@example.com" defaultValue={''} className=" transition-all bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 caret-bg-accent-dark focus:outline-none focus:border-accent-dark focus:ring-2 focus:ring-accent-dark text-white active:caret-yellow-400 text-sm rounded-lg placeholder-[#C1C1C1] block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white font-gilroy-medium " />
+                        })} type="text" placeholder="e.g: freelancer3341" defaultValue={''} className=" transition-all bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 caret-bg-accent-dark focus:outline-none focus:border-accent-dark focus:ring-2 focus:ring-accent-dark text-white active:caret-yellow-400 text-sm rounded-lg placeholder-[#C1C1C1] block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white font-gilroy-medium " />
                         <div className="w-full h-5 mt-1 text-left">
                           <ErrorMessage errors={errors} name='displayName' render={(data) => {
-                            return <span className="text-red-500 pl-1 mt-3 z-10 font-gilroy-black text-left">{data.message}</span>
+                            return <span className="text-red-700 pl-1 mt-3 z-10 font-gilroy-black text-left">{data.message}</span>
                           }} />
                         </div>
                       </div>
                       <div className="text-left space-y-1 w-full">
-                        <span className=" prose prose-md text-white font-gilroy-black text-[25px]">Email <MandatoryAsterisk></MandatoryAsterisk></span>
+                        <span className=" prose prose-md text-white font-gilroy-black text-[22px]">Email <MandatoryAsterisk></MandatoryAsterisk></span>
                         <input defaultValue={''}  {...register('email', { required: true, pattern: { value: ValidationPatterns.emailValidationPattern, message: 'This is not a valid email ID' } })} type="text" placeholder="e.g: name@example.com" className=" transition-all bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 caret-bg-accent-dark focus:outline-none focus:border-accent-dark focus:ring-2 focus:ring-accent-dark text-white active:caret-yellow-400 text-sm rounded-lg placeholder-[#C1C1C1] block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white font-gilroy-medium" />
                         <div className="w-full h-5 mt-1 text-left">
                           <ErrorMessage errors={errors} name='email' render={(data) => {
-                            return <span className="text-red-500 pl-1 mt-3 z-10 font-gilroy-black text-left">{data.message}</span>
+                            return <span className="text-red-700 pl-1 mt-3 z-10 font-gilroy-black text-left">{data.message}</span>
                           }} />
                         </div>
                       </div>
 
                       <div className="text-left space-y-1 w-full">
-                        <span className=" prose prose-md text-white font-gilroy-black text-[25px]">Password <MandatoryAsterisk></MandatoryAsterisk></span>
-                        <input  {...register('password', { required: true, minLength: { value: 8, message: " Password should at least be 8 characters long" } })} type="password" placeholder="Lets keep it hush hush..." className="  transition-all bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 caret-bg-accent-dark focus:outline-none focus:border-accent-dark focus:ring-2 focus:ring-accent-dark text-white active:caret-yellow-400 text-sm rounded-lg placeholder-[#C1C1C1] block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white font-gilroy-medium " />
+                        <span className=" prose prose-md text-white font-gilroy-black text-[22px]">Password <MandatoryAsterisk></MandatoryAsterisk></span>
+                        <input  {...register('password', { required: true, minLength: { value: 8, message: " Password should at least be 8 characters long" } })} type="password" placeholder="Enter Password" className="  transition-all bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 caret-bg-accent-dark focus:outline-none focus:border-accent-dark focus:ring-2 focus:ring-accent-dark text-white active:caret-yellow-400 text-sm rounded-lg placeholder-[#C1C1C1] block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white font-gilroy-medium " />
                         <div className="w-full h-5 mt-1 text-left">
                           <ErrorMessage errors={errors} name='password' render={(data) => {
-                            return <span className="text-red-500 pl-1 mt-3 z-10 font-gilroy-black text-left">{data.message}</span>
+                            return <span className="text-red-700 pl-1 mt-3 z-10 font-gilroy-black text-left">{data.message}</span>
                           }} />
                         </div>
                       </div>
-                      <div className="flex flex-row justify-start">
+                      <div className="text-left space-y-1 w-full">
+                        <span className=" prose prose-md text-white font-gilroy-black text-[22px]">Confirm Password <MandatoryAsterisk></MandatoryAsterisk></span>
+                        <input  {...register('passwordConfirmation', { required: true, validate: (v) => v == password || "Passwords do not match" })} type="password" placeholder="Confirm Password" className="  transition-all bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 caret-bg-accent-dark focus:outline-none focus:border-accent-dark focus:ring-2 focus:ring-accent-dark text-white active:caret-yellow-400 text-sm rounded-lg placeholder-[#C1C1C1] block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white font-gilroy-medium " />
+                        <div className="w-full h-5 mt-1 text-left">
+                          <ErrorMessage errors={errors} name='passwordConfirmation' render={(data) => {
+                            return <span className="text-red-700 pl-1 mt-3 z-10 font-gilroy-black text-left">{data.message}</span>
+                          }} />
+                        </div>
+                      </div>
+                      <div className="flex flex-col sm:flex-row  items-center justify-start space-y-4 sm:space-y-0 sm:space-x-4 mt-3">
                         <button
-                          className="w-40 rounded-lg mt-2 self-start  bg-accent-dark p-3 border-2 border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-black font-gilroy-black font-[18px] transition-all"
+                          className="w-full rounded-lg basis-1/2 h-full  bg-accent-dark p-3 border-2 border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-black font-gilroy-black font-[18px] transition-all"
                           type="submit"
                         >
                           {signupButtonStates(transition.state)}
                         </button>
+                        {/* <button className="pointer-auto w-full basis-1/2  transition-all outline-none" onClick={async () => {
+
+                          // signInWithRedirect(auth, googleProvider);
+
+                          // As this API can be used for sign-in, linking and reauthentication,
+                          // check the operationType to determine what triggered this redirect
+                          // operation.
+                          // const operationType = result.operationType;
+
+                        }}>
+
+                          <div className="rounded-xl bg-white hover:ring-2 hover:ring-accent-dark active:ring-2 outine-none p-3.5 flex flex-row space-x-5 w-auto justify-between ">
+                            <img src={GoogleIcon} alt="Google Icon" />
+
+                            <h1>Sign Up With Google</h1>
+                          </div>
+                        </button> */}
                       </div>
 
                     </form>
-                    <Link to="/login" className="hover:underline decoration-white"><span className="text-white">Already have an account? <span className="font-gilroy-black ">Log In </span></span></Link>
+                    <Link to="/login" className="hover:underline decoration-white self-start mt-2"><span className="text-white">Already have an account? <span className="font-gilroy-black ">Log In </span></span></Link>
 
                     <div className="flex flex-row w-full">
-                      <button className="pointer-auto  transition-all outline-none" onClick={async () => {
 
-                        // signInWithRedirect(auth, googleProvider);
-
-                        // As this API can be used for sign-in, linking and reauthentication,
-                        // check the operationType to determine what triggered this redirect
-                        // operation.
-                        // const operationType = result.operationType;
-
-                      }}>
-
-                        <div className="rounded-xl bg-white hover:ring-2 hover:ring-accent-dark active:ring-2 outine-none p-3 flex flex-row space-x-5 w-auto justify-between ">
-                          <img src={GoogleIcon} alt="Google Icon" />
-
-                          <h1>Sign Up With Google</h1>
-                        </div>
-                      </button>
 
                     </div>
                   </div>
@@ -349,7 +356,6 @@ export default function Signup() {
 
       </div>
       <ToastContainer position="bottom-center"
-        autoClose={2000}
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick
