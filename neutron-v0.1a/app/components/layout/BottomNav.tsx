@@ -24,7 +24,6 @@ export default function BottomNav() {
 
 
     let tab = UIStore.useState((s) => s.selectedTab);
-    const date = useMemo(formatDateToReadableString, []);
 
     let navigate = useNavigate();
 

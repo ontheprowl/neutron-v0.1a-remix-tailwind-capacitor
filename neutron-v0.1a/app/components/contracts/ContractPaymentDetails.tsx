@@ -56,8 +56,7 @@ export default function ContractPaymentDetails({ editMode }: { editMode?: boolea
 
     const deliverables = ContractDataStore.useState(s => s.deliverables);
     const milestones = ContractDataStore.useState(s => s.milestonesCount)
-    let localMilestones: Array<Milestone> = [];
-    let currentMilestone: Milestone;
+    
     const formMethods = useFormContext();
 
     const errors = formMethods.formState.errors;
@@ -121,7 +120,7 @@ export default function ContractPaymentDetails({ editMode }: { editMode?: boolea
 
                 <div className="hidden sm:flex sm:h-20 border-l-gray-500 border-l-2"></div>
                 <div className="flex flex-col space-y-4 w-full">
-                    <h2 className="prose prose-lg text-white font-gilroy-regular text-[18px]"> Base Pay </h2>
+                    <h2 className="prose prose-lg text-white font-gilroy-regular text-[18px]"> Minimum Pay </h2>
                     <CurrencyInput
                         prefix="₹"
                         id="contract-value-base-pay"
@@ -131,7 +130,7 @@ export default function ContractPaymentDetails({ editMode }: { editMode?: boolea
                         {...formMethods.register('basePay', {
                             validate: (v: string) => {
                                 let value = v.replace("₹", '').replace(',', '')
-                                return value.length == 0 || !value || IsLessThanContractValue(value) || "The base pay must be less than the total contract value"
+                                return value.length == 0 || !value || IsLessThanContractValue(value) || "The minimum pay must be less than the total contract value"
                             }
                         })}
                         className=" bg-[#4A4A4A] pt-3 pb-3 pl-3 space-x-3 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white "
@@ -149,10 +148,17 @@ export default function ContractPaymentDetails({ editMode }: { editMode?: boolea
             <div className="flex flex-col sm:flex-row justify-start space-y-4 sm:space-y-0 sm:space-x-10 w-full">
                 <div className="flex flex-row space-x-4 items-center">
                     <AccentedToggle control={hasAdvance} variant="neutron-purple" name={'hasAdvance'} onToggle={() => {
-                        ContractDataStore.update(s => {
-                            s.hasAdvance = !hasAdvance
+                        if (hasAdvance) {
+                            ContractDataStore.update(s => {
+                                s.hasAdvance = false
+                            });
+                            formMethods.unregister('advancePercentage');
+                        } else {
+                            ContractDataStore.update(s => {
+                                s.hasAdvance = true
+                            });
+                            formMethods.register('advancePercentage');
                         }
-                        )
                     }}></AccentedToggle>
                     <div className="flex flex-col text-white">
                         <h1 className="font-gilroy-bold text-[18px]">Advance</h1>
@@ -242,11 +248,14 @@ export default function ContractPaymentDetails({ editMode }: { editMode?: boolea
 
             {hasMilestones ? <><h2 className="prose prose-lg text-white mb-3 font-gilroy-bold text-[24px]"> Milestones </h2>
                 <div className="flex flex-col space-y-4 mt-2 mb-3 w-full">
-                    <div className="overflow-y-scroll mb-5 mt-2 max-h-96"> {[...Array(milestones).keys()]?.map((milestoneNumber) => {
-                        return (<MilestoneFormEntry key={milestoneNumber} milestoneNumber={milestoneNumber}></MilestoneFormEntry>)
+                    <div className="overflow-y-scroll mb-5 mt-2 space-y-6 sm:space-y-0 max-h-96">
+                        {[...Array(milestones).keys()]?.map((milestoneNumber) => {
+                            return (
+                                <MilestoneFormEntry key={milestoneNumber} milestoneNumber={milestoneNumber}></MilestoneFormEntry>
+                            )
 
-                    })}</div>
-                    <hr className="w-full mt-3 mb-5 border-solid border-gray-500"></hr>
+                        })}
+                    </div>
 
                 </div></> : <></>}
 

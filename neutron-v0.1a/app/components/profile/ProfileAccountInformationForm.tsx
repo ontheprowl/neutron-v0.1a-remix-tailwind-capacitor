@@ -25,7 +25,7 @@ export default function ProfileAccountInformationForm() {
     const saveButtonStates = (state: string) => {
         switch (state) {
             case "idle":
-                return (<span> Save Details </span>);
+                return (<span> Submit KYC </span>);
 
             case "submitting":
                 return (<span> Saving Details ...</span>)
@@ -57,7 +57,7 @@ export default function ProfileAccountInformationForm() {
 
     useEffect(() => {
         trigger()
-        if (profileUpdationFetcher.type === "done") {
+        if (profileUpdationFetcher.state === "loading") {
             toast(<div><h2>Details saved!</h2></div>, { theme: "dark", type: "success" })
         }
 
@@ -65,7 +65,7 @@ export default function ProfileAccountInformationForm() {
 
     return (
         <>
-            <form className="max-h-[65vh] overflow-y-scroll p-3 sm:max-h-full">
+            <form className="max-h-[65vh] overflow-y-scroll p-3 sm:max-h-full" autoComplete="off">
 
                 <div className="flex flex-col whitespace-nowrap sm:flex-row justify-between text-white items-center">
                     <h2 className="prose prose-lg font-gilroy-black text-[22px] sm:text-[30px] text-white"> Account Information (KYC) </h2>

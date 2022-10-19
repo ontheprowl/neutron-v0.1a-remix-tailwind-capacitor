@@ -157,7 +157,7 @@ export default function DisputesIndex() {
 
     const [selectedIndex, setSelectedIndex] = useState(0)
 
-    
+
 
     let navigate = useNavigate();
 
@@ -165,7 +165,7 @@ export default function DisputesIndex() {
     const metadata = data.metadata;
     const messages = data.result;
     const disputes: Dispute[] = data.disputes;
-    
+
     const selectedDispute = disputes[selectedIndex];
 
 
@@ -218,8 +218,9 @@ export default function DisputesIndex() {
                                                 <h3 className="prose prose-sm text-white text-[12px] ">{dispute.raisedBy}</h3>
                                                 <h4 className="prose prose-sm text-gray-300 font-gilroy-black text-[18px]">{dispute.contractName}</h4>
                                             </div>
-                                            <div className="m-2 p-3 w-full basis-1/3">
+                                            <div className="m-2 mt-0 w-full space-y-3 flex flex-col basis-1/3">
                                                 <DisputeSeverityGenerator severity={dispute.severity}></DisputeSeverityGenerator>
+                                                <DisputeStatusGenerator status={dispute.status}></DisputeStatusGenerator>
                                             </div>
                                         </div>
 

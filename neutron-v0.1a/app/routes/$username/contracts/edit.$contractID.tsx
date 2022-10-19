@@ -86,15 +86,19 @@ export const action: ActionFunction = async ({ request, params }) => {
     delete finalContractData['creator'];
     delete finalContractData['viewers'];
     // * Temporary workaround
-    
+
     if (finalContractData?.isPublished == "true") {
-        const contractRef = await updateFirestoreDocFromData({ ...data, status: ContractStatus.Published }, `contracts`, `${contractID}`);
+        const contractRef = await updateFirestoreDocFromData({ ...finalContractData, status: ContractStatus.Published }, `contracts`, `${contractID}`);
         const contractCreationEvent: NeutronEvent = { event: ContractEvent.ContractPublished, type: EventType.ContractEvent, payload: { data: { ...data }, message: 'A contract was created' }, uid: session?.metadata?.id, id: contractRef.id }
+        const numberOfContracts = new Number(session?.metadata?.contracts);
+
         const eventPublished = await sendEvent(contractCreationEvent, finalContractData?.viewers);
+        const creatorMetadataRef = await updateFirestoreDocFromData({ contracts: numberOfContracts.valueOf() + 1 }, `metadata`, session?.metadata?.id);
+
         return redirect(`/${session?.metadata?.displayName}/contracts/${contractRef.id}`)
 
     } else {
-        const contractRef = await updateFirestoreDocFromData({ ...data, status: ContractStatus.Draft }, `contracts`, `${contractID}`);
+        const contractRef = await updateFirestoreDocFromData({ ...finalContractData, status: ContractStatus.Draft }, `contracts`, `${contractID}`);
         // const contractDraftEvent: NeutronEvent = { event: ContractEvent.ContractDrafted, type: EventType.ContractEvent, payload: { data: { ...data }, message: 'A contract was drafted' }, uid: session?.metadata?.id, id: contractRef.id }
         // const eventDrafted = await sendEvent(contractDraftEvent);
         return redirect(`/${session?.metadata?.displayName}/contracts/${contractRef.id}`)

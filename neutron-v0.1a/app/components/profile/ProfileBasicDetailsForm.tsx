@@ -8,6 +8,7 @@ import { toast, ToastContainer } from "react-toastify";
 import DefaultSpinner from "../layout/DefaultSpinner";
 import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
 import MandatoryAsterisk from "../layout/MandatoryAsterisk";
+import { UIStore } from "~/stores/UIStore";
 
 
 
@@ -19,7 +20,7 @@ export default function ProfileBasicDetailsForm() {
     const saveButtonStates = (state: string) => {
         switch (state) {
             case "idle":
-                return (<span> Save Details </span>);
+                return (<span> Save & Proceed </span>);
 
             case "submitting":
                 return (<span> Saving Details ...</span>)
@@ -50,6 +51,9 @@ export default function ProfileBasicDetailsForm() {
         if (fetcher.type === "done") {
             console.log("THE FETCHER TYPE IS " + fetcher.type)
             toast(<div><h2>Details saved!</h2></div>, { theme: "dark", type: "success" })
+            UIStore.update(s => {
+                s.profileTab = 1
+            })
         }
 
     }, [firstName, lastName, displayName, trigger, fetcher])
@@ -62,8 +66,9 @@ export default function ProfileBasicDetailsForm() {
 
             fetcher.submit(form, { method: "post" });
 
+
         })
-    } className="max-h-[65vh] overflow-y-scroll p-3 sm:max-h-full">
+    } className="max-h-[65vh] overflow-y-scroll p-3 sm:max-h-full" autoComplete="off">
 
         <h2 className="prose prose-lg  text-white font-gilroy-black text-center sm:text-left text-[22px] sm:text-[30px]"> Basic Details </h2>
         <div className="relative w-auto mt-2  sm:mt-5 sm:mb-5 flex flex-col ">
@@ -101,7 +106,7 @@ export default function ProfileBasicDetailsForm() {
                     </div>
                 </div>
             </div>
-            
+
 
         </div>
         <button

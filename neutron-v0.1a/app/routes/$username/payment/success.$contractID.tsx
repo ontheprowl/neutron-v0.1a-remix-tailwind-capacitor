@@ -27,7 +27,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
         const ownerUID = uidMapping?.uid;
         const queuedContract = await getSingleDoc(`contracts/${contractID}`);
         console.dir("queued contract milestones are ")
-
+        console.log(queuedContract?.milestones)
         if (queuedContract?.milestones?.advance) {
             const queuedMilestone = queuedContract?.milestones?.advance;
             const nextMilestoneIndex = 0;

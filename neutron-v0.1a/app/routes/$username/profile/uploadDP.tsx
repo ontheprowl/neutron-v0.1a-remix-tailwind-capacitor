@@ -26,8 +26,8 @@ export const action: ActionFunction = async ({ request }) => {
             const snapshot: UploadTaskSnapshot = await uploadBytesResumable(storageRef, buffer.buffer);
             console.log(snapshot.metadata)
             console.log('Profile Picture uploaded to storage....');
-            while (snapshot.state != "success") {
-                console.log("Still running")
+            while (snapshot.bytesTransferred < snapshot.totalBytes) {
+                console.log("Bytes transferred : " + (snapshot.totalBytes - snapshot.bytesTransferred));
             }
             return getDownloadURL(snapshot.ref)
 

@@ -53,7 +53,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
     });
 
     return json({
-        contracts: contracts.sort((a, b) => { return b.startDate - a.startDate }), disputes: [],
+        contracts: contracts.filter((contract) => contract?.status != ContractStatus.Draft || contract?.creator == session?.metadata?.email).sort((a, b) => { return b.startDate - a.startDate }), disputes: [],
         metadata: session.metadata, ownerUsername: ownerUsername
     });
 }
@@ -64,7 +64,7 @@ export const action: ActionFunction = async ({ request }) => {
     const session = await requireUser(request, true);
     const data = await request.formData();
     const id = data.get('id');
-    
+
 
     const docRef = doc(firestore, `contracts/${id}`);
 
@@ -72,7 +72,7 @@ export const action: ActionFunction = async ({ request }) => {
     const numberOfContracts = new Number(session?.metadata?.contracts);
 
     const metadataRef = await setFirestoreDocFromData({ ...session?.metadata, contracts: numberOfContracts.valueOf() - 1 }, `metadata`, session?.metadata?.id);
-    
+
     return redirect(`${session?.metadata?.displayName}/dashboard`)
 
 }
@@ -88,7 +88,7 @@ export default function Dashboard() {
 
     const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
     const submit = useSubmit();
-    const userData: { contracts: Contract[], disputes: any[], metadata: any, ownerUsername: string} = useLoaderData();
+    const userData: { contracts: Contract[], disputes: any[], metadata: any, ownerUsername: string } = useLoaderData();
 
 
     const currentContract: Contract = userData.contracts[0]
@@ -170,7 +170,7 @@ export default function Dashboard() {
                                         <svg width="21" height="20" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                                             <path d="M10.4993 4.16602V15.8327M4.66602 9.99935H16.3327" stroke="white" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
                                         </svg>
-                                        <h1 className=''>Add Contract</h1>
+                                        <h1 className=''>Create Contract</h1>
 
                                     </div>
 
@@ -248,7 +248,7 @@ export default function Dashboard() {
 
                                 </tr>
                                 {userData?.contracts.filter((contract) => contractFilter ? contract.projectName?.includes(contractFilter) : true).map((contract: Contract, index: number) => {
-                                    
+
                                     return (
                                         <tr key={contract.id} className={`border-b sm:flex sm:flex-row sm:justify-evenly sm:items-center w-full border-gray-400 dark:bg-gray-800 dark:border-gray-700 transition-all hover:bg-bg-primary-dark hover:bg-opacity-50 hover:border-accent-dark hover:drop-shadow-md dark:hover:bg-gray-600`}>
 

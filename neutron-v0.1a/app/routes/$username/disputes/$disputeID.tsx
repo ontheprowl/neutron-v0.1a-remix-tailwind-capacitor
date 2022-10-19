@@ -1,5 +1,5 @@
 import { useFetcher, useLoaderData, useSubmit } from "@remix-run/react";
-import type { ActionFunction, LoaderFunction} from "@remix-run/server-runtime";
+import type { ActionFunction, LoaderFunction } from "@remix-run/server-runtime";
 import { redirect } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
 import { get, query, ref } from "firebase/database";
@@ -7,11 +7,11 @@ import { useState } from "react";
 import DisputesChatComponent from "~/components/disputes/DisputesChatComponent";
 import FormButton from "~/components/inputs/FormButton";
 import NeutronModal from "~/components/layout/NeutronModal";
-import { DisputeSeverityGenerator } from "~/components/layout/Statuses";
+import { DisputeSeverityGenerator, DisputeStatusGenerator } from "~/components/layout/Statuses";
 import DisputeViewMobileUI from "~/components/pages/DisputeViewMobileUI";
 import { db } from "~/firebase/neutron-config.server";
 import { deleteFirestoreDoc, getSingleDoc, sendEvent } from "~/firebase/queries.server";
-import type { Dispute} from "~/models/disputes";
+import type { Dispute } from "~/models/disputes";
 import { DisputeType } from "~/models/disputes";
 import { DisputeStatus } from "~/models/disputes";
 import type { NeutronEvent } from "~/models/events";
@@ -127,9 +127,10 @@ export default function DetailedDisputeView() {
 
                             </div>
 
-                            <div className="flex flex-row w-full justify-end  p-4">
+                            <div className="flex flex-row w-full justify-between  p-4">
 
                                 <DisputeSeverityGenerator severity={selectedDispute.severity}></DisputeSeverityGenerator>
+                                <DisputeStatusGenerator status={selectedDispute.status}></DisputeStatusGenerator>
 
                             </div>
                         </div>

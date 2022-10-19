@@ -7,6 +7,9 @@ import type { EventType, NeutronEvent } from "~/models/events";
 
 
 
+// * Integrate server-side caching here
+
+
 export async function getFirebaseDocs(collectionName: string, onlyKeys?: boolean, path?: string): Promise<DocumentData[]> {
     const querySnapshot = await getDocs(collection(firestore, collectionName, path ? path : ''));
     const result: any[] = []

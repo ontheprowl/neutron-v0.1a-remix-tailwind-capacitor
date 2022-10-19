@@ -1,5 +1,5 @@
 import { useFetcher, useLoaderData } from '@remix-run/react';
-import type { ActionFunction, LoaderFunction} from '@remix-run/server-runtime';
+import type { ActionFunction, LoaderFunction } from '@remix-run/server-runtime';
 import { json, redirect } from '@remix-run/server-runtime';
 import { getStream, ref } from 'firebase/storage';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -9,7 +9,7 @@ import MobileNavbarPadding from '~/components/layout/MobileNavbarPadding';
 import ProfileAccountInformationForm from '~/components/profile/ProfileAccountInformationForm';
 import ProfileBasicDetailsForm from '~/components/profile/ProfileBasicDetailsForm';
 import ProfileProfInformationForm from '~/components/profile/ProfileProfInformationForm';
-import {  ToastContainer } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 
 import { downloadGooglePhotosImage } from '~/firebase/gapis-config.server';
 import { storage } from '~/firebase/neutron-config.server';
@@ -18,6 +18,7 @@ import { requireUser } from '~/session.server';
 import { injectStyle } from 'react-toastify/dist/inject-style';
 import ProfileMobileUI from '~/components/pages/ProfileMobileUI';
 import NeutronModal from '~/components/layout/NeutronModal';
+import { UIStore } from '../../stores/UIStore';
 
 
 
@@ -90,7 +91,7 @@ export default function Profile() {
         return userMetadata?.panVerified && userMetadata?.bankVerified && userMetadata?.aadhaarVerified;
     };
 
-    const [tab, setTab] = useState(0);
+    const tab = UIStore.useState(s => s.profileTab);
     const [profileModal, setProfileModal] = useState(!kycComplete());
 
     return (
@@ -125,15 +126,30 @@ export default function Profile() {
                             {userMetadata.designation && userMetadata.designation.length > 1 && <p className="prose prose-lg text-black text-center w-auto min-w-[101px] font-gilroy-bold self-center bg-white p-2 rounded-full text-[18px] translate-y-[-25px]"> {userMetadata.designation} </p>}
                             <p className="prose prose-lg text-white self-center text-center font-gilroy-medium text-[18px]"> <u className='text-center'>Registered Email</u> <br></br> {userMetadata?.email} </p>
                         </div>
+                        { /* Create a stats page for summary*/}
+
+                        {/* <div id="funds-summary" className='flex flex-col space-y-2 font-gilroy-regular text-[12px] text-white text-center'>
+                            <span> Funds in Escrow: {userMetadata?.funds?.escrowedFunds}</span>
+                            <span> Disbursed Funds: {userMetadata?.funds?.disbursedFunds}</span>
+                            <span> Disputed Funds: {userMetadata?.funds?.disputedFunds}</span>
+                            <span> Received Funds: {userMetadata?.funds?.receivedFunds}</span>
+
+                        </div> */}
                         <div className="flex p-2 flex-row sm:flex-col m-3 justify-evenly sm:space-y-5 space-x-4 sm:space-x-0">
                             <button onClick={() => {
-                                setTab(0)
+                                UIStore.update(s => {
+                                    s.profileTab = 0
+                                })
                             }} className={`transition-all p-3 border-2 text-left text-white prose prose-md rounded-lg ${tab == 0 ? ' border-transparent    bg-bg-primary-dark' : "active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-secondary-dark hover:bg-bg-primary-dark"}`}>Basic Details</button>
                             <button onClick={() => {
-                                setTab(1)
+                                UIStore.update(s => {
+                                    s.profileTab = 1
+                                })
                             }} className={`transition-all p-3 border-2  whitespace-nowrap text-left text-white prose prose-md rounded-lg ${tab == 1 ? '   border-transparent bg-bg-primary-dark' : "active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-secondary-dark hover:bg-bg-primary-dark"}`}>Professional Information</button>
                             <button onClick={() => {
-                                setTab(2)
+                                UIStore.update(s => {
+                                    s.profileTab = 2
+                                })
                             }} className={`transition-all p-3 border-2 text-left text-white prose prose-md rounded-lg ${tab == 2 ? '   border-transparent bg-bg-primary-dark' : "active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-secondary-dark hover:bg-bg-primary-dark"}`}>Account Information </button>
                         </div>
                     </div>

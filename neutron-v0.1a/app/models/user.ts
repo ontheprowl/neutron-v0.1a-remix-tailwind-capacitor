@@ -14,6 +14,7 @@ export type UserState = {
 };
 
 export type Funds = {
+  receivedFunds?: number;
   disbursedFunds?: number;
   escrowedFunds?: number;
   disputedFunds?: number;
@@ -27,9 +28,10 @@ export const DEFAULT_USER_STATE: UserState = {
   age: 18,
   email: "",
   funds: {
-    disbursedFunds: 0,
+    receivedFunds: 0,
     escrowedFunds: 0,
     disputedFunds: 0,
+    disbursedFunds: 0,
   },
 };
 

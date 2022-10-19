@@ -16,7 +16,7 @@ import ViewIcon from "../inputs/ViewIcon";
 import MobileNavbarPadding from "../layout/MobileNavbarPadding";
 import NeutronModal from "../layout/NeutronModal";
 import { ContractDraftedStatus, ContractPublishedStatus } from "../layout/Statuses";
-import { motion, useElementScroll, useViewportScroll } from "framer-motion";
+import { AnimatePresence, motion, useElementScroll, useViewportScroll } from "framer-motion";
 
 
 
@@ -42,6 +42,8 @@ export default function DashboardMobileUI() {
     const userData: { contracts: Contract[], disputes: any[], metadata: any, ownerUsername: string } = useLoaderData();
 
     const contracts = userData.contracts;
+
+
 
 
     const generateContractsList = () => {
@@ -103,6 +105,28 @@ export default function DashboardMobileUI() {
 
     const currentUserData = userData.metadata;
 
+    const [statIndex, setStatIndex] = useState(0);
+
+    const fundStats: JSX.Element[] = [
+        <div key={0}>
+            <motion.h1 className="font-gilroy-bold text-[14px]">Funds In Escrow</motion.h1>
+            <motion.h2 className="font-gilroy-black text-[20px]">₹{currentUserData.funds.escrowedFunds ? currentUserData.funds.escrowedFunds : '0'}</motion.h2>
+        </div>,
+        <div key={1}>
+            <motion.h1 className="font-gilroy-bold text-[14px]">Disbursed Funds</motion.h1>
+            <motion.h2 className="font-gilroy-black text-[20px]">₹{currentUserData.funds.disbursedFunds ? currentUserData.funds.disbursedFunds : '0'}</motion.h2>
+        </div>,
+        <div key={2}>
+            <motion.h1 className="font-gilroy-bold text-[14px]">Disputed Funds </motion.h1>
+            <motion.h2 className="font-gilroy-black text-[20px]">₹{currentUserData.funds.disputedFunds ? currentUserData.funds.disputedFunds : '0'}</motion.h2>
+        </div>,
+        <div key={3}>
+            <motion.h1 className="font-gilroy-bold text-[14px]">Received Funds</motion.h1>
+            <motion.h2 className="font-gilroy-black text-[20px]">₹{currentUserData.funds.receivedFunds ? currentUserData.funds.receivedFunds : '0'}</motion.h2>
+        </div>];
+
+
+
     let navigate = useNavigate();
 
 
@@ -126,10 +150,23 @@ export default function DashboardMobileUI() {
             <motion.div className={` w-auto m-6 rounded-xl p-1  ${primaryGradientDark} z-10 translate-y-10`}>
                 <div className=" h-40 rounded-xl bg-bg-primary-dark text-white">
                     <div className="flex flex-col space-y-2 pt-6">
-                        <h1 className="text-[16px] font-gilroy-medium">Funds In Escrow</h1>
-                        <p className="font-gilroy-black text-[30px]"> ₹{currentUserData.funds.escrowedFunds} </p>
+                        <AnimatePresence exitBeforeEnter>
+                            <motion.div
+                                key={statIndex}
+                                animate={{ opacity: 1, x: 0 }}
+                                initial={{ opacity: 0, x: 100 }}
+                                exit={{ opacity: 0, x: -50 }}
+                                onTap={() => {
+                                    statIndex < 3 ? setStatIndex(statIndex + 1) : setStatIndex(0);
+                                }}
+                                transition={{ duration: 0.5 }} className="flex flex-col cursor-pointer hover:opacity-50 pt-6">
+                                {fundStats[statIndex]}
+                            </motion.div>
+                        </AnimatePresence>
+
                         <p className="font-gilroy-medium text-[14px]"> ({currentUserData.contracts} Active Contract{currentUserData.contracts != 1 ? 's' : ''})</p>
                     </div>
+
                 </div>
             </motion.div>
             <div id="main-dash-section" className=' bg-bg-primary-dark h-full z-0 translate-y-[-40px] pt-32 p-8 flex flex-col'>
@@ -182,7 +219,7 @@ export default function DashboardMobileUI() {
                         }} className="w-full bg-[#4d4d4d] border-0 text-white placeholder:text-white focus:border-transparent outline-none " />
 
                     </div>
-                    <div className={`${contracts.length > 0 ? 'h-[95vh]' : 'h-auto'}`}>
+                    <div className={`${contracts.length > 0 ? 'h-[55vh]' : 'h-auto'}`}>
                         {contracts.length > 0 ? generateContractsList() : <ContractZeroState></ContractZeroState>}
 
                     </div>

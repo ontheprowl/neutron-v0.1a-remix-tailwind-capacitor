@@ -119,10 +119,9 @@ export default function Login() {
   const loginButtonStates = (state: string) => {
     switch (state) {
       case "idle":
+      case "loading":
         return (<span>Log In</span>)
       case "submitting":
-        return (<span>Logging you in</span>)
-      case "loading":
         return (<DefaultSpinner size="regular"></DefaultSpinner>)
     }
   }
@@ -173,7 +172,7 @@ export default function Login() {
           ></img>
           <div id="form-container" className=" w-full h-full flex flex-row justify-center mt-20 sm:mt-0">
             <div className="flex flex-col w-full h-full justify-center">
-              <div className="bg-bg-primary-dark rounded-lg text-left self-center sm:w-[500px]">
+              <div className="bg-bg-primary-dark rounded-lg text-left self-center w-full sm:w-[500px]">
                 <h1
                   className={`text-left sm:ml-0 font-gilroy-black text-white text-[30px]`}
                 >

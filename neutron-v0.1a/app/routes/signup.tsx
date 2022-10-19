@@ -97,7 +97,7 @@ export async function action({ request }: { request: Request }) {
     }, `metadata`, user.uid);
     // const uidMapRef = await setFirestoreDocFromData({ uid: user.uid }, `metadata`, user.email);
     const token = await user.getIdToken();
-    return createUserSession({ request: request, metadata: { 'path': ref.path }, userId: token, remember: true, redirectTo: `/login` })
+    return createUserSession({ request: request, metadata: { 'path': ref.path }, userId: token, remember: true, redirectTo: `/checkEmail` })
   } catch (e) {
     console.log("\n Error during signup form submission being logged : \n ");
     console.dir(e)
@@ -115,10 +115,9 @@ export default function Signup() {
   const signupButtonStates = (state: string) => {
     switch (state) {
       case "idle":
+      case "loading":
         return (<span> Sign Up</span>);
       case "submitting":
-        return (<span>Creating User</span>);
-      case "loading":
         return (<DefaultSpinner></DefaultSpinner>);
     }
   }
@@ -154,10 +153,6 @@ export default function Signup() {
 
 
 
-    } else {
-      if (transition.type === "actionSubmission") {
-        toast(<div><h2>Please verify your email ID</h2></div>, { theme: "dark", type: "success" })
-      }
     }
   }, [actionData])
 
@@ -172,7 +167,7 @@ export default function Signup() {
           ></img>
           <div id="form-container" className=" w-full h-full flex flex-row justify-center mt-10 sm:mt-0">
             <div className="flex flex-col w-full h-full justify-center">
-              <div className="bg-bg-primary-dark rounded-lg text-left self-center p-2 sm:w-[500px]">
+              <div className="bg-bg-primary-dark rounded-lg text-left self-center p-2 w-full sm:w-[500px]">
                 <h1
                   className={`text-left sm:ml-0 font-gilroy-black text-white text-[30px]`}
                 >
@@ -180,7 +175,7 @@ export default function Signup() {
                 </h1>
 
                 <div className=" flex flex-col sm:flex-row items-start space-y-2 sm:space-y-0  w-full justify-between">
-                  <div className="flex flex-col justify-items-start space-y-2 mt-2 w-full ">
+                  <div className="flex flex-col justify-items-start space-y-2 mt-2 w-full   ">
                     <form
 
                       onSubmit={handleSubmit((data) => {
@@ -216,10 +211,10 @@ export default function Signup() {
 
                       <div className="text-left space-y-1 w-full">
                         <span className=" prose prose-md text-white font-gilroy-black text-[22px]">Password <MandatoryAsterisk></MandatoryAsterisk></span>
-                        <input  {...register('password', { required: true, minLength: { value: 8, message: " Password should at least be 8 characters long" } })} type="password" placeholder="Enter Password" className="  transition-all bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 caret-bg-accent-dark focus:outline-none focus:border-accent-dark focus:ring-2 focus:ring-accent-dark text-white active:caret-yellow-400 text-sm rounded-lg placeholder-[#C1C1C1] block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white font-gilroy-medium " />
+                        <input  {...register('password', { required: true, minLength: { value: 8, message: " Password should at least be 8 characters" } })} type="password" placeholder="Enter Password" className="  transition-all bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 caret-bg-accent-dark focus:outline-none focus:border-accent-dark focus:ring-2 focus:ring-accent-dark text-white active:caret-yellow-400 text-sm rounded-lg placeholder-[#C1C1C1] block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white font-gilroy-medium " />
                         <div className="w-full h-5 mt-1 text-left">
                           <ErrorMessage errors={errors} name='password' render={(data) => {
-                            return <span className="text-red-700 pl-1 mt-3 z-10 font-gilroy-black text-left">{data.message}</span>
+                            return <span className="text-red-700 mt-3 z-10 font-gilroy-black text-left">{data.message}</span>
                           }} />
                         </div>
                       </div>

@@ -26,6 +26,6 @@ export const loader: LoaderFunction = async ({ request }) => {
     }
 
 
-    return redirect('/login')
+    return redirect('/emailVerified')
     // await checkActionCode(auth)
 }

@@ -74,7 +74,7 @@ export function checkForSpecificEvent(events: NeutronEvent[], specifiedEvent: Co
 }
 
 export const structurePayinPayload = (contract: Contract, ownerUsername: string, payingUserData: { id: string, email: string, displayName: string, phoneNumber: string }, environment?: string) => {
-    
+
     // 
     const value = contract?.contractValue?.replace("₹", '').replace(',', '');
     const totalValue: number = parseInt(value);
@@ -91,12 +91,15 @@ export const structurePayinPayload = (contract: Contract, ownerUsername: string,
             return_url: `https://${environment === "development" ? "localhost:3000" : "app.neutron.money"}/${ownerUsername}/payment/success/${contract.id}?order_id={order_id}&order_token={order_token}`,
             order_id: orderId,
             order_token: contract.id,
+            notify_url: 'https://us-central1-neutron-expo.cloudfunctions.net/cashfreeNotificationWebhook'
+
         },
         order_amount: totalValue,
         order_currency: "INR"
     }
     return payload;
 }
+
 
 
 export const minStartDate = () => {

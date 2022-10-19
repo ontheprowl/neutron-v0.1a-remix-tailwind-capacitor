@@ -68,10 +68,12 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 export function ErrorBoundary({ error }) {
   let navigate = useNavigate();
+  
+  
   useEffect(() => {
     setTimeout(() => {
       navigate("/");
-    }, 2000);
+    }, 4000);
   },[navigate]);
   
   let location = useLocation();
@@ -126,21 +128,23 @@ export function ErrorBoundary({ error }) {
 
         <div className="h-screen w-full flex flex-col justify-center bg-bg-primary-dark align-middle">
 
-          <div className="flex flex-col-reverse items-center sm:items-stretch sm:flex-row justify-center space-x-10 ">
-            <div className="flex flex-col sm:hidden items-center border-2">
+          <div className="flex flex-col-reverse items-center sm:items-stretch sm:flex-row justify-center sm:space-x-10  ">
+            <div className="flex flex-col sm:hidden items-center">
               <DefaultSpinner size="large"></DefaultSpinner>
+              <h1 className='mt-5 text-white font-gilroy-medium text-[18px]'> Redirecting you to your dashboard </h1>
 
             </div>
             <div
               id="error-details"
-              className="flex flex-col w-auto sm:w-[500px] p-10 text-center sm:text-left justify-between border-2"
+              className="flex flex-col w-auto sm:w-[500px] p-10 text-center sm:text-left justify-between"
             >
 
               <div>
 
-                <h1 className="prose prose-lg text-white font-gilroy-black text-[40px]">
+                <h1 className="prose prose-lg text-white font-gilroy-black text-[30px] leading-none">
 
-                  An Error has Occured!
+                  An Error has Occured! 
+
                 </h1>
                 <h2 className="prose prose-md text-white font-gilroy-medium text-[20px]">{`${error}`}</h2>
               </div>
@@ -157,7 +161,7 @@ export function ErrorBoundary({ error }) {
                 </span>
               </span>
             </div>
-            <div className=" h-56 w-56 sm:h-[414px] sm:w-[471px] flex flex-row items-center border-2">
+            <div className=" h-56 w-56 sm:h-[414px] sm:w-[471px] flex flex-row items-center">
               <svg
                 className='h-full w-full'
                 viewBox="0 0 471 414"

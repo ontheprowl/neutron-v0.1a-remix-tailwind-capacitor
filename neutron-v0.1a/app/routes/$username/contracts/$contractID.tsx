@@ -201,7 +201,7 @@ export default function DetailedContractView() {
     const contractData = data.contract;
     console.dir(contractData)
     const currentUser = data.metadata
-    const overviewStages = [<ContractOverview draft={contractData?.isPublished} key={0} ></ContractOverview>, <ContractEditScreen viewMode key={1} ></ContractEditScreen>]
+    const overviewStages = [<ContractOverview published={contractData?.isPublished == "true"} key={0} ></ContractOverview>, <ContractEditScreen viewMode key={1} ></ContractEditScreen>]
 
     const params = useParams();
 
@@ -329,7 +329,7 @@ export default function DetailedContractView() {
                         </div>
                         <div className={`flex flex-row bg-bg-secondary-dark transition-all  w-full h-full rounded-full justify-between p-4 items-center`}>
                             <h2 className='prose prose-md text-white'>Milestones</h2>
-                            {generateMilestoneStats(contractData?.milestones)}
+                            {generateMilestoneStats(contractData?.isPublished == "true" ? contractData?.milestones : contractData?.milestonesProcessed)}
                         </div>
                     </div>
 

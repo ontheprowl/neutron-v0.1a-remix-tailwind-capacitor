@@ -1,9 +1,11 @@
-import {Store} from 'pullstate';
+import { Store } from 'pullstate';
 
 interface IUIStore {
-    selectedTab: string
+    selectedTab: string,
+    profileTab: number
 }
 
 export const UIStore = new Store<IUIStore>({
-    selectedTab:"Home"
+    selectedTab: "Home",
+    profileTab: 0
 })

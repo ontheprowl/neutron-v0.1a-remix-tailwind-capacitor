@@ -3,46 +3,61 @@
 @tailwind utilities;
 
 @layer base {
-    @font-face {
-      font-family: 'Gilroy-Regular';
-      src: url("/Gilroy-Regular.ttf");
-    }
- 
-    @font-face {
-        font-family: 'Gilroy-Bold';
-        src: url("/Gilroy-Bold.ttf");
-    }
+  @font-face {
+    font-family: "Gilroy-Regular";
+    src: url("/Gilroy-Regular.ttf");
+  }
 
-    @font-face {
-        font-family:'Gilroy-Black';
-        src: url("/GILROY-BLACK.TTF");
-    }
+  @font-face {
+    font-family: "Gilroy-Bold";
+    src: url("/Gilroy-Bold.ttf");
+  }
 
-    @font-face {
-        font-family:'Gilroy-Medium';
-        src: url("/GILROY-MEDIUM.TTF");
-    }
-} 
+  @font-face {
+    font-family: "Gilroy-Black";
+    src: url("/GILROY-BLACK.TTF");
+  }
 
+  @font-face {
+    font-family: "Gilroy-Medium";
+    src: url("/GILROY-MEDIUM.TTF");
+  }
+}
 
 * {
-    -ms-overflow-style: none;  /* Internet Explorer 10+ */
-    scrollbar-width: none;
-    -webkit-tap-highlight-color: transparent;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
-*::-webkit-scrollbar{
-    display: none;
+input,
+textarea {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
-sub, sup { font-size: 75%; line-height: 0; position: relative; vertical-align: baseline; }
-sup { top: -0.3em; vertical-align: super;}
-sub { bottom: -0.25em; vertical-align: sub;}
+*::-webkit-scrollbar {
+  display: none;
+}
 
-
+sub,
+sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+sup {
+  top: -0.3em;
+  vertical-align: super;
+}
+sub {
+  bottom: -0.25em;
+  vertical-align: sub;
+}

@@ -15,7 +15,7 @@ import { primaryGradientDark } from "~/utils/neutron-theme-extensions"
 
 
 
-export default function DisputesChatComponent({ from, to, messages, fullHeight, customKey, disabled, disableMessage }: { from: string, to: string, messages: Array<any>, customKey?: string, fullHeight?: boolean, disabled?: boolean, disableMessage?:string }) {
+export default function DisputesChatComponent({ from, to, messages, fullHeight, customKey, disabled, disableMessage }: { from: string, to: string, messages: Array<any>, customKey?: string, fullHeight?: boolean, disabled?: boolean, disableMessage?: string }) {
 
 
     const loaderData = useLoaderData();
@@ -32,8 +32,8 @@ export default function DisputesChatComponent({ from, to, messages, fullHeight, 
     console.dir("MESSAGES are :")
     console.dir(messages)
     return (
-        <div className={` flex flex-col h-full ${fullHeight ? '' : 'max-h-[550px]'}  overflow-y-scroll w-full  rounded-lg items-stretch`}>
-            
+        <div className={` flex flex-col h-[70vh] pb-4 sm:pb-0 sm:h-full ${fullHeight ? '' : 'max-h-[550px]'} border-2 sm:border-0 border-purple-400 bg-bg-secondary-dark sm:bg-inherit overflow-y-scroll w-full  rounded-lg items-stretch`}>
+
             <h2 className={`${disabled ? 'relative text-white z-40 self-center top-[200px] text-[18px] sm:text-[26px] font-gilroy-black' : 'hidden'}`}>{disableMessage}</h2>
             <ul className={`h-[900px] overflow-y-scroll m-3 ${disabled ? 'opacity-40' : ''} text-white flex flex-col grid-cols-1`}>
                 <AnimatePresence initial={false}>
@@ -62,6 +62,9 @@ export default function DisputesChatComponent({ from, to, messages, fullHeight, 
                     setNewMessage(e.target.value)
                 }} placeholder="Enter a new message..." />
                 <motion.button onClick={disabled ? () => { } : () => {
+                    if (newMessage.trim().length == 0) {
+                        return
+                    }
                     const data = new FormData();
                     data.append('message', newMessage);
                     data.append('from', from);

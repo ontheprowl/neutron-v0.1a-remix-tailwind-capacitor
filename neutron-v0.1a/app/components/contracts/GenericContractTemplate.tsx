@@ -58,7 +58,7 @@ export default function GenericContractTemplate({ viewMode }: { viewMode?: boole
 
     function generateMilestonesForContract() {
         let milestonesArray = []
-        const milestonesContainer = viewMode ? allContractFields?.milestones : allContractFields?.milestonesProcessed;
+        const milestonesContainer = contractData?.isPublished == "true" ? allContractFields?.milestones : allContractFields?.milestonesProcessed;
         if (milestonesContainer) {
             for (const [key, value] of Object.entries(milestonesContainer)) {
                 if (key == "advance") {

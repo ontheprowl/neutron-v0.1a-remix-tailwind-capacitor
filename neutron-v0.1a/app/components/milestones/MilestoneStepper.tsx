@@ -69,7 +69,7 @@ export default function MilestoneStepper() {
 
     return (
         <>
-            <motion.div variants={{ collapsed: { scale: 0.9, opacity: 0 }, open: { scale: 1, opacity: 1 } }}
+            <motion.div id="paper_trail" variants={{ collapsed: { scale: 0.9, opacity: 0 }, open: { scale: 1, opacity: 1 } }}
                 transition={{ duration: 0.1 }} className="flex flex-col w-auto m-3 max-h-[500px] overflow-y-scroll">
                 {/* {sortedEvents[0].event == ContractEvent.ContractSignedByServiceProvider ? <MilestoneStep name={"Contract has been signed by the service provider!"} status={MilestoneStatus.Completed} /> : <MilestoneStep status={MilestoneStatus.Current} name={"Contract has not been signed by the service provider!"} subline={"Current Status"} />}
 

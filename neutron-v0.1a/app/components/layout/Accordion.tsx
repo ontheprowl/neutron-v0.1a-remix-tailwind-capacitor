@@ -9,7 +9,7 @@ export default function Accordion({ expanded, setExpanded, content, label, class
     // them in and out while also only rendering the contents of open accordions
     return (
         <motion.div
-            className={className} layout initial={false}
+            className={className} initial={false}
         >
             {label}
             <AnimatePresence initial={false}>
@@ -27,8 +27,7 @@ export default function Accordion({ expanded, setExpanded, content, label, class
                                 },
                             }
                         }}
-                        transition={{ duration: 0.1 }}
-                        layout
+                        transition={{ duration: 0.3 }}
                     >
                         {content}
                     </motion.div>

@@ -95,7 +95,7 @@ export const action: ActionFunction = async ({ request }) => {
     }
 
     const finalContractData = { ...data }
-
+    console.dir(finalContractData)
 
 
 
@@ -105,29 +105,27 @@ export const action: ActionFunction = async ({ request }) => {
     if (finalContractData?.isPublished == "true") {
 
         if (finalContractData?.milestonesProcessed) {
-            const actualMilestonesKey = "milestones";
-            finalContractData[actualMilestonesKey] = finalContractData?.milestonesProcessed;
+            console.log("MILESTONES BEING TRANSFORMED TO NEW KEY");
+            finalContractData['milestones'] = finalContractData?.milestonesProcessed;
             delete finalContractData?.milestonesProcessed;
         }
-        const contractRef = await addFirestoreDocFromData({ ...data, status: ContractStatus.Published }, `contracts`);
+        const contractRef = await addFirestoreDocFromData({ ...finalContractData, status: ContractStatus.Published }, `contracts`);
         const numberOfContracts = new Number(session?.metadata?.contracts);
 
         const contractCreationEvent: NeutronEvent = { event: ContractEvent.ContractPublished, type: EventType.ContractEvent, payload: { data: { ...data }, message: 'A contract was created' }, uid: session?.metadata?.id, id: contractRef.id }
         const eventPublished = await sendEvent(contractCreationEvent, finalContractData?.viewers);
-        const metadataRef = await updateFirestoreDocFromData({ contracts: numberOfContracts.valueOf() + 1, funds: { escrowedFunds: session?.metadata?.funds?.escrowedFunds ? finalContractData?.contractNumericValue + session?.metadata?.funds?.escrowedFunds : finalContractData?.contractNumericValue } }, `metadata`, session?.metadata?.id);
-        const counterPartyMetadataRef = await updateFirestoreDocFromData({ funds: { escrowedFunds: session?.metadata?.funds?.escrowedFunds ? finalContractData?.contractNumericValue + session?.metadata?.funds?.escrowedFunds : finalContractData?.contractNumericValue } }, `metadata`, finalContractData?.creator == finalContractData?.clientEmail ? finalContractData?.providerID : finalContract?.clientID);
+        const creatorMetadataRef = await updateFirestoreDocFromData({ contracts: numberOfContracts.valueOf() + 1 }, `metadata`, session?.metadata?.id);
+        // const providerMetadata = await updateFirestoreDocFromData({  }, `metadata`, finalContractData?.providerID);
 
         return redirect(`/${session?.metadata?.displayName}/contracts/${contractRef.id}`)
 
     } else {
 
 
-        const contractRef = await addFirestoreDocFromData({ ...data, status: ContractStatus.Draft }, `contracts`);
+        const contractRef = await addFirestoreDocFromData({ ...finalContractData, status: ContractStatus.Draft }, `contracts`);
 
         const contractDraftEvent: NeutronEvent = { event: ContractEvent.ContractDrafted, type: EventType.ContractEvent, payload: { data: { ...data }, message: 'A contract was drafted' }, uid: session?.metadata?.id, id: contractRef.id }
         const eventDrafted = await sendEvent(contractDraftEvent, finalContractData?.viewers);
-        const numberOfContracts = new Number(session?.metadata?.contracts);
-        const metadataRef = await setFirestoreDocFromData({ ...session?.metadata, contracts: numberOfContracts.valueOf() + 1 }, `metadata`, session?.metadata?.id);
         return redirect(`/${session?.metadata?.displayName}/contracts/${contractRef.id}`)
 
     }

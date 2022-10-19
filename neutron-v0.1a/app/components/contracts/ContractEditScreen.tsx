@@ -16,6 +16,7 @@ import { returnUserUIDAndUsername } from "~/utils/utils";
 import DefaultSpinner from "../layout/DefaultSpinner";
 import { Transition } from "@remix-run/react/transition";
 import { useState } from "react";
+import NeutronModal from "../layout/NeutronModal";
 
 
 
@@ -29,6 +30,8 @@ export default function ContractEditScreen({ viewMode, editMode }: { viewMode?: 
     let data: Contract = loaderData.contract;
     let events: NeutronEvent[] = loaderData.contractEvents;
     const users = loaderData.users;
+
+    const [signModal, setSignModal] = useState(false);
 
     const publishContractStates = (transition: Transition) => {
         const isPublished = transition.submission?.formData.get('isPublished');
@@ -75,32 +78,17 @@ export default function ContractEditScreen({ viewMode, editMode }: { viewMode?: 
     let fetcher = useFetcher();
 
     return (
-        <div className="flex flex-col sm:flex-row space-y-5 sm:space-x-10 justify-start">
-            <div className="bg-white h-[90vh]  sm:h-auto w-auto basis-2/3 ring-1 ring-bg-secondary-dark  bg-opacity-90">
+        <div className="flex flex-col-reverse sm:flex-row space-y-5 sm:space-x-10 justify-start">
+            <div className="bg-white h-[90vh]  sm:h-auto w-auto sm:basis-2/3 ring-1 ring-bg-secondary-dark  bg-opacity-90">
                 <GenericContractTemplate viewMode={viewMode}></GenericContractTemplate>
             </div>
-            <div className="flex flex-col h-auto w-full basis-1/3 ">
+            <div className="flex flex-col-reverse sm:flex-col h-auto w-full sm:basis-1/3 ">
 
                 <div className="flex flex-col space-y-3  items-center sm:flex-row sm:w-full sm:space-x-3 m-5 sm:justify-between">
                     {/** TODO: ADD NECESSARY DATA GATHERING FOR SIGNING LOGIC HERE, THEN MIGRATE SIGNING API SUBMISSIONS TO ANOTHER LOCATION */}
                     {viewMode && events[events.length - 1] && events[events.length - 1].event == ContractEvent.ContractPublished && metadata?.email == data.providerEmail ?
-                        <button onClick={() => {
-                            const form = new FormData();
-                            form.append('email', data.providerEmail);
-                            form.append('id', data.providerID);
-                            form.append('viewers', JSON.stringify(data.viewers));
-                            // E
-                            fetcher.submit(form, { action: `/${username}/sign/${data.id}`, method: 'post' });
-                        }} className=' p-4 text-center bg-[#E6E0FA] sm:w-full text-[#765AD1] basis-1/2 prose prose-md transition-all rounded-lg active:border-white whitespace-nowrap hover:bg-white'>{`Sign as the Service Provider`}</button> : <></>}
-                    {viewMode && events[events.length - 1] && events[events.length - 1].event == ContractEvent.ContractPendingSignByClient && data.clientEmail && metadata?.email == data.clientEmail ? <button onClick={() => {
-                        const form = new FormData();
-                        form.append('email', data.clientEmail)
-                        form.append('isClient', 'true');
-                        form.append('id', data.clientID);
-                        form.append('viewers', JSON.stringify(data.viewers));
-
-                        fetcher.submit(form, { action: `/${username}/sign/${data.id}`, method: 'post' })
-                    }} className=' p-4 text-center bg-[#E6E0FA] sm:w-full text-[#765AD1] basis-1/2 prose prose-md transition-all rounded-lg active:border-white whitespace-nowrap hover:bg-white'>{`Sign as the Client`}</button> : <></>}
+                        <button onClick={() => { setSignModal(true) }} className=' p-4 text-center bg-[#E6E0FA] sm:w-full text-[#765AD1] basis-1/2 prose prose-md transition-all rounded-lg active:border-white whitespace-nowrap hover:bg-white'>{`Sign as the Service Provider`}</button> : <></>}
+                    {viewMode && events[events.length - 1] && events[events.length - 1].event == ContractEvent.ContractPendingSignByClient && data.clientEmail && metadata?.email == data.clientEmail ? <button onClick={() => { setSignModal(true) }} className=' p-4 text-center bg-[#E6E0FA] sm:w-full text-[#765AD1] basis-1/2 prose prose-md transition-all rounded-lg active:border-white whitespace-nowrap hover:bg-white'>{`Sign as the Client`}</button> : <></>}
 
 
                     <div className="flex flex-col space-y-2 w-full">
@@ -123,7 +111,7 @@ export default function ContractEditScreen({ viewMode, editMode }: { viewMode?: 
 
                         </div>} */}
                         {!viewMode &&
-                            <div className="flex flex-col sm:flex-row space-y-6 sm:space-y-0 sm:space-x-6 w-full">
+                            <div className="flex flex-row space-x-4 sm:space-y-0 sm:space-x-6 w-full">
                                 <FormButton submit={true} text={publishContractStates(transition)} ></FormButton>
                                 <TransparentButton variant="light" text={draftContractStates(transition)} onClick={(e) => {
                                     let data: {
@@ -183,28 +171,31 @@ export default function ContractEditScreen({ viewMode, editMode }: { viewMode?: 
 
 
                 </div>
-                <div className={`flex flex-col border-2 border-purple-400 rounded-xl m-5 mt-2`}>
+                <div className={` border-2 border-purple-400 rounded-xl sm:m-5 mt-2`}>
 
                     <div className="flex flex-col m-5">
-                        {!viewMode && <><h1 className="prose prose-lg text-white mb-2"> Edit Contract</h1>
-                            <div className="flex flex-col mt-3 w-full space-y-4">
-                                <button type="button" onClick={() => {
-                                    ContractDataStore.update(s => {
-                                        s.stage = 0;
-                                    })
-                                }} className={`transition-all p-3 border-2 border-white text-left text-white prose prose-md rounded-lg active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-primary-dark hover:border-accent-dark`}>Client Information </button>
-                                <button type="button" onClick={() => {
-                                    ContractDataStore.update(s => {
-                                        s.stage = 1;
-                                    })
-                                }} className={`transition-all p-3 border-2 border-white text-left text-white prose prose-md rounded-lg active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-primary-dark hover:border-accent-dark`}>Scope of Work </button>
-                                <button type="button" onClick={() => {
-                                    ContractDataStore.update(s => {
-                                        s.stage = 2;
-                                    })
-                                }} className={`transition-all p-3 border-2 border-white text-left text-white prose prose-md rounded-lg active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-primary-dark hover:border-accent-dark`}>Payment and Milestones </button>
-                            </div></>}
-                        <div className="hidden sm:flex sm:flex-col">
+                        {!viewMode &&
+                            <div className="mt-5">
+                                <h1 className="prose prose-lg text-white mb-2"> Edit Contract</h1>
+                                <div className="flex flex-col mt-3 w-full space-y-4">
+                                    <button type="button" onClick={() => {
+                                        ContractDataStore.update(s => {
+                                            s.stage = 0;
+                                        })
+                                    }} className={`transition-all p-3 border-2 border-white text-left text-white prose prose-md rounded-lg active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-primary-dark hover:border-accent-dark`}>Client Information </button>
+                                    <button type="button" onClick={() => {
+                                        ContractDataStore.update(s => {
+                                            s.stage = 1;
+                                        })
+                                    }} className={`transition-all p-3 border-2 border-white text-left text-white prose prose-md rounded-lg active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-primary-dark hover:border-accent-dark`}>Scope of Work </button>
+                                    <button type="button" onClick={() => {
+                                        ContractDataStore.update(s => {
+                                            s.stage = 2;
+                                        })
+                                    }} className={`transition-all p-3 border-2 border-white text-left text-white prose prose-md rounded-lg active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-primary-dark hover:border-accent-dark`}>Payment and Milestones </button>
+                                </div>
+                            </div>}
+                        <div className="flex flex-col">
                             <h1 className="prose prose-lg text-white mt-3 mb-2"> Contract Shortcuts</h1>
                             <div className="flex flex-col mt-3 w-full space-y-4">
                                 <button type="button" onClick={() => {
@@ -224,9 +215,23 @@ export default function ContractEditScreen({ viewMode, editMode }: { viewMode?: 
                     </div>
 
                 </div>
-                <MobileNavbarPadding></MobileNavbarPadding>
-
             </div>
+            {signModal && <NeutronModal toggleModalFunction={setSignModal} heading={<span className="text-black"> You are about to sign this contract. Are you sure you want to proceed? </span>} body={<span className="text-red-800"> This operation cannot be undone</span>} onReject={()=>{setSignModal(false)}} onConfirm={metadata?.email == data.clientEmail ? () => {
+                const form = new FormData();
+                form.append('email', data.clientEmail)
+                form.append('isClient', 'true');
+                form.append('id', data.clientID);
+                form.append('viewers', JSON.stringify(data.viewers));
+
+                fetcher.submit(form, { action: `/${username}/sign/${data.id}`, method: 'post' })
+            } : () => {
+                const form = new FormData();
+                form.append('email', data.providerEmail);
+                form.append('id', data.providerID);
+                form.append('viewers', JSON.stringify(data.viewers));
+                // E
+                fetcher.submit(form, { action: `/${username}/sign/${data.id}`, method: 'post' });
+            }} />}
 
         </div>)
 }

@@ -1,11 +1,12 @@
 import { useFetcher, useLoaderData, useNavigate, useSubmit } from "@remix-run/react";
 import { useState } from "react";
-import type { Dispute} from "~/models/disputes";
+import type { Dispute } from "~/models/disputes";
 import { DisputeStatus, DisputeType } from "~/models/disputes";
 import { generateTextForDisputeType } from "~/utils";
 import DisputesChatComponent from "../disputes/DisputesChatComponent";
 import BackArrowButton from "../inputs/BackArrowButton";
 import FormButton from "../inputs/FormButton";
+import MobileNavbarPadding from "../layout/MobileNavbarPadding";
 import NeutronModal from "../layout/NeutronModal";
 import { DisputeSeverityGenerator } from "../layout/Statuses";
 
@@ -33,8 +34,8 @@ export default function DisputeViewMobileUI() {
 
 
 
-    return (<div className=" sm:hidden h-[55vh]">
-        <div className="w-full max-h-48 ">
+    return (<div className=" sm:hidden h-screen ">
+        <div className="w-full h-auto mb-5 ">
             <div className="flex flex-col items-center justify-between w-full">
                 <div className="flex flex-row w-full h-auto items-center justify-between space-x-4">
                     <div className="sm:inline hover:drop-shadow-md  transition-all h-8 rounded-full">
@@ -57,27 +58,29 @@ export default function DisputeViewMobileUI() {
 
                     </div>
                 </div>
-                <div className="flex flex-row w-full rounded-xl space-x-4 mt-4 justify-between p-4 ">
-                    {selectedDispute.raisedBy == metadata?.email && selectedDispute.type != DisputeType.Fraud && selectedDispute.status == DisputeStatus.Raised && <button onClick={() => {
-                        setCancelDisputeModal(true);
-                    }} className="rounded-lg p-4  w-auto text-white whitespace-nowrap active:bg-red-500 transition-all hover:border-white bg-red-700 border-2 border-transparent"> Cancel Dispute </button>}
-                    {selectedDispute.type === DisputeType.QualityIssue && selectedDispute.provider.email == metadata?.email && selectedDispute.status != DisputeStatus.Accepted &&
-                        <div className="flex flex-row space-x-3">
-                            <FormButton text="Accept Dispute" onClick={() => { setResolutionModal(true) }}></FormButton>
-                            <FormButton text="Reject" onClick={() => { setRejectionModal(true) }}></FormButton>
-                        </div>
-                    }
-                    {selectedDispute.type === DisputeType.DeadlineExtension && selectedDispute.client.email == metadata?.email && selectedDispute.status == DisputeStatus.Raised &&
-                        <div className="flex flex-row space-x-3">
-                            <FormButton text="Accept Extension Request" onClick={() => { setResolutionModal(true) }}></FormButton>
-                            <button className="p-4 text-center w-40 text-white bg-red-800 border-2 border-transparent hover:border-white transition-all rounded-lg" onClick={() => { setRejectionModal(true) }}>Reject</button>
-                        </div>
-                    }
-                </div>
 
             </div>
         </div>
-        <DisputesChatComponent disableMessage={selectedDispute.status == DisputeStatus.Accepted ? `This ${generateTextForDisputeType(selectedDispute.type)} request has been accepted ` : selectedDispute.type === DisputeType.Fraud ? '' : `This ${generateTextForDisputeType(selectedDispute.type)} request has been rejected`} disabled={selectedDispute.type === DisputeType.Fraud || (selectedDispute.status == DisputeStatus.Rejected || selectedDispute.status == DisputeStatus.Accepted)} fullHeight from={from} to={to} customKey={selectedDispute.id} messages={messages}></DisputesChatComponent>
+        <DisputesChatComponent disableMessage={selectedDispute.status == DisputeStatus.Accepted ? `This ${generateTextForDisputeType(selectedDispute.type)} request has been accepted ` : selectedDispute.type === DisputeType.Fraud ? '' : `This ${generateTextForDisputeType(selectedDispute.type)} request has been rejected`} disabled={selectedDispute.type === DisputeType.Fraud || (selectedDispute.status == DisputeStatus.Rejected || selectedDispute.status == DisputeStatus.Accepted)} from={from} to={to} customKey={selectedDispute.id} messages={messages}></DisputesChatComponent>
+        <div className="flex flex-col  w-full rounded-xl space-y-4 mt-4 justify-between p-4 ">
+            {selectedDispute.raisedBy == metadata?.email && selectedDispute.type != DisputeType.Fraud && selectedDispute.status == DisputeStatus.Raised &&
+                <button onClick={() => {
+                    setCancelDisputeModal(true);
+                }} className="rounded-lg p-4  w-auto text-white whitespace-nowrap active:bg-red-500 transition-all hover:border-white bg-red-700 border-2 border-transparent"> Cancel Dispute </button>}
+            {selectedDispute.type === DisputeType.QualityIssue && selectedDispute.provider.email == metadata?.email && selectedDispute.status != DisputeStatus.Accepted &&
+                <div className="flex flex-col space-y-3">
+                    <FormButton text="Accept Dispute" onClick={() => { setResolutionModal(true) }}></FormButton>
+                    <FormButton text="Reject" onClick={() => { setRejectionModal(true) }}></FormButton>
+                </div>
+            }
+            {selectedDispute.type === DisputeType.DeadlineExtension && selectedDispute.client.email == metadata?.email && selectedDispute.status == DisputeStatus.Raised &&
+                <div className="flex flex-col space-y-3">
+                    <FormButton text="Accept Extension Request" onClick={() => { setResolutionModal(true) }}></FormButton>
+                    <button className="p-4 self-center text-center w-40 text-white bg-red-800 border-2 border-transparent hover:border-white transition-all rounded-lg" onClick={() => { setRejectionModal(true) }}>Reject</button>
+                </div>
+            }
+        </div>
+        <MobileNavbarPadding></MobileNavbarPadding>
         {resolutionModal && <NeutronModal heading={<h1> You are about to accept this dispute  </h1>} onConfirm={() => {
             const data = new FormData();
             const payload = { dispute: selectedDispute, disputeID: selectedDispute.id, disputeData: selectedDispute?.data, contractID: selectedDispute.contractID, milestone: selectedDispute.currentMilestone, nextMilestoneIndex: selectedDispute.nextMilestoneIndex, viewers: selectedDispute.viewers }

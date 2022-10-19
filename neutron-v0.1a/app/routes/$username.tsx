@@ -22,14 +22,14 @@ import BottomNav from "~/components/layout/BottomNav";
 import { getSingleDoc } from "~/firebase/queries.server";
 import { logout, requireUser } from "~/session.server";
 import { isViewerOwner } from "~/models/user.server";
-import { motion, useCycle } from "framer-motion";
+import { AnimatePresence, motion, useCycle } from "framer-motion";
 import DisputesButton from "~/components/DisputesButton";
 import SupportButton from "~/components/SupportButton";
 import SettingsButton from "~/components/SettingsButton";
 import LogoutButton from "~/components/LogoutButton";
 import { useEffect, useMemo, useState } from "react";
 import NeutronModal from "~/components/layout/NeutronModal";
-import { beamsClient } from "~/components/notifications/pusher-config.client";
+import { beamsClient, isSafari } from "~/components/notifications/pusher-config.client";
 import { ContractDataStore } from "~/stores/ContractStores";
 import { DEFAULT_CONTRACT_STATE } from "~/models/contracts";
 
@@ -83,16 +83,28 @@ export default function CustomUserPage() {
     const metadata = data.metadata;
     let fetcher = useFetcher();
 
+
+
     const [logoutConfirmationModal, setLogoutConfirmationModal] = useState(false);
+
+    const [statIndex, setStatIndex] = useState(0);
 
 
 
     // * This effect ensures that the beamsClient is subscribing to all messages for the currently logged-in user
+
+    //* Pusher Beams 
     useEffect(() => {
-        beamsClient.start().then(() => { beamsClient.addDeviceInterest(metadata.id) });
+        if (!isSafari) {
+            beamsClient.start().then(() => { beamsClient.addDeviceInterest(metadata.id) });
+        }
 
 
-        // return () => { beamsClient.stop() }
+        return () => {
+            if (!isSafari) {
+                beamsClient.stop();
+            }
+        }
     }, [metadata])
 
     const [rotation, cycleRotation] = useCycle([0, 180, 360]);
@@ -113,6 +125,27 @@ export default function CustomUserPage() {
 
 
     const currentUserData = data.metadata;
+
+
+    const fundStats: JSX.Element[] = [
+        <div key={0}>
+            <motion.h1 className="font-gilroy-bold text-[14px]">Funds In Escrow</motion.h1>
+            <motion.h2 className="font-gilroy-black text-[20px]">₹{currentUserData.funds.escrowedFunds ? currentUserData.funds.escrowedFunds : '0'}</motion.h2>
+        </div>,
+        <div key={1}>
+            <motion.h1 className="font-gilroy-bold text-[14px]">Disbursed Funds</motion.h1>
+            <motion.h2 className="font-gilroy-black text-[20px]">₹{currentUserData.funds.disbursedFunds ? currentUserData.funds.disbursedFunds : '0'}</motion.h2>
+        </div>,
+        <div key={2}>
+            <motion.h1 className="font-gilroy-bold text-[14px]">Disputed Funds </motion.h1>
+            <motion.h2 className="font-gilroy-black text-[20px]">₹{currentUserData.funds.disputedFunds ? currentUserData.funds.disputedFunds : '0'}</motion.h2>
+        </div>,
+        <div key={3}>
+            <motion.h1 className="font-gilroy-bold text-[14px]">Received Funds</motion.h1>
+            <motion.h2 className="font-gilroy-black text-[20px]">₹{currentUserData.funds.receivedFunds ? currentUserData.funds.receivedFunds : '0'}</motion.h2>
+        </div>];
+
+
 
 
     const [supportModal, setSupportModal] = useState(false)
@@ -272,8 +305,38 @@ export default function CustomUserPage() {
                             </ul>
                         </div>
                         <div id="profile-funds-summary" className={`text-white text-left p-4 w-full self-start  rounded-xl ${primaryGradientDark}`}>
-                            <h1 className="font-gilroy-bold text-[14px]">Funds In Escrow</h1>
-                            <h2 className="font-gilroy-black text-[20px]">₹{currentUserData.funds.escrowedFunds ? currentUserData.funds.escrowedFunds : '0'}</h2>
+                            <div className="flex flex-row justify-between">
+                                <AnimatePresence exitBeforeEnter>
+
+
+                                    <motion.div layout
+                                        key={statIndex}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        initial={{ opacity: 0, x: 100 }}
+                                        exit={{ opacity: 0, x: -10 }}
+                                        onTap={() => {
+                                            statIndex < 3 ? setStatIndex(statIndex + 1) : setStatIndex(0);
+                                        }}
+                                        transition={{ duration: 0.5 }} className="flex flex-col cursor-pointer hover:opacity-50">
+                                        {fundStats[statIndex]}
+                                    </motion.div>
+
+
+                                </AnimatePresence>
+                            </div>
+
+                            {/* <div className="flex flex-row justify-between mt-3">
+                                    {statIndex > 0 && <button onClick={() => {
+                                        setStatIndex(statIndex - 1);
+                                    }}>&#8249;
+                                    </button>}
+                                    {statIndex < 3 && <button onClick={() => {
+                                        setStatIndex(statIndex + 1);
+                                    }}>&#8250;
+                                    </button>}
+                                </div> */}
+
+
                             <p className="font-gilroy-bold text-[14px] mt-5"> {currentUserData.contracts} Active Contract{currentUserData.contracts != 1 ? 's' : ''}</p>
                         </div>
                         <div className="flex flex-row p-5 pb-0 pt-0 items-center border-t-2 border-gray-300 justify-end space-x-2 ">

@@ -37,10 +37,10 @@ export default function MilestoneFormEntry({ milestoneNumber }: { milestoneNumbe
     //formMethods.setValue(`milestones.${milestoneNumber}.value`, milestonePercentageNumber / 100 * contractValueNumber);
 
     return (
-        <div key={milestoneNumber} id={`milestones-${milestoneNumber}`} className="flex flex-col sm:flex-row space-y-5 sm:p-1 sm:space-y-0 sm:items-center sm:space-x-5 sm:mb-3 sm:mt-3 justify-start sm:justify-start">
+        <div key={milestoneNumber} id={`milestones-${milestoneNumber}`} className="flex flex-col border-gray-400 border-2 rounded-xl p-3 sm:p-0 sm:border-0 sm:flex-row space-y-5 sm:space-y-0 sm:items-center sm:space-x-5 sm:mb-3 sm:mt-3 justify-start sm:justify-start">
             <input type="text" defaultValue={milestoneName} {...formMethods.register(`milestones.${milestoneNumber}.name`)} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg sm:w-auto placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Name" required />
             <input type="textarea" defaultValue={milestoneDescription} 
-            {...formMethods.register(`milestones.${milestoneNumber}.description`)} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm sm:w-full rounded-lg placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Describe this milestone in as much detail as possible" />
+            {...formMethods.register(`milestones.${milestoneNumber}.description`)} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm sm:w-full rounded-lg placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Describe this milestone in detail" />
             <input type="date" defaultValue={milestoneDate} {...formMethods.register(`milestones.${milestoneNumber}.date`)} min={minDate} max={endDate} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 sm:w-full border-gray-300 text-white text-sm rounded-lg placeholder-white block w-auto h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " placeholder="Describe this milestone in as much detail as possible" />
             <div className="flex flex-row space-x-2 sm:w-full items-center">
                 <CurrencyInput

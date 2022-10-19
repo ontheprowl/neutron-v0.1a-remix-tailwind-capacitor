@@ -19,7 +19,7 @@ export function generateNeutronErrorForErrorCode(code: string) {
     case "auth/user-not-found":
       return {
         type:NeutronErrorCode.AuthError,
-        message: "No such user detected"
+        message: "Not a valid Neutron user"
       };
     case "auth/wrong-password":
       return {

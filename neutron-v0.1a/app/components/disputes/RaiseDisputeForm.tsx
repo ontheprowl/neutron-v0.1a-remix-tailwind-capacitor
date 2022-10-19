@@ -67,7 +67,7 @@ export default function RaiseDisputeForm({ milestone, milestoneIndex, client, to
                 <>
                     <div className="flex flex-col justify-start space-y-2 mt-4">
                         <h2 className="prose prose-md text-black font-gilroy-medium text-[18px]"> How many days do you wish the deadline to be extended by ? </h2>
-                        <input type="number" id="deadline-extension" max={30}{...methods.register('extension')} className=" bg-transparent p-3 transition-all ring-2 ring-black hover:ring-2 hover:ring-purple-400 active:ring-purple-400 focus:outline-none focus:ring-purple-400  text-black text-sm rounded-lg placeholder-black block w-auto h-auto dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
+                        <input type="number" id="deadline-extension" max={30} min={1} {...methods.register('extension')} className=" bg-transparent p-3 transition-all ring-2 ring-black hover:ring-2 hover:ring-purple-400 active:ring-purple-400 focus:outline-none focus:ring-purple-400  text-black text-sm rounded-lg placeholder-black block w-auto h-auto dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
                     </div>
                     <div className="w-full h-10 mt-3 mb-2 text-left">
                         <ErrorMessage errors={errors} name='requestDetails' render={(data) => {

@@ -28,12 +28,12 @@ export default function ProfileMobileUI() {
 
     useEffect(() => {
         injectStyle();
-      
+
     })
 
 
 
-    const [tab, setTab] = useState(0);
+    const tab = UIStore.useState(s => s.profileTab);
     const [logoutConfirmationModal, setLogoutConfirmationModal] = useState(false);
 
     return (
@@ -77,20 +77,26 @@ export default function ProfileMobileUI() {
                     </div>
                     <div className="flex flex-col w-auto sm:flex-col m-3 justify-evenly space-y-3 sm:space-x-0">
                         <button onClick={() => {
-                            setTab(0)
+                             UIStore.update(s => {
+                                s.profileTab = 0
+                            })
                         }} className={`transition-all p-3 text-left text-white prose prose-md border-2  rounded-lg ${tab == 0 ? ' focus:border-purple-400 active:border-purple-400 border-purple-400 bg-bg-primary-dark' : "active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-secondary-dark hover:bg-bg-primary-dark"}`}>Basic Details</button>
                         <button onClick={() => {
-                            setTab(1)
+                            UIStore.update(s => {
+                                s.profileTab = 1
+                            })
                         }} className={`transition-all p-3 border-2  whitespace-nowrap text-left text-white prose prose-md rounded-lg ${tab == 1 ? ' focus:border-purple-400 active:border-purple-400 border-purple-400 bg-bg-primary-dark' : "active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-secondary-dark hover:bg-bg-primary-dark"}`}>Professional Information</button>
                         <button onClick={() => {
-                            setTab(2)
+                             UIStore.update(s => {
+                                s.profileTab = 2
+                            })
                         }} className={`transition-all p-3 border-2 text-left text-white prose  prose-md rounded-lg ${tab == 2 ? ' focus:border-purple-400 active:border-purple-400 border-purple-400 bg-bg-primary-dark' : "active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-secondary-dark hover:bg-bg-primary-dark"}`}>Account Information </button>
                     </div>
 
                 </div>
 
             </div>
-            <div id="profile-forms-container" className="flex flex-col w-auto sm:w-full bg-bg-secondary-dark border-2 rounded-xl m-5 mt-2 pt-2 border-purple-400">
+            <div id="profile-forms-container" className="flex flex-col w-auto sm:w-full ring-1 ring-purple-400 rounded-xl mt-2 pt-2 ">
                 {/* <AnimatePresence exitBeforeEnter> */}
                 <motion.div
                     layout
