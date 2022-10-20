@@ -1,17 +1,17 @@
 import { ErrorMessage } from "@hookform/error-message";
-import { useFetcher, useLoaderData, useSubmit } from "@remix-run/react";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { useLoaderData, useSubmit } from "@remix-run/react";
+import type { Dispatch, SetStateAction} from "react";
+import { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { Milestone } from "~/models/contracts";
+import type { Milestone } from "~/models/contracts";
 import { DisputeType } from "~/models/disputes";
-import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
 
 
 
 
 
 export default function RaiseDisputeForm({ milestone, milestoneIndex, client, toggleModalFunction }: { milestone: Milestone, client?: boolean, milestoneIndex: number, toggleModalFunction?: Dispatch<SetStateAction<boolean>> }) {
-    const { contract, metadata, ownerUsername } = useLoaderData();
+    const { contract, metadata } = useLoaderData();
 
     const methods = useForm();
     const control = methods.control;

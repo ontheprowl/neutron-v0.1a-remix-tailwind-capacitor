@@ -1,31 +1,26 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion';
-import { Form, useActionData, useLoaderData, useNavigate, useSubmit } from '@remix-run/react';
-import { useForm, FormProvider, useFormContext } from 'react-hook-form';
-import { formatDateToReadableString, getRandomInt, returnUserUIDAndUsername } from '~/utils/utils';
+import { useActionData, useLoaderData, useSubmit } from '@remix-run/react';
+import { useForm, FormProvider } from 'react-hook-form';
+import { returnUserUIDAndUsername } from '~/utils/utils';
 import { ContractDataStore } from '~/stores/ContractStores';
-import ContractTemplateSelection from '~/components/contracts/ContractTemplateSelection';
 import ContractClientInformation from '~/components/contracts/ContractClientInformation';
-import ContractBasicInformation from '~/components/contracts/ContractBasicInformation';
 import ContractScopeOfWork from '~/components/contracts/ContractScopeOfWork';
 import ContractPaymentDetails from '~/components/contracts/ContractPaymentDetails';
 import ContractEditScreen from '~/components/contracts/ContractEditScreen';
-import { adminAuth, auth, firestore, storage } from '~/firebase/neutron-config.server';
-import { useAuthState } from 'react-firebase-hooks/auth';
 import ContractProcessStepper from '~/components/contracts/ContractProcessStepper';
-import { ActionFunction, LoaderFunction, redirect } from '@remix-run/server-runtime';
+import type { ActionFunction, LoaderFunction} from '@remix-run/server-runtime';
+import { redirect } from '@remix-run/server-runtime';
 import { json } from '@remix-run/server-runtime';
-import { getDownloadURL, ref, uploadBytes, uploadBytesResumable, uploadString, UploadTaskSnapshot } from 'firebase/storage';
-import { addDoc, collection } from 'firebase/firestore';
-import { EventEmitter } from 'stream';
 import MobileNavbarPadding from '~/components/layout/MobileNavbarPadding';
-import { addFirestoreDocFromData, getFirebaseDocs, getSingleDoc, sendEvent, setFirestoreDocFromData, updateFirestoreDocFromData } from '~/firebase/queries.server';
+import { addFirestoreDocFromData, getFirebaseDocs, getSingleDoc, sendEvent, updateFirestoreDocFromData } from '~/firebase/queries.server';
 import { requireUser } from '~/session.server';
 import { unstable_parseMultipartFormData as parseMultipartFormData } from '@remix-run/server-runtime';
 import createFirebaseStorageFileHandler from '~/firebase/FirebaseUploadHandler';
 import { generalFilesUploadRoutine } from '~/firebase/firebase-utils';
-import { ContractEvent, EventType, NeutronEvent } from '~/models/events';
-import { ContractCreator, ContractStatus } from '~/models/contracts';
+import type { NeutronEvent } from '~/models/events';
+import { ContractEvent, EventType } from '~/models/events';
+import { ContractStatus } from '~/models/contracts';
 import { ToastContainer } from 'react-toastify';
 import { useEffect } from 'react';
 import { injectStyle } from 'react-toastify/dist/inject-style';
@@ -36,9 +31,8 @@ import NeutronModal from '~/components/layout/NeutronModal';
 const stages = [<ContractClientInformation key={0}></ContractClientInformation>, <ContractScopeOfWork key={1}></ContractScopeOfWork>, <ContractPaymentDetails key={3}></ContractPaymentDetails>, <ContractEditScreen key={4}></ContractEditScreen>];
 
 /**
- * Create Contract - Loader Function 
- * @param param0 
- * @returns 
+ * Retrieve pre-requisites for contract creation process
+ * 
  */
 export const loader: LoaderFunction = async ({ request }) => {
     const session = await requireUser(request, true);
@@ -50,9 +44,8 @@ export const loader: LoaderFunction = async ({ request }) => {
 }
 
 /**
+ * Process data from the contract creation form and create a contract
  * 
- * @param param0 
- * @returns 
  */
 export const action: ActionFunction = async ({ request }) => {
     const session = await requireUser(request, true);

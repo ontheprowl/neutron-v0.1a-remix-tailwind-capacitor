@@ -1,5 +1,6 @@
 import { animate, motion, useMotionValue, useTransform } from "framer-motion";
-import React, { MouseEventHandler, useEffect, useState } from "react";
+import type { MouseEventHandler} from "react";
+import React, { useEffect, useState } from "react";
 import { getIndex, useFlubber } from "~/utils/use-flubber";
 
 

@@ -4,9 +4,7 @@ import { Form, useActionData, useLoaderData, useNavigate, useSubmit } from '@rem
 import { useForm, FormProvider, useFormContext } from 'react-hook-form';
 import { formatDateToReadableString, getRandomInt, returnUserUIDAndUsername } from '~/utils/utils';
 import { ContractDataStore } from '~/stores/ContractStores';
-import ContractTemplateSelection from '~/components/contracts/ContractTemplateSelection';
 import ContractClientInformation from '~/components/contracts/ContractClientInformation';
-import ContractBasicInformation from '~/components/contracts/ContractBasicInformation';
 import ContractScopeOfWork from '~/components/contracts/ContractScopeOfWork';
 import ContractPaymentDetails from '~/components/contracts/ContractPaymentDetails';
 import ContractEditScreen from '~/components/contracts/ContractEditScreen';

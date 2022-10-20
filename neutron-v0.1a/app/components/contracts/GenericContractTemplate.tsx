@@ -1,53 +1,10 @@
-import { ContractDataStore } from "~/stores/ContractStores";
-import { Contract, ContractCreationStages } from "~/models/contracts";
+import type { Contract } from "~/models/contracts";
 import { extractDayMonthAndYear, formatDateToReadableString } from "~/utils/utils";
-import ContractEditableLink from "./ContractEditableLink";
 import { useFormContext } from "react-hook-form";
 import { ClientInformationRedirect, PaymentAndMilestonesRedirect, ScopeOfWorkRedirect } from "./InputRedirects";
-import { useFetcher, useLoaderData } from "@remix-run/react";
-import { useEffect } from "react";
+import { useLoaderData } from "@remix-run/react";
 import NeutronSignComponent from "../signage/NeutronSignComponent";
 
-
-function generateDeliverables(milestones: { [key: string]: any }) {
-
-
-    let deliverablesArray = []
-    for (const [key, value] of Object.entries(milestones)) {
-        const deliverable = { ...value }
-        if (deliverable.name == 'Advance') continue
-        if (key == "workMilestones") {
-            for (const [milestoneNumber, milestone] of Object.entries(value)) {
-                deliverablesArray.push(
-                    <a href={milestone.submissionPath} key={milestone.name}>
-                        <div className="flex flex-row m-5 space-x-2 w-auto items-center justify-between">
-                            <img src={iconForDeliverableType(Number(milestone.submissionFormat))}
-                                className="mr-3 h-7 " alt="progressLineActive">
-                            </img>
-                            <h2>{milestone.name}</h2>
-                            <p>{milestone.description}</p>
-                            {milestone?.status ? StatusGenerator(milestone.status) : <NotSubmittedStatus></NotSubmittedStatus>}
-                        </div>
-                    </a>
-                    // <a key={deliverable.name} href={deliverable.submissionPath ? deliverable.submissionPath : "#"}>
-                    //     <div className="flex flex-row m-5 space-x-2 w-auto items-center justify-between">
-                    //         <img src={iconForDeliverableType(Number(deliverable.submissionFormat))}
-                    //             className="mr-3 h-7 " alt="progressLineActive">
-                    //         </img>
-                    //         <h2>{deliverable.name}</h2>
-                    //         <p>{deliverable.description}</p>
-                    //         <NotSubmittedStatus></NotSubmittedStatus>
-                    //     </div>
-                    // </a>
-
-
-                )
-            }
-        }
-
-    }
-    return deliverablesArray
-}
 
 export default function GenericContractTemplate({ viewMode }: { viewMode?: boolean }) {
 

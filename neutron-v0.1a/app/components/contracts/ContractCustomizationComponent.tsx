@@ -1,8 +1,5 @@
-import { useNavigate } from "@remix-run/react";
-import { MouseEvent } from "react";
-import { scroller, Link as ScrollLink } from "react-scroll";
+import { scroller } from "react-scroll";
 import { ContractDataStore } from "~/stores/ContractStores";
-import TransparentButton from "../inputs/TransparentButton";
 
 
 

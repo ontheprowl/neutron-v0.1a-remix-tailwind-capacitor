@@ -1,12 +1,9 @@
 import { getSingleDoc } from "~/firebase/queries.server";
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
-import invariant from "tiny-invariant";
 
-import type { User } from "~/models/user.server";
 import {
   adminAuth,
   getSessionToken,
-  getUserMetadata,
   sessionTTL,
 } from "./firebase/neutron-config.server";
 
@@ -30,25 +27,6 @@ export async function getSession(request: Request) {
   return sessionStorage.getSession(cookie);
 }
 
-export async function getUserId(
-  request: Request
-): Promise<User["id"] | undefined> {
-  const session = await getSession(request);
-  const userId = session.get(USER_SESSION_KEY);
-  return userId;
-}
-
-export async function requireUserId(
-  request: Request,
-  redirectTo: string = new URL(request.url).pathname
-): Promise<string> {
-  const userId = await getUserId(request);
-  if (!userId) {
-    // const searchParams = new URLSearchParams([["redirectTo", redirectTo]]);
-    return "-1";
-  }
-  return userId;
-}
 
 export async function requireUser(request: Request, autoRedirect?: boolean) {
   const session = await getUserSession(request, autoRedirect);

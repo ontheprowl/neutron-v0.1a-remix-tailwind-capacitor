@@ -18,8 +18,8 @@ import { ContractDataStore } from "~/stores/ContractStores";
 import DefaultSpinner from "../layout/DefaultSpinner";
 import RequestRevisionForm from "../disputes/RequestRevisionForm";
 import RaiseDisputeForm from "../disputes/RaiseDisputeForm";
-import { Dispute } from "~/models/disputes";
-import { generateTextForDisputeType } from "~/utils";
+import type { Dispute } from "~/models/disputes";
+import { generateTextForDisputeType } from "~/utils/utils";
 import { DisputeSeverityGenerator } from "../layout/Statuses";
 
 
@@ -62,9 +62,6 @@ export default function MilestoneStepper() {
 
     const sortedEvents = contractEvents.sort((a, b) => (a?.timestamp - b?.timestamp))
     
-    
-    const milestones = contract.milestones
-
 
 
     return (

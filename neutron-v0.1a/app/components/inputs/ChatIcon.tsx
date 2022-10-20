@@ -1,6 +1,6 @@
 
 
-import { MouseEventHandler } from "react";
+import type { MouseEventHandler } from "react";
 
 
 

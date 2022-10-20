@@ -1,13 +1,10 @@
 import React from 'react';
 import { useLocation, useMatches } from '@remix-run/react';
-import {
+import type {
   LinksFunction,
   LoaderFunction,
-  MetaFunction,
-  redirect,
+  MetaFunction
 } from "@remix-run/node";
-import Icon from "~/assets/images/iconFull.svg";
-import ErrorImage from '~/assets/images/ErrorImage.svg';
 
 import DefaultSpinner from "./components/layout/DefaultSpinner";
 import tailwindStylesheetUrl from "./styles/tailwind.css";
@@ -24,7 +21,6 @@ import {
 } from "@remix-run/react";
 import { useEffect } from "react";
 import { env } from 'process';
-import { beamsClient } from './components/notifications/pusher-config.client';
 let isMount = true;
 
 export const links: LinksFunction = () => {
@@ -66,16 +62,16 @@ export const loader: LoaderFunction = async ({ request }) => {
     },
   });
 };
-export function ErrorBoundary({ error }) {
+export function ErrorBoundary({ error }: { error: Error }) {
   let navigate = useNavigate();
-  
-  
+
+
   useEffect(() => {
     setTimeout(() => {
       navigate("/");
     }, 4000);
-  },[navigate]);
-  
+  }, [navigate]);
+
   let location = useLocation();
   let matches = useMatches();
 
@@ -143,7 +139,7 @@ export function ErrorBoundary({ error }) {
 
                 <h1 className="prose prose-lg text-white font-gilroy-black text-[30px] leading-none">
 
-                  An Error has Occured! 
+                  An Error has Occured!
 
                 </h1>
                 <h2 className="prose prose-md text-white font-gilroy-medium text-[20px]">{`${error}`}</h2>

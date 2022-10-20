@@ -6,7 +6,7 @@ import { DeliverableStatus } from "~/models/contracts";
 import type { NeutronEvent } from "~/models/events";
 import { ContractEvent, EventType } from "~/models/events";
 import { requireUser } from "~/session.server";
-import { MULTIPLE_MILESTONES_LOG_PREFIX } from "~/utils";
+import { MULTIPLE_MILESTONES_LOG_PREFIX } from "~/utils/utils";
 
 
 

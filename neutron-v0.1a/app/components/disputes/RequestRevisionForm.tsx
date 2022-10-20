@@ -1,11 +1,11 @@
 import { ErrorMessage } from "@hookform/error-message";
 import { useFetcher, useLoaderData, useTransition } from "@remix-run/react";
-import { Dispatch, MouseEvent, SetStateAction, useEffect } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
-import { Milestone } from "~/models/contracts";
+import type { Milestone } from "~/models/contracts";
 import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
-import FormButton from "../inputs/FormButton";
 import DefaultSpinner from "../layout/DefaultSpinner";
 
 
@@ -22,7 +22,7 @@ import DefaultSpinner from "../layout/DefaultSpinner";
 
 export default function RequestRevisionForm({ milestone, milestoneIndex, toggleModalFunction }: { milestone: Milestone, milestoneIndex: number, toggleModalFunction?: Dispatch<SetStateAction<boolean>> }) {
 
-    const { contract, metadata, ownerUsername } = useLoaderData();
+    const { contract, ownerUsername } = useLoaderData();
 
 
     const methods = useForm();
@@ -40,7 +40,7 @@ export default function RequestRevisionForm({ milestone, milestoneIndex, toggleM
         if (fetcher.type == "done") {
             toast(<div><h2>Revision request submitted successfully!</h2></div>, { theme: "dark", type: "success" });
         }
-    }, [fetcher, trigger])
+    }, [fetcher, trigger, requestDetails])
 
     function requestRevisionStates(state: string) {
         switch (state) {

@@ -1,20 +1,16 @@
 import { useFormContext } from "react-hook-form"
-import { Contract, ContractCreationStages, ContractCreator, ContractStatus } from "~/models/contracts";
-import { animateScroll, Link as ScrollLink, scroller } from 'react-scroll';
+import type { Contract } from "~/models/contracts";
+import { scroller } from 'react-scroll';
 import GenericContractTemplate from '~/components/contracts/GenericContractTemplate';
 import TransparentButton from "../inputs/TransparentButton";
 import FormButton from "../inputs/FormButton";
-import ContractCustomizationComponent from "./ContractCustomizationComponent";
 import { useFetcher, useLoaderData, useParams, useTransition } from "@remix-run/react";
 import { ContractDataStore } from "~/stores/ContractStores";
-import { ContractEvent, NeutronEvent } from "~/models/events";
-import MobileNavbarPadding from "../layout/MobileNavbarPadding";
-import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
-import AccentedToggle from "../layout/AccentedToggleV1";
-import PurpleWhiteButton from "../inputs/PurpleWhiteButton";
+import type { NeutronEvent } from "~/models/events";
+import { ContractEvent } from "~/models/events";
 import { returnUserUIDAndUsername } from "~/utils/utils";
 import DefaultSpinner from "../layout/DefaultSpinner";
-import { Transition } from "@remix-run/react/transition";
+import type { Transition } from "@remix-run/react/transition";
 import { useState } from "react";
 import NeutronModal from "../layout/NeutronModal";
 
@@ -216,21 +212,26 @@ export default function ContractEditScreen({ viewMode, editMode }: { viewMode?: 
 
                 </div>
             </div>
-            {signModal && <NeutronModal toggleModalFunction={setSignModal} heading={<span className="text-black"> You are about to sign this contract. Are you sure you want to proceed? </span>} body={<span className="text-red-800"> This operation cannot be undone</span>} onReject={()=>{setSignModal(false)}} onConfirm={metadata?.email == data.clientEmail ? () => {
-                const form = new FormData();
-                form.append('email', data.clientEmail)
-                form.append('isClient', 'true');
-                form.append('id', data.clientID);
-                form.append('viewers', JSON.stringify(data.viewers));
+            {signModal && <NeutronModal toggleModalFunction={setSignModal} heading={<span className="text-black"> You are about to sign this contract. Are you sure you want to proceed? </span>} body={<span className="text-red-800"> This operation cannot be undone</span>} onReject={() => { setSignModal(false) }} onConfirm={metadata?.email == data.clientEmail ? () => {
+                if (data.clientEmail && data.clientID) {
+                    const form = new FormData();
+                    form.append('email', data.clientEmail);
+                    form.append('isClient', 'true');
+                    form.append('id', data.clientID);
+                    form.append('viewers', JSON.stringify(data.viewers));
 
-                fetcher.submit(form, { action: `/${username}/sign/${data.id}`, method: 'post' })
+                    fetcher.submit(form, { action: `/${username}/sign/${data.id}`, method: 'post' });
+                }
+
             } : () => {
-                const form = new FormData();
-                form.append('email', data.providerEmail);
-                form.append('id', data.providerID);
-                form.append('viewers', JSON.stringify(data.viewers));
-                // E
-                fetcher.submit(form, { action: `/${username}/sign/${data.id}`, method: 'post' });
+                if (data.providerEmail && data.providerID) {
+                    const form = new FormData();
+                    form.append('email', data.providerEmail);
+                    form.append('id', data.providerID);
+                    form.append('viewers', JSON.stringify(data.viewers));
+                    fetcher.submit(form, { action: `/${username}/sign/${data.id}`, method: 'post' });
+                }
+
             }} />}
 
         </div>)

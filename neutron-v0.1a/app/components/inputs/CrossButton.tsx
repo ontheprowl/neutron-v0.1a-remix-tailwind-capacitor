@@ -1,8 +1,5 @@
 import type { MouseEventHandler } from "react";
 
-
-
-
 export default function CrossButton({onClick, className} :{ onClick: MouseEventHandler<HTMLButtonElement>, className: string}) {
 
     return (<button className={className} onClick={onClick}>

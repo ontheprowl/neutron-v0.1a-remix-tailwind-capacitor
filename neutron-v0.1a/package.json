@@ -43,6 +43,8 @@
     "@emotion/react": "^11.9.0",
     "@emotion/styled": "^11.8.1",
     "@hookform/error-message": "^2.0.0",
+    "@june-so/analytics-next": "^1.36.5",
+    "@june-so/analytics-node": "^6.1.1",
     "@pusher/push-notifications-web": "^1.1.0",
     "@remix-run/node": "^1.5.1",
     "@remix-run/react": "^1.5.1",

@@ -1,38 +1,29 @@
 import { Link, useFetcher, useNavigate, useSubmit } from '@remix-run/react';
-import EscrowSummary from '~/components/escrow/EscrowSummary';
-import { primaryGradientDark, secondaryGradient } from '~/utils/neutron-theme-extensions';
-import { formatDateToReadableString, structurePayinPayload } from '~/utils/utils';
-import ContractStats from '~/components/contracts/ContractStats';
-import { ActionFunction, LoaderFunction, redirect } from '@remix-run/server-runtime';
+import { primaryGradientDark } from '~/utils/neutron-theme-extensions';
+import { formatDateToReadableString } from '~/utils/utils';
+import type { ActionFunction, LoaderFunction} from '@remix-run/server-runtime';
+import { redirect } from '@remix-run/server-runtime';
 import { json } from '@remix-run/server-runtime';
-import { testContractsData, testDisputesData } from '~/utils/testData.server';
 import { useLoaderData } from '@remix-run/react';
 import PlaceholderDP from "~/assets/images/kartik.png"
-import PlaceholderCover from "~/assets/images/sample_cover.png"
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth, firestore } from '~/firebase/neutron-config.server';
-import { collection, deleteDoc, doc, getDocs, limit, Query, query, where } from 'firebase/firestore';
-import { Contract, ContractCreationStages, ContractStatus } from '~/models/contracts';
-import Accordion from '~/components/layout/Accordion'
+import { firestore } from '~/firebase/neutron-config.server';
+import { collection, deleteDoc, doc, getDocs, query, where } from 'firebase/firestore';
+import type { Contract} from '~/models/contracts';
+import { ContractCreationStages, ContractStatus } from '~/models/contracts';
 import ViewIcon from '~/components/inputs/ViewIcon';
 import EditIcon from '~/components/inputs/EditIcon';
 import DeleteIcon from '~/components/inputs/DeleteIcon';
-import ChatIcon from '~/components/inputs/ChatIcon';
-import { motion } from 'framer-motion';
 import MobileNavbarPadding from '~/components/layout/MobileNavbarPadding';
-import PurpleWhiteButton from '~/components/inputs/PurpleWhiteButton';
-import { getSingleDoc, setFirestoreDocFromData } from '~/firebase/queries.server';
+import { setFirestoreDocFromData } from '~/firebase/queries.server';
 import { requireUser } from '~/session.server';
-import { UserState } from '~/models/user';
 import ContractZeroState from '~/components/contracts/ContractZeroState';
 import { ContractDraftedStatus, ContractPublishedStatus } from '~/components/layout/Statuses';
-import { toast, ToastContainer } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import { injectStyle } from 'react-toastify/dist/inject-style';
 import { useEffect, useState } from 'react';
 import NeutronModal from '~/components/layout/NeutronModal';
 import { ContractDataStore } from '~/stores/ContractStores';
 import DashboardMobileUI from '~/components/pages/DashboardMobileUI';
-import { UIStore } from '~/stores/UIStore';
 
 
 export const loader: LoaderFunction = async ({ request, params }) => {
@@ -108,34 +99,7 @@ export default function Dashboard() {
     return (
         <>
             <div className="hidden sm:flex sm:flex-row h-full ">
-                <div id="user-profile-panel" className="w-full border-2 flex flex-col sm:w-96 sm:hidden sm:bg-bg-secondary-dark justify-start rounded-l-3xl ">
-                    {/* Mobile Section */}
-
-
-                    {/* Desktop Section */}
-                    <div className="hidden sm:flex sm:flex-col items-stretch">
-                        {/* <img alt="cover" className="w-auto h-auto min-h-48 object-cover rounded-bl-[50px] rounded-br-[50px] rounded-tl-[50px] " src={PlaceholderCover}></img> */}
-                        <img alt="profile" src={currentUserData.photoURL ? currentUserData.photoURL : PlaceholderDP} className="h-32 w-32 mt-16 translate-y-[-50px] bg-[#e5e5e5] border-8 hover:opacity-50 hover:ring-1 outline-none transition-all hover:ring-[#8364E8] border-solid border-black rounded-full self-start ml-6  object-contain"></img>
-                        <div className='flex flex-col justify-between space-y-4 translate-y-[-28px] p-2 pl-6'>
-                            <h2 className="prose prose-lg text-white self-start font-gilroy-black text-[25px]">{currentUserData.firstName} {currentUserData.lastName} </h2>
-                            <h1 className="prose prose-lg text-[#CDC1F6] self-start font-gilroy-black text-[16px] translate-y-[-20px]">@{currentUserData.displayName}</h1>
-                            <p className="prose prose-lg text-black text-center w-auto min-w-[101px] font-gilroy-bold self-start bg-white p-2 rounded-full text-[14px] translate-y-[-25px]"> {currentUserData.designation}</p>
-                            <div className='flex flex-col w-full rounded-xl space-y-4'>
-                                <h1 className="prose prose-lg text-white self-start font-gilroy-bold text-[16px]">Member Since: <span className="font-gilroy-regular">{currentUserData.creationTime}</span></h1>
-                                <p className="prose prose-lg text-white self-start font-gilroy-bold text-[16px]"> Working Language: <span className="font-gilroy-regular">{currentUserData.language}</span></p>
-                                <h1 className="prose prose-lg text-white self-start font-gilroy-bold text-[16px]">Location: <span className="font-gilroy-regular">{currentUserData.location}</span></h1>
-                                <p className="prose prose-lg text-white self-start font-gilroy-bold text-[16px]">Experience: <span className="font-gilroy-regular">{currentUserData.experience} years</span></p>
-                            </div>
-                        </div>
-                    </div>
-                    {/* <Accordion label={<motion.div onClick={() => setExpanded(!expanded)} className={`rounded-xl text-left p-4 cursor-pointer`}>
-                    <motion.h2 className='prose prose-lg text-white text-center sm:text-left'>Total Funds</motion.h2>
-                    <motion.h1 className="prose prose-lg text-white text-center sm:text-right"> {currentUserData?.funds?.totalFunds}</motion.h1>
-                </motion.div>} className={`${primaryGradientDark}  h-auto rounded-xl mt-4 text-left p-4`} content={<EscrowSummary funds={currentUserData.funds}></EscrowSummary>} expanded={expanded} setExpanded={setExpanded}></Accordion> */}
-                    <ContractStats clients={currentUserData.clients} contracts={currentUserData.contracts}></ContractStats>
-
-
-                </div>
+                
                 <div id="activity-details-summary" className="flex flex-col w-full bg-bg-primary-dark ">
                     <div className='hidden sm:flex flex-row m-6 justify-between'>
                         <div className="flex flex-col">

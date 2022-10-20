@@ -1,6 +1,5 @@
 import { useNavigate } from "@remix-run/react"
 import { useEffect } from "react";
-import FormButton from "~/components/inputs/FormButton";
 import DefaultSpinner from "~/components/layout/DefaultSpinner";
 
 export default function EmailVerifiedPage() {

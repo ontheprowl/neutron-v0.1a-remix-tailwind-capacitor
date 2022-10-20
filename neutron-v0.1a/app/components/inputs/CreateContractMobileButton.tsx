@@ -1,9 +1,3 @@
-import { useNavigate } from "@remix-run/react";
-import { MouseEventHandler } from "react";
-
-
-
-
 
 export default function CreateContractMobileButton({ className, selected }: { className: string, selected?: boolean }) {
 

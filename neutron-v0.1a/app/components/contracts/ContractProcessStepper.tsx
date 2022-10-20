@@ -1,7 +1,6 @@
 import { motion, useAnimation } from "framer-motion";
 import { useEffect } from "react";
 import { ContractDataStore } from "~/stores/ContractStores";
-import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
 
 
 

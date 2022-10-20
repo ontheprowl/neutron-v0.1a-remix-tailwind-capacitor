@@ -1,17 +1,12 @@
 import { useFormContext, useWatch } from "react-hook-form";
 import { ContractDataStore } from "~/stores/ContractStores";
-import Select from 'react-select'
-import { ContractCreationStages, Milestone } from "~/models/contracts";
-import AddButton from "../inputs/AddButton";
-import CrossButton from "../inputs/CrossButton";
+import { ContractCreationStages } from "~/models/contracts";
 import FormButton from "../inputs/FormButton";
 import CurrencyInput from 'react-currency-input-field';
 import AccentedToggle from "../layout/AccentedToggleV1";
-import { useEffect, useState } from "react";
-import { isEmpty, minStartDate } from "~/utils/utils";
+import { useEffect } from "react";
+import { isEmpty } from "~/utils/utils";
 import { toast } from "react-toastify";
-import NeutronModal from "../layout/NeutronModal";
-import { PAYMENT_BREAKDOWN_VALIDATOR_LOG_PREFIX } from "~/logging/constants";
 import MilestoneFormEntry from "../layout/MilestoneFormEntry";
 import { ErrorMessage } from "@hookform/error-message";
 import MandatoryAsterisk from "../layout/MandatoryAsterisk";
@@ -262,10 +257,10 @@ export default function ContractPaymentDetails({ editMode }: { editMode?: boolea
 
             <FormButton text="Proceed" onClick={() => {
                 let milestonesPayload: {
-                    advance: {
+                    advance?: {
                         [x: string]: any
                     },
-                    workMilestones: {
+                    workMilestones?: {
                         [x: string]: any
                     }
                 } = {};
@@ -318,10 +313,10 @@ export default function ContractPaymentDetails({ editMode }: { editMode?: boolea
 }
 
 function paymentBreakdownIsValid(milestones: {
-    advance: {
+    advance?: {
         [x: string]: any
     },
-    workMilestones: {
+    workMilestones?: {
         [x: string]: any
     }
 }, totalValue: number) {

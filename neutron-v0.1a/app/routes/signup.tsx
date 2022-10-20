@@ -1,34 +1,23 @@
-import { Form, Link, useActionData, useFetcher, useLoaderData, useNavigate, useSubmit, useTransition } from "@remix-run/react";
+import {  Link, useActionData, useLoaderData, useNavigate, useSubmit, useTransition } from "@remix-run/react";
 
-import { useAuthState } from "react-firebase-hooks/auth";
-import { adminAuth, auth, googleProvider } from "../firebase/neutron-config.server";
-import { ActionFunction, json, LoaderFunction } from "@remix-run/server-runtime";
+import { json } from "@remix-run/server-runtime";
 import { redirect } from "@remix-run/server-runtime";
-import { login, logout } from "~/firebase/firebase-utils";
-import IconSpinner from '~/assets/images/icon.svg'
-import { Response } from "@remix-run/node";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import Icon from "~/assets/images/iconFull.svg"
-import { generateAuthUrl, authorizeAndExecute } from "~/firebase/gapis-config.server";
-import useWindowDimensions from "~/hooks/useWindowDimensions";
-import { createUserWithEmailAndPassword, getAuth, getRedirectResult, GoogleAuthProvider, RecaptchaVerifier, sendEmailVerification, signInWithEmailAndPassword, signInWithRedirect, updateProfile, User } from "firebase/auth";
+import { getAuth, sendEmailVerification, updateProfile } from "firebase/auth";
 import { signUp } from "~/models/user.server";
 import { createUserSession, requireUser } from "~/session.server";
-import { addFirestoreDocFromData, getFirebaseDocs, setFirestoreDocFromData } from "~/firebase/queries.server";
+import { getFirebaseDocs, setFirestoreDocFromData } from "~/firebase/queries.server";
 import { DEFAULT_USER_STATE } from "~/models/user";
 import { ErrorMessage } from "@hookform/error-message";
-import GoogleIcon from '~/assets/images/google.svg'
 import { ValidationPatterns } from "~/utils/utils";
-import TransparentButton from "~/components/inputs/TransparentButton";
 import { toast, ToastContainer } from "react-toastify";
-import { NeutronError } from "~/utils/NeutronError";
+import { NeutronError } from "~/logging/NeutronError";
 import { injectStyle } from "react-toastify/dist/inject-style";
 import DefaultSpinner from "~/components/layout/DefaultSpinner";
-import { motion } from "framer-motion";
 import { env } from "process";
 import MandatoryAsterisk from "~/components/layout/MandatoryAsterisk";
-import { sendTeamEmail } from "~/components/notifications/sendinblue-config.server";
 
 export async function loader({ request }: { request: Request }) {
 
@@ -77,9 +66,9 @@ export async function action({ request }: { request: Request }) {
 
   try {
     const data = await request.formData();
-    const displayName: string = data.get('displayName')
-    const email: string = data.get('email');
-    const password: string = data.get('password');
+    const displayName: string = data.get('displayName') as string
+    const email: string = data.get('email') as string;
+    const password: string = data.get('password') as string;
     const { user } = await signUp(email, password);
     await updateProfile(user, {
       displayName: displayName,

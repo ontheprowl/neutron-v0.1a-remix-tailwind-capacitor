@@ -1,4 +1,5 @@
-import { LoaderFunction, redirect } from "@remix-run/server-runtime";
+import type { LoaderFunction} from "@remix-run/server-runtime";
+import { redirect } from "@remix-run/server-runtime";
 import { applyActionCode } from "firebase/auth";
 import { auth } from '~/firebase/neutron-config.server'
 

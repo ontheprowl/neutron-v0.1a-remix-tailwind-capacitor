@@ -1,13 +1,9 @@
-import { MouseEvent, useEffect } from "react";
-import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
+import { useEffect } from "react";
+import { useFormContext, useWatch } from "react-hook-form";
 import { ContractDataStore } from "~/stores/ContractStores";
-import { ContractCreationStages, Deliverable, DeliverableFormat } from "~/models/contracts";
-import AddButton from "../inputs/AddButton";
-import CrossButton from "../inputs/CrossButton";
+import { ContractCreationStages } from "~/models/contracts";
 import FormButton from "../inputs/FormButton";
-import TransparentButton from "../inputs/TransparentButton";
-import AccentedToggle from "../layout/AccentedToggle";
-import { isEmpty, minStartDate } from "~/utils/utils";
+import { isEmpty } from "~/utils/utils";
 import { ErrorMessage } from "@hookform/error-message";
 import { toast } from "react-toastify";
 import MandatoryAsterisk from "../layout/MandatoryAsterisk";

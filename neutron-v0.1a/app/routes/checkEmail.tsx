@@ -1,5 +1,4 @@
 import { useNavigate } from "@remix-run/react"
-import { useEffect } from "react";
 import FormButton from "~/components/inputs/FormButton";
 
 export default function VerificationPendingPage() {

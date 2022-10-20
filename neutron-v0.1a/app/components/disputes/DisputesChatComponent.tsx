@@ -1,15 +1,8 @@
-import { async } from "@firebase/util"
-import { useActionData, useFetcher, useLoaderData, useParams, useSubmit } from "@remix-run/react"
-import { ActionFunction, json, LoaderFunction } from "@remix-run/server-runtime"
-import { User } from "firebase/auth"
-import { equalTo, get, onValue, orderByChild, orderByKey, push, query, ref, set } from "firebase/database"
+import { useFetcher, useLoaderData } from "@remix-run/react"
 import { AnimatePresence, motion } from "framer-motion"
 import React from "react"
-import { useAuthState } from "react-firebase-hooks/auth"
-import { auth, db } from "~/firebase/neutron-config.server"
 import { formatDateToReadableString } from "~/utils/utils"
 import SendIcon from '~/assets/images/SendIcon.svg'
-import FormButton from "../inputs/FormButton"
 import { primaryGradientDark } from "~/utils/neutron-theme-extensions"
 
 

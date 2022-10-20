@@ -17,7 +17,7 @@ import { DisputeStatus } from "~/models/disputes";
 import type { NeutronEvent } from "~/models/events";
 import { ContractEvent, EventType } from "~/models/events";
 import { requireUser } from "~/session.server";
-import { generateTextForDisputeType } from "~/utils";
+import { generateTextForDisputeType } from "~/utils/utils";
 
 
 export const loader: LoaderFunction = async ({ request, params }) => {

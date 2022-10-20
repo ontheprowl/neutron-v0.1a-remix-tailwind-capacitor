@@ -1,7 +1,8 @@
 import { RemixBrowser } from "@remix-run/react";
 import { hydrateRoot } from "react-dom/client";
+import { loadJuneAnalytics } from "./analytics/june-config.client";
 
-hydrateRoot(document,<RemixBrowser />);
+hydrateRoot(document, <RemixBrowser />);
 
 
 

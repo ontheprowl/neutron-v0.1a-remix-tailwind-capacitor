@@ -32,6 +32,7 @@ import NeutronModal from "~/components/layout/NeutronModal";
 import { beamsClient, isSafari } from "~/components/notifications/pusher-config.client";
 import { ContractDataStore } from "~/stores/ContractStores";
 import { DEFAULT_CONTRACT_STATE } from "~/models/contracts";
+import { useJune } from "~/utils/use-june";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
 
@@ -45,17 +46,22 @@ export const loader: LoaderFunction = async ({ request, params }) => {
     const contractID = params.contractID;
 
 
-    const isOwner = await isViewerOwner(session, ownerUsername);
+    if (ownerUsername) {
+        const isOwner = await isViewerOwner(session, ownerUsername);
 
 
-    //* The next line exploits the order of execution of loaders to forward the responsibility of testing privilege for viewing a contract to the specific contract page itself.
-    if (!isOwner && contractID == undefined) {
-        throw new Error("Don't have the privilege to view this page")
+        //* The next line exploits the order of execution of loaders to forward the responsibility of testing privilege for viewing a contract to the specific contract page itself.
+        if (!isOwner && contractID == undefined) {
+            throw new Error("Don't have the privilege to view this page")
+        }
+
+
+
+        return json({ isOwner: isOwner, metadata: session?.metadata })
     }
 
+    return null;
 
-
-    return json({ isOwner: isOwner, metadata: session?.metadata })
 }
 
 
@@ -89,6 +95,24 @@ export default function CustomUserPage() {
 
     const [statIndex, setStatIndex] = useState(0);
 
+
+    //* June integration 
+
+    const analytics = useJune("k4JXKbVGZBPoIjPo");
+
+    useEffect(() => {
+
+        if (analytics) {
+            console.log("JUNE ANALYTICS active")
+            analytics.identify({
+                userId: metadata.id,
+                traits: {
+                    friends: 42
+                }
+            });
+        }
+
+    }, [analytics, metadata])
 
 
     // * This effect ensures that the beamsClient is subscribing to all messages for the currently logged-in user

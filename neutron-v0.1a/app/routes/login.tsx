@@ -1,34 +1,21 @@
-import { Form, Link, useActionData, useFetcher, useLoaderData, useNavigate, useSubmit, useTransition } from "@remix-run/react";
+import {  Link, useActionData, useLoaderData, useSubmit, useTransition } from "@remix-run/react";
 
-import { useAuthState } from "react-firebase-hooks/auth";
-import { auth, firestore, googleProvider } from "../firebase/neutron-config.server";
-import { ActionFunction, json, LoaderFunction } from "@remix-run/server-runtime";
+import { firestore } from "../firebase/neutron-config.server";
+import {  json } from "@remix-run/server-runtime";
 import { redirect } from "@remix-run/server-runtime";
-import { login, logout } from "~/firebase/firebase-utils";
-import { Response } from "@remix-run/node";
 import React from "react";
 
 import { ToastContainer, toast } from 'react-toastify';
 import { injectStyle } from 'react-toastify/dist/inject-style'
 import { useForm } from "react-hook-form";
 import Icon from "~/assets/images/iconFull.svg"
-import RightSidePanelIllustration from '~/assets/images/AuthPagesSidePanel.svg';
-import IconSpinner from '~/assets/images/icon.svg'
-import { generateAuthUrl, authorizeAndExecute } from "~/firebase/gapis-config.server";
-import useWindowDimensions from "~/hooks/useWindowDimensions";
-import { getAuth, getRedirectResult, GoogleAuthProvider, signInWithEmailAndPassword, signInWithRedirect } from "firebase/auth";
+import { getAuth } from "firebase/auth";
 import { signIn } from "~/models/user.server";
-import { createUserSession, getSession, requireUser } from "~/session.server";
+import { createUserSession, requireUser } from "~/session.server";
 import { getSingleDoc, updateFirestoreDocFromData } from "~/firebase/queries.server";
 import { doc } from "firebase/firestore";
-import GoogleIcon from '~/assets/images/google.svg'
-import TransparentButton from "~/components/inputs/TransparentButton";
-import MobileNavbarPadding from "~/components/layout/MobileNavbarPadding";
-import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
-import { NeutronError } from "~/utils/NeutronError";
-import { NeutronErrorCode } from "~/logging/errors";
+import { NeutronError } from "~/logging/NeutronError";
 import DefaultSpinner from "~/components/layout/DefaultSpinner";
-import { motion, useCycle } from "framer-motion";
 import { sendTeamEmail } from "~/components/notifications/sendinblue-config.server";
 
 export async function loader({ request }: { request: Request }) {
@@ -78,8 +65,8 @@ export async function action({ request }: { request: Request }) {
 
   try {
     const data = await request.formData();
-    const email: string = data.get('email');
-    const password: string = data.get('password');
+    const email: string = data.get('email') as string;
+    const password: string = data.get('password') as string ;
     const { user } = await signIn(email, password);
     const ref = doc(firestore, '/metadata/', user.uid);
     const metadata = await getSingleDoc(`/metadata/${user.uid}`)
@@ -93,7 +80,7 @@ export async function action({ request }: { request: Request }) {
     
     if (user.emailVerified || email == "test@test.com" || email == "demo@neutron-demo.com" || email == "tester@neutronalpha.in") {
       //* Send Welcome Email on First Login (SIB Template #13)
-      if (!firstLogin && !(email == "test@test.com" || email == "demo@neutron-demo.com" || email == "tester@neutronalpha.in")) {
+      if (!firstLogin && !(email == "test@test.com" || email == "demo@neutron-demo.com" || email == "tester@neutronalpha.in") && user?.displayName) {
         const emailResult = await sendTeamEmail(email, user?.displayName, { "FIRSTNAME": user?.displayName }, 13);
         const updateLoginMetadataRef = await updateFirestoreDocFromData({ firstLogin: true }, 'metadata', `${user.uid}`);
         console.dir(emailResult)

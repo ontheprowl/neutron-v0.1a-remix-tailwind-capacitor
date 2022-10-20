@@ -1,5 +1,6 @@
-import { Link, useNavigate, useParams } from "@remix-run/react";
-import { ActionFunction, LoaderFunction, redirect } from "@remix-run/server-runtime";
+import { useNavigate, useParams } from "@remix-run/react";
+import type { ActionFunction, LoaderFunction} from "@remix-run/server-runtime";
+import { redirect } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
 import { useLoaderData } from "@remix-run/react";
 import IconDisputesChat from '~/assets/images/Chat2.svg'
@@ -9,11 +10,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ContractDataStore } from "~/stores/ContractStores";
 import ContractOverview from "~/components/contracts/ContractOverview";
 import ContractEditScreen from "~/components/contracts/ContractEditScreen";
-import { formatDateToReadableString } from "~/utils/utils";
 import BackArrowButton from "~/components/inputs/BackArrowButton";
-import TransparentButton from "~/components/inputs/TransparentButton";
 import FormButton from "~/components/inputs/FormButton";
-import ShareButton from "~/components/inputs/ShareButton";
 import { fetchEvents, getSingleDoc, sendEvent, updateFirestoreDocFromData } from "~/firebase/queries.server";
 import { requireUser } from "~/session.server";
 import { unstable_parseMultipartFormData as parseMultipartFormData } from "@remix-run/server-runtime";
@@ -21,9 +19,8 @@ import createFirebaseStorageFileHandler from "~/firebase/FirebaseUploadHandler";
 import { generalFilesUploadRoutine } from "~/firebase/firebase-utils";
 import type { NeutronEvent } from "~/models/events";
 import { ContractEvent, EventType } from "~/models/events";
-import { get, onValue, query, ref } from "firebase/database";
-import { ContractCreator, ContractSidePanelStages, DeliverableStatus } from "~/models/contracts";
-import { sign } from "crypto";
+import { get, query, ref } from "firebase/database";
+import { ContractSidePanelStages, DeliverableStatus } from "~/models/contracts";
 import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
 import { env } from "process";
 import { ToastContainer } from "react-toastify";
@@ -43,10 +40,8 @@ import ContractViewMobileUI from "~/components/pages/ContractViewMobileUI";
 export const loader: LoaderFunction = async ({ params, request }) => {
 
     const session = await requireUser(request, true);
-    const viewerUsername = session?.metadata?.displayName;
     const ownerUsername = params.username
     const contractID = params.contractID;
-    const contractOwner = await getSingleDoc(`userUIDS/${ownerUsername}`)
     const currentContract = await getSingleDoc(`contracts/${contractID}`);
     const contractViewers: String[] = currentContract?.viewers;
     console.log("LIST OF CONTRACT VIEWERS IS ")
@@ -59,7 +54,6 @@ export const loader: LoaderFunction = async ({ params, request }) => {
 
     const currentContractEvents = await fetchEvents(EventType.ContractEvent, contractID)
     let from, to;
-    const creator = currentContract?.creator
     if (session?.metadata?.email == currentContract?.clientEmail) {
         from = currentContract?.clientID;
         to = currentContract?.providerID;
@@ -149,9 +143,6 @@ export const action: ActionFunction = async ({ params, request }) => {
         milestonePayload[`milestones.workMilestones.${finalDeliverableData.milestoneIndex}.status`] = DeliverableStatus.SubmittedExternally;
 
         console.dir(milestonePayload)
-
-        const uidMapping = await getSingleDoc(`/userUIDS/${ownerUsername}`);
-        const ownerUID = uidMapping?.uid;
         await updateFirestoreDocFromData(milestonePayload, `contracts`, contractID);
 
         // await updateFirestoreDocFromData({ deliverables: arrayUn({ name: 'test' }) }, `users/contracts/${session?.metadata?.id}`, contractID);
@@ -163,8 +154,6 @@ export const action: ActionFunction = async ({ params, request }) => {
         milestonePayload[`milestones.workMilestones.${finalDeliverableData.milestoneIndex}.status`] = DeliverableStatus.SubmittedForApproval;
         console.dir(milestonePayload)
 
-        const uidMapping = await getSingleDoc(`/userUIDS/${ownerUsername}`);
-        const ownerUID = uidMapping?.uid;
         await updateFirestoreDocFromData(milestonePayload, `contracts`, contractID);
 
         // await updateFirestoreDocFromData({ deliverables: arrayUn({ name: 'test' }) }, `users/contracts/${session?.metadata?.id}`, contractID);
