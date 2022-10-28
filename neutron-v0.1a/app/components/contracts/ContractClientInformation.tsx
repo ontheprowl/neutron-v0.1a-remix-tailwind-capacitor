@@ -1,17 +1,14 @@
 import { useFormContext, useWatch } from "react-hook-form";
 import { ContractDataStore } from "~/stores/ContractStores";
-import { Contract, ContractCreationStages, ContractCreator } from "~/models/contracts";
+import type { Contract} from "~/models/contracts";
+import { ContractCreationStages, ContractCreator } from "~/models/contracts";
 import FormButton from "../inputs/FormButton";
-import TransparentButton from "../inputs/TransparentButton";
 import AccentedToggle from "../layout/AccentedToggle";
-import { useStoreState } from "pullstate";
 import { ErrorMessage } from "@hookform/error-message";
-import { useEffect, useState } from "react";
-import { ValidationPatterns, minStartDate, minEndDate, isEmpty, returnUserUIDAndUsername } from "~/utils/utils";
+import { useEffect } from "react";
+import { ValidationPatterns, minStartDate, minEndDate, isEmpty } from "~/utils/utils";
 import { toast } from "react-toastify";
-import NeutronModal from "../layout/NeutronModal";
-import { useFetcher, useLoaderData } from "@remix-run/react";
-import { useMatchesData } from "~/utils";
+import { useLoaderData } from "@remix-run/react";
 import MandatoryAsterisk from "../layout/MandatoryAsterisk";
 
 

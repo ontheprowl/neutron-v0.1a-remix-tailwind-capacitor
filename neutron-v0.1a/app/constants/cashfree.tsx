@@ -5,3 +5,5 @@ export const PAYOUTS_PROD_REQUEST_TRANSFER_ENDPOINT = 'https://payout-api.cashfr
 export const PAYOUTS_PROD_BANK_ACCOUNT_VERIFICATION_ENDPOINT = 'https://payout-api.cashfree.com/payout/v1.2/validation/bankDetails';
 export const VERIFICATION_PROD_PAN_VERIFICATION_ENDPOINT = 'https://api.cashfree.com/verification/pan';
 export const VERIFICATION_PROD_AADHAAR_VERIFICATION_ENDPOINT = 'https://api.cashfree.com/verification/aadhaar';
+export const VERIFICATION_PROD_AADHAAR_OTP_REQUEST_ENDPOINT = 'https://api.cashfree.com/verification/offline-aadhaar/otp';
+export const VERIFICATION_PROD_AADHAAR_OTP_VERIFY_ENDPOINT = 'https://api.cashfree.com/verification/offline-aadhaar/verify';

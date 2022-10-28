@@ -1,9 +1,3 @@
-import { useNavigate } from "@remix-run/react";
-import { UIStore } from "~/stores/UIStore";
-
-
-
-
 export default function SettingsButton() {
 
     return (

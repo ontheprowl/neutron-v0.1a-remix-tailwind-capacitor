@@ -144,6 +144,10 @@ export function getRandomInt(max: number) {
     return Math.floor(Math.random() * max);
 }
 
+export function maskSensitiveField(value: string) {
+    return value.split('').map((char) => "*").join('');
+}
+
 
 /**
  * Validation patterns for form input validation 

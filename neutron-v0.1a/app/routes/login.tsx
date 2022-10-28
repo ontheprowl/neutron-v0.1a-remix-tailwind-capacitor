@@ -1,7 +1,7 @@
-import {  Link, useActionData, useLoaderData, useSubmit, useTransition } from "@remix-run/react";
+import { Link, useActionData, useLoaderData, useSubmit, useTransition } from "@remix-run/react";
 
 import { firestore } from "../firebase/neutron-config.server";
-import {  json } from "@remix-run/server-runtime";
+import { json } from "@remix-run/server-runtime";
 import { redirect } from "@remix-run/server-runtime";
 import React from "react";
 
@@ -11,6 +11,7 @@ import { useForm } from "react-hook-form";
 import Icon from "~/assets/images/iconFull.svg"
 import { getAuth } from "firebase/auth";
 import { signIn } from "~/models/user.server";
+import { juneClient } from "~/analytics/june-config.server";
 import { createUserSession, requireUser } from "~/session.server";
 import { getSingleDoc, updateFirestoreDocFromData } from "~/firebase/queries.server";
 import { doc } from "firebase/firestore";
@@ -23,7 +24,7 @@ export async function loader({ request }: { request: Request }) {
   const session = await requireUser(request);
 
   if (session && getAuth().currentUser?.emailVerified) {
-    
+
     return redirect(`/${session?.metadata?.displayName}/dashboard`)
   }
 
@@ -66,7 +67,7 @@ export async function action({ request }: { request: Request }) {
   try {
     const data = await request.formData();
     const email: string = data.get('email') as string;
-    const password: string = data.get('password') as string ;
+    const password: string = data.get('password') as string;
     const { user } = await signIn(email, password);
     const ref = doc(firestore, '/metadata/', user.uid);
     const metadata = await getSingleDoc(`/metadata/${user.uid}`)
@@ -75,9 +76,9 @@ export async function action({ request }: { request: Request }) {
     const firstLogin = Boolean(metadata?.firstLogin);
 
 
-    
+
     const token = await user.getIdToken();
-    
+
     if (user.emailVerified || email == "test@test.com" || email == "demo@neutron-demo.com" || email == "tester@neutronalpha.in") {
       //* Send Welcome Email on First Login (SIB Template #13)
       if (!firstLogin && !(email == "test@test.com" || email == "demo@neutron-demo.com" || email == "tester@neutronalpha.in") && user?.displayName) {
@@ -86,6 +87,13 @@ export async function action({ request }: { request: Request }) {
         console.dir(emailResult)
 
       }
+      // * Identify user login event on June 
+
+      juneClient.identify({
+        userId: user.uid,
+        traits: { ...user.metadata, ...metadata }
+      })
+
       return createUserSession({ request: request, metadata: { path: ref.path }, userId: token, remember: true, redirectTo: profileComplete ? `/${user.displayName}/dashboard` : `/${user.displayName}/profile` })
     } else {
       throw new Error("neutron-auth/email-not-verified");
@@ -114,11 +122,11 @@ export default function Login() {
   }
   const data = useLoaderData();
   const actionData = useActionData();
-  
+
   let submit = useSubmit();
   const transition = useTransition();
   const parsedData = JSON.parse(data);
-  
+
   // const [user, loading, error] = useAuthState(auth);
 
   const { register, handleSubmit } = useForm();
@@ -171,7 +179,7 @@ export default function Login() {
                     <form
                       className=" space-y-6"
                       onSubmit={handleSubmit((data) => {
-                        
+
                         const form = new FormData();
                         form.append('email', data.email);
                         form.append('password', data.password)

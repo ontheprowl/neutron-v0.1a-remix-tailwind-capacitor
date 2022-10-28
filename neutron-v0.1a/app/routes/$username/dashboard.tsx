@@ -188,25 +188,25 @@ export default function Dashboard() {
                             <tbody className='sm:block table-row-group'>
                                 <tr className={` border-b sm:flex sm:flex-row w-full dark:bg-gray-800 dark:border-gray-700 transition-all sticky top-0 pointer-events-none bg-bg-secondary-dark z-20  hover:bg-opacity-50 hover:drop-shadow-md dark:hover:bg-gray-600`}>
 
-                                    <th scope="row" className="px-6 py-4 w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                    <th scope="row" className="px-2 py-4 w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
                                         #
                                     </th>
-                                    <th scope="row" className="px-6 py-4 w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                    <th scope="row" className="px-2 py-4 w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
                                         Project Name
                                     </th>
-                                    <th scope="row" className="px-6 py-4 w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                    <th scope="row" className="px-2 py-4 w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
                                         Client Name
                                     </th>
-                                    <th scope="row" className="px-6 py-4 w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                    <th scope="row" className="px-2 py-4 w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
                                         Contract Value & Due Date
                                     </th>
-                                    <th scope="row" className="px-6 py-4 w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                    <th scope="row" className="px-2 py-4 w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
                                         Contract Status
                                     </th>
-                                    <th scope="row" className="px-6 py-4  w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                    <th scope="row" className="px-2 py-4  w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
                                         Issuer / Receiver
                                     </th>
-                                    <th scope="row" className="px-6 py-4  w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                    <th scope="row" className="px-2 py-4  w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
                                         Actions
                                     </th>
 
@@ -216,31 +216,31 @@ export default function Dashboard() {
                                     return (
                                         <tr key={contract.id} className={`border-b sm:flex sm:flex-row sm:justify-evenly sm:items-center w-full border-gray-400 dark:bg-gray-800 dark:border-gray-700 transition-all hover:bg-bg-primary-dark hover:bg-opacity-50 hover:border-accent-dark hover:drop-shadow-md dark:hover:bg-gray-600`}>
 
-                                            <td scope="row" className="px-6 py-4 w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                            <td scope="row" className="px-2 py-4 w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
                                                 {index + 1}
                                             </td>
-                                            <td className="px-6 py-4 w-full text-center text-white ">
-                                                <Link to={`/${currentUserData?.displayName}/contracts/${contract.id}`} className="hover:underline ">
+                                            <td className="px-2 py-4 w-full text-center text-white ">
+                                                <Link to={`/${currentUserData?.displayName}/contracts/${contract.id}`} className="hover:underline">
                                                     {contract.projectName}
                                                 </Link>
                                             </td>
-                                            <td className="px-6 py-4  w-full text-center text-white">
+                                            <td className="px-2 py-4  w-full text-center text-white">
                                                 {contract.clientName}
                                             </td>
-                                            <td className="px-6 py-4 w-full text-center text-white">
+                                            <td className="px-2 py-4 w-full text-center text-white">
 
                                                 {contract.contractValue}
                                                 <br></br>
                                                 {contract.isSigned ? formatDateToReadableString(contract.signedDate) : contract.startDate}
 
                                             </td>
-                                            <td className="  px-6 py-4 w-full translate-y-[-5px] text-center justify-center items-center flex-row flex ">
+                                            <td className="  px-2 py-4 w-full translate-y-[-5px] text-center justify-center items-center flex-row flex ">
                                                 {contract?.status == ContractStatus.Draft ? <ContractDraftedStatus></ContractDraftedStatus> : <ContractPublishedStatus></ContractPublishedStatus>}
                                             </td>
-                                            <td className="  px-6 py-4 w-full text-center text-white">
+                                            <td className="  px-2 py-4 w-full text-center text-white">
                                                 {contract?.creator === currentUserData.email ? 'Issuer' : 'Receiver'}
                                             </td>
-                                            <td className=' px-6 py-4 w-full min-w-[160px] flex flex-row justify-center '>
+                                            <td className=' px-2 py-4 w-full min-w-[160px] flex flex-row justify-center '>
                                                 <div className=" max-w-fit w-full space-x-2 flex flex-row justify-evenly ">
 
                                                     {contract.status === ContractStatus.Draft && <EditIcon onClick={() => {

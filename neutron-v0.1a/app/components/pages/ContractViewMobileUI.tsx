@@ -10,11 +10,7 @@ import IconMilestones from '~/assets/images/atomPurple.svg'
 import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
 import ContractEditScreen from "../contracts/ContractEditScreen";
 import ContractOverview from "../contracts/ContractOverview";
-import BackArrowButton from "../inputs/BackArrowButton";
-import PlaceholderDP from '~/assets/images/kartik.png'
 
-import FormButton from "../inputs/FormButton";
-import MobileNavbarPadding from "../layout/MobileNavbarPadding";
 import ExpandArrowButton from "../inputs/ExpandArrowButton";
 import Accordion from "../layout/Accordion";
 
@@ -102,7 +98,7 @@ export default function ContractViewMobileUI() {
 
 
                     <div className="flex flex-row basis-1/2  w-full justify-evenly space-x-2">
-                        <a href={contractData.attachment} className=" max-h-fit hover:bg-bg-secondary-dark bg-white transition-all active:bg-bg-secondary-dark  hover:border-purple-400 p-5 w-[12vw] basis-1/3 rounded-full">
+                        <a href={contractData.attachment && contractData.attachment != "null" ? contractData.attachment : '#'} className=" max-h-fit hover:bg-bg-secondary-dark bg-white transition-all active:bg-bg-secondary-dark  hover:border-purple-400 p-5 w-[12vw] basis-1/3 rounded-full">
                             <div className="flex flex-row space-x-8  text-white items-center">
                                 <svg width="24" height="28" viewBox="0 0 16 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M9.66634 1.89111V5.33323C9.66634 5.79994 9.66634 6.0333 9.75717 6.21156C9.83706 6.36836 9.96455 6.49584 10.1213 6.57574C10.2996 6.66656 10.533 6.66656 10.9997 6.66656H14.4418M5.49967 12.4998L7.99967 14.9998M7.99967 14.9998L10.4997 12.4998M7.99967 14.9998L7.99967 9.99984M9.66634 1.6665H5.33301C3.93288 1.6665 3.23281 1.6665 2.69803 1.93899C2.22763 2.17867 1.84517 2.56112 1.60549 3.03153C1.33301 3.56631 1.33301 4.26637 1.33301 5.6665V14.3332C1.33301 15.7333 1.33301 16.4334 1.60549 16.9681C1.84517 17.4386 2.22763 17.821 2.69803 18.0607C3.23281 18.3332 3.93288 18.3332 5.33301 18.3332H10.6663C12.0665 18.3332 12.7665 18.3332 13.3013 18.0607C13.7717 17.821 14.1542 17.4386 14.3939 16.9681C14.6663 16.4334 14.6663 15.7333 14.6663 14.3332V6.6665L9.66634 1.6665Z" stroke="#765AD1" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />

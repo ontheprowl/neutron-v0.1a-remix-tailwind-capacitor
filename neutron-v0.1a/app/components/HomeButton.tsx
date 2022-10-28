@@ -1,8 +1,6 @@
 
 import { useNavigate } from "@remix-run/react";
 import * as React from "react";
-import { UIStore } from "../stores/UIStore";
-
 export default function HomeButton({ selected }: { selected?: boolean }) {
 
   return (

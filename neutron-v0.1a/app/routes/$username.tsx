@@ -1,26 +1,20 @@
-import * as React from "react";
-import { useAuthState } from "react-firebase-hooks/auth";
-import { adminAuth, auth } from "../firebase/neutron-config.server";
 import { UIStore } from "../stores/UIStore";
-import { primaryGradientDark, secondaryGradient } from "../utils/neutron-theme-extensions";
-import CalendarButton from "../components/CalendarButton";
-import ContractsButton from "../components/ContractsButton";
+import { primaryGradientDark } from "../utils/neutron-theme-extensions";
 import HomeButton from "../components/HomeButton";
-import WalletButton from "../components/WalletButton";
-import { Links, Meta, Outlet, Scripts, ShouldReloadFunction, useFetcher, useLoaderData, useNavigate } from "@remix-run/react";
-import { ActionFunction, json, LoaderFunction, redirect } from "@remix-run/server-runtime";
-import { time } from "console";
+import { Outlet, useFetcher, useLoaderData, useNavigate } from "@remix-run/react";
+import type { LoaderFunction } from "@remix-run/server-runtime";
+import { json, redirect } from "@remix-run/server-runtime";
 import { formatDateToReadableString } from "~/utils/utils";
-import { SendNotification } from "~/utils/client/pwa-utils.client";
-import * as PusherPushNotifications from "@pusher/push-notifications-web";
+import BackArrow from '~/assets/images/BackArrow.svg'
+import ForwardArrow from '~/assets/images/ForwardArrow.svg'
+
 
 
 import Icon from '../assets/images/NeutronLogoFull.svg';
 import IconWhite from '../assets/images/iconWhite.svg'
 import PlaceholderDP from '~/assets/images/kartik.png'
 import BottomNav from "~/components/layout/BottomNav";
-import { getSingleDoc } from "~/firebase/queries.server";
-import { logout, requireUser } from "~/session.server";
+import { requireUser } from "~/session.server";
 import { isViewerOwner } from "~/models/user.server";
 import { AnimatePresence, motion, useCycle } from "framer-motion";
 import DisputesButton from "~/components/DisputesButton";
@@ -88,7 +82,7 @@ export default function CustomUserPage() {
     const data = useLoaderData();
     const metadata = data.metadata;
     let fetcher = useFetcher();
-
+    console.dir(metadata)
 
 
     const [logoutConfirmationModal, setLogoutConfirmationModal] = useState(false);
@@ -98,21 +92,22 @@ export default function CustomUserPage() {
 
     //* June integration 
 
-    const analytics = useJune("k4JXKbVGZBPoIjPo");
+    const analytics = useJune("taPBsHKSJL8IG6BG");
 
-    useEffect(() => {
+    // useEffect(() => {
 
-        if (analytics) {
-            console.log("JUNE ANALYTICS active")
-            analytics.identify({
-                userId: metadata.id,
-                traits: {
-                    friends: 42
-                }
-            });
-        }
+    //     if (analytics) {
+    //         console.dir(analytics)
+    //         console.log("JUNE ANALYTICS active")
 
-    }, [analytics, metadata])
+    //         analytics.page();
+    //         analytics.identify(metadata.id, {
+    //             friends: 42,
+    //             email: metadata.email
+    //         }, { timestamp: new Date().toISOString() });
+    //     }
+
+    // }, [analytics, metadata])
 
 
     // * This effect ensures that the beamsClient is subscribing to all messages for the currently logged-in user
@@ -329,24 +324,30 @@ export default function CustomUserPage() {
                             </ul>
                         </div>
                         <div id="profile-funds-summary" className={`text-white text-left p-4 w-full self-start  rounded-xl ${primaryGradientDark}`}>
-                            <div className="flex flex-row justify-between">
+                            <div className="flex flex-row justify-between space-x-4">
+                                <button className={`text-white hover:opacity-60 ${statIndex > 0 ? 'visible' : 'invisible'} transition-all flex flex-row justify-center items-center basis-1/5 `} onClick={() => {
+                                    setStatIndex(statIndex - 1);
+                                }}><img alt="Back Arrow" src={BackArrow} /></button>
                                 <AnimatePresence exitBeforeEnter>
 
 
                                     <motion.div layout
                                         key={statIndex}
                                         animate={{ opacity: 1, x: 0 }}
-                                        initial={{ opacity: 0, x: 100 }}
-                                        exit={{ opacity: 0, x: -10 }}
+                                        initial={{ opacity: 0, x: 20 }}
+                                        exit={{ opacity: 0, x: -20 }}
                                         onTap={() => {
                                             statIndex < 3 ? setStatIndex(statIndex + 1) : setStatIndex(0);
                                         }}
-                                        transition={{ duration: 0.5 }} className="flex flex-col cursor-pointer hover:opacity-50">
+                                        transition={{ duration: 0.5 }} className="flex basis-3/5 flex-col text-center cursor-pointer hover:opacity-50">
                                         {fundStats[statIndex]}
                                     </motion.div>
 
 
                                 </AnimatePresence>
+                                <button className={`text-white hover:opacity-60 ${statIndex < 2 ? 'visible' : 'invisible'} basis-1/5 flex flex-row justify-center items-center transition-all`} onClick={() => {
+                                    setStatIndex(statIndex + 1);
+                                }}><img src={ForwardArrow} alt="Forward Arrow" /></button>
                             </div>
 
                             {/* <div className="flex flex-row justify-between mt-3">
@@ -361,7 +362,7 @@ export default function CustomUserPage() {
                                 </div> */}
 
 
-                            <p className="font-gilroy-bold text-[14px] mt-5"> {currentUserData.contracts} Active Contract{currentUserData.contracts != 1 ? 's' : ''}</p>
+                            <p className="font-gilroy-bold text-[14px] text-center mt-5"> {currentUserData.contracts} Active Contract{currentUserData.contracts != 1 ? 's' : ''}</p>
                         </div>
                         <div className="flex flex-row p-5 pb-0 pt-0 items-center border-t-2 border-gray-300 justify-end space-x-2 ">
                             <img alt="profile" src={currentUserData.photoURL ? currentUserData.photoURL : PlaceholderDP} className="h-10 w-10 mt-16 translate-y-[-30px]  bg-[#e5e5e5]  hover:opacity-50 hover:ring-1 outline-none transition-all hover:ring-[#8364E8] border-solid border-black rounded-full self-start ml-6  object-contain"></img>
@@ -436,7 +437,8 @@ export default function CustomUserPage() {
           </div>
         </div>
       </div> */}
-            <div className={`flex flex-col w-full ${primaryGradientDark} h-full sm:h-auto relative flex-grow`} >
+            <div className={`flex flex-col w-full ${primaryGradientDark} h-full sm:h-auto relative flex-grow`
+            } >
                 <div className={` m-5 mt-8 justify-between items-start hidden`}>
                     <motion.a
                         whileHover={{ rotate: rotation }}

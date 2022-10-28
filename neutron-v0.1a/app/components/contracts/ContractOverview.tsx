@@ -1,28 +1,13 @@
-import NeutronIcon from '~/assets/images/icon.svg';
-import IconPDF from '~/assets/images/PDF.png';
-import IconMedia from '~/assets/images/Media.png';
-import IconZIP from '~/assets/images/ZIP.png';
-import IconGeneric from '~/assets/images/GenericFileIcon.svg';
-
-import IconDisputesChat from '~/assets/images/Chat2.svg'
-import ProgressLine from "~/assets/images/progressLineActive.svg";
-import GradientSeparator from '~/assets/images/gradientLineSeparator.svg'
 import { ContractDataStore } from '~/stores/ContractStores';
-import { Contract, ContractSidePanelStages, ContractStatus, DeliverableFormat, DeliverableStatus } from '~/models/contracts';
+import { ContractSidePanelStages, DeliverableStatus } from '~/models/contracts';
 import { primaryGradientDark } from '~/utils/neutron-theme-extensions';
 import MilestoneStepper from '../milestones/MilestoneStepper';
-import { NotSubmittedStatus, DeliverableStatusGenerator, ContractDraftedStatus, ContractPublishedStatus } from '../layout/Statuses';
-import Accordion from '../layout/Accordion';
+import { NotSubmittedStatus, DeliverableStatusGenerator } from '../layout/Statuses';
 import { useState } from 'react';
-import ExpandArrowButton from '../inputs/ExpandArrowButton';
-import { Link, useLoaderData } from '@remix-run/react';
-import { NeutronEvent } from '~/models/events';
+import { useLoaderData } from '@remix-run/react';
 import MobileNavbarPadding from '../layout/MobileNavbarPadding';
 import DisputesChatComponent from '../disputes/DisputesChatComponent';
 import { AnimatePresence, motion } from 'framer-motion';
-import { loader } from '~/routes';
-import TransparentButton from '../inputs/TransparentButton';
-import FormButton from '../inputs/FormButton';
 import { formatDateToReadableString } from '~/utils/utils';
 
 
@@ -32,7 +17,8 @@ function generateDeliverables(milestones: { [key: string]: any }) {
         const deliverable = { ...value }
         if (deliverable.name == 'Advance') continue
         if (key == "workMilestones") {
-            for (const [milestoneNumber, milestone] of Object.entries(value)) {
+            const milestonesIterator: [string, { [x: string]: any }][] = Object.entries(value);
+            for (const [milestoneNumber, milestone] of milestonesIterator) {
                 // deliverablesArray.push(
                 //     <div className="flex flex-row p-3 font-gilroy-medium space-x-20 w-full items-center justify-between">
                 //         {/* <img src={iconForDeliverableType(Number(milestone.submissionFormat))}
@@ -106,7 +92,9 @@ function generateDeliverablesForMobile(milestones: { [key: string]: any }) {
         const deliverable = { ...value }
         if (deliverable.name == 'Advance') continue
         if (key == "workMilestones") {
-            for (const [milestoneNumber, milestone] of Object.entries(value)) {
+            const milestonesIterator: [string, { [x: string]: any }][] = Object.entries(value);
+
+            for (const [milestoneNumber, milestone] of milestonesIterator) {
                 // deliverablesArray.push(
                 //     <div className="flex flex-row p-3 font-gilroy-medium space-x-20 w-full items-center justify-between">
                 //         {/* <img src={iconForDeliverableType(Number(milestone.submissionFormat))}

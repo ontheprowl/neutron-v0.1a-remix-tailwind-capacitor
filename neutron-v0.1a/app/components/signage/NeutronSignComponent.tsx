@@ -2,6 +2,11 @@
 
 
 
+/**
+ * 
+ * @param param0 
+ * @returns 
+ */
 export default function NeutronSignComponent({ signerEmail, signerID, signDate, signerAadhaar }: { signerEmail: string, signerID: string, signDate: string, signerAadhaar: string }) {
 
     return <div className=" bg-center bg-no-repeat bg-contain bg-[url('/icons/android-chrome-512x512.png')] ">

@@ -249,7 +249,7 @@ export default function DetailedContractView() {
                                     s.viewStage == 1 ? s.viewStage = 0 : s.viewStage = 1;
                                 })
                             }} className=' p-4 text-center bg-[#E6E0FA] sm:w-full text-[#765AD1] basis-1/2 prose prose-md transition-all rounded-lg active:border-white whitespace-nowrap hover:bg-white'>{`${stage == 1 ? 'Back To Overview' : 'Open Contract'}`}</button>
-                            <a href={contractData.attachment} className=" hover:bg-bg-secondary-dark bg-bg-primary-dark basis-1/2 transition-all active:bg-bg-secondary-dark border-2 border-transparent border-purple-400 hover:border-purple-400 p-4 rounded-xl">
+                            <a href={contractData.attachment && contractData.attachment!="null"?contractData.attachment:"#"} className=" hover:bg-bg-secondary-dark bg-bg-primary-dark basis-1/2 transition-all active:bg-bg-secondary-dark border-2 border-transparent border-purple-400 hover:border-purple-400 p-4 rounded-xl">
                                 <div className="flex flex-row space-x-8 text-white items-center">
                                     <span>
                                         <svg width="16" height="20" viewBox="0 0 16 20" fill="none" xmlns="http://www.w3.org/2000/svg">

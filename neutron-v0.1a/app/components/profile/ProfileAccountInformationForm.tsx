@@ -1,14 +1,13 @@
 import { useFetcher, useLoaderData } from "@remix-run/react";
 import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form"
-import FormButton from "../inputs/FormButton";
 import { ErrorMessage } from '@hookform/error-message'
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import DefaultSpinner from "../layout/DefaultSpinner";
 import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
 import MandatoryAsterisk from "../layout/MandatoryAsterisk";
-import { KYCStatus, KYCVerificationStatus } from "~/models/kyc";
 import NeutronModal from "../layout/NeutronModal";
+import AadhaarOTPForm from "../auth/AadhaarOTPForm";
 
 
 export default function ProfileAccountInformationForm() {
@@ -20,6 +19,11 @@ export default function ProfileAccountInformationForm() {
     const userNames: string[] = data.usernames;
 
     const [kycSubmissionModal, setKYCSubmissionModal] = useState(false);
+
+    //* Required for offline Aadhaar verification 
+
+    const [otpSubmissionModal, setOTPSubmissionModal] = useState(false);
+    const [verificationRef, setVerificationRef] = useState('');
 
 
     const saveButtonStates = (state: string) => {
@@ -61,7 +65,16 @@ export default function ProfileAccountInformationForm() {
             toast(<div><h2>Details saved!</h2></div>, { theme: "dark", type: "success" })
         }
 
-    }, [phoneNumber, bankAccount, ifscCode, address, city, state, pincode, profileUpdationFetcher, trigger])
+        if (verifyAadhaarFetcher?.data) {
+            const data = JSON.parse(verifyAadhaarFetcher.data);
+            if (data.status) {
+                setOTPSubmissionModal(true);
+                setVerificationRef(data.ref_id);
+            }
+
+        }
+
+    }, [phoneNumber, bankAccount, ifscCode, address, city, state, pincode, profileUpdationFetcher, verifyAadhaarFetcher, trigger])
 
     return (
         <>
@@ -95,7 +108,7 @@ export default function ProfileAccountInformationForm() {
                                 <span className=" prose prose-md text-white">PAN <MandatoryAsterisk></MandatoryAsterisk></span>
                                 {userMetadata?.panVerified ? <div className="bg-green-600 pl-2.5 pt-1 border-0 rounded-full w-8 h-8 text-white">✓</div> : ''}
                             </div>
-                            <input type="text" id="pan"  {...register('PAN', {
+                            <input type="password" id="pan"  {...register('PAN', {
                                 required: true, pattern: {
                                     value: /[A-Z]{5}[0-9]{4}[A-Z]{1}/, message: "Not a valid PAN Number"
                                 }
@@ -111,7 +124,7 @@ export default function ProfileAccountInformationForm() {
                                 <span className=" prose prose-md text-white">Aadhaar <MandatoryAsterisk></MandatoryAsterisk></span>
                                 {userMetadata?.aadhaarVerified ? <div className="bg-green-600 pl-2.5 pt-1 border-0 rounded-full w-8 h-8 text-white">✓</div> : ''}
                             </div>
-                            <input type="text" id="phone-number"  {...register('aadhaar', {
+                            <input type="password" id="aadhaar-number"  {...register('aadhaar', {
                                 required: true, pattern: {
                                     value: /^[2-9]{1}[0-9]{3}[0-9]{4}[0-9]{4}$/, message: "Not a valid Aadhaar number"
                                 }
@@ -176,7 +189,7 @@ export default function ProfileAccountInformationForm() {
                                 required: true, pattern: {
                                     value: /^\d{9,18}$/, message: 'Not a valid Indian bank account'
                                 }
-                            })} type="text" placeholder="Enter your bank account number" defaultValue={userMetadata.bankAccount} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg invalid:border-red-500 placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
+                            })} type="password" placeholder="Enter your bank account number" defaultValue={userMetadata.bankAccount} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg invalid:border-red-500 placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
                             <div className="w-full h-6 mt-3 text-left">
                                 <ErrorMessage errors={errors} name='bankAccount' render={(data) => {
                                     return <span className="text-red-500 whitespace-nowrap sm:p-2 sm:m-3 z-10">{data.message}</span>
@@ -191,7 +204,7 @@ export default function ProfileAccountInformationForm() {
                                 <span className=" prose prose-md text-white">IFSC Code <MandatoryAsterisk></MandatoryAsterisk></span>
                                 {userMetadata?.bankVerified ? <div className="bg-green-600 pl-2.5 pt-1 border-0 rounded-full w-8 h-8 text-white">✓</div> : ''}
                             </div>
-                            <input {...register('ifscCode', { required: true, pattern: { value: /^[A-Z]{4}0[A-Z0-9]{6}$/, message: 'This is not a valid IFSC Code' } })} type="text" placeholder="e.g: ICIC0001875" defaultValue={userMetadata.ifscCode} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
+                            <input {...register('ifscCode', { required: true, pattern: { value: /^[A-Z]{4}0[A-Z0-9]{6}$/, message: 'This is not a valid IFSC Code' } })} type="password" placeholder="e.g: ICIC0001875" defaultValue={userMetadata.ifscCode} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
                             <div className="w-full h-6 mt-3 text-left">
                                 <ErrorMessage errors={errors} name='ifscCode' render={(data) => {
                                     return <span className="text-red-500 whitespace-nowrap sm:p-2 sm:m-3 z-10">{data.message}</span>
@@ -245,13 +258,13 @@ export default function ProfileAccountInformationForm() {
                 const verifyAadhaarDataForm = new FormData();
                 verifyAadhaarDataForm.append('aadhaarNumber', data.aadhaar);
 
-                verifyAadhaarFetcher.submit(verifyAadhaarDataForm, { method: "post", action: "/auth/verification/aadhaar" })
+                verifyAadhaarFetcher.submit(verifyAadhaarDataForm, { method: "post", action: "/auth/verification/aadhaarOTPRequest" })
 
 
 
                 profileUpdationFetcher.submit(form, { method: "post" });
 
-                //* This block ensures that a corresponsing beneficiary is created in the system for payouts /
+                //* This block ensures that a corresponding beneficiary is created in the system for payouts /
                 const beneficiaryUpdateForm = new FormData();
                 const beneficiary = {
                     "beneId": userMetadata.id,
@@ -271,6 +284,7 @@ export default function ProfileAccountInformationForm() {
 
 
             }} heading={<h1> You are about to submit your account details for KYC verification </h1>} body={<p> Are you sure you want to proceed?</p>} toggleModalFunction={setKYCSubmissionModal}></NeutronModal>}
+            {otpSubmissionModal && <NeutronModal heading={<h1> Please submit the Aadhaar OTP received on your registered mobile number </h1>} body={<AadhaarOTPForm verificationRef={verificationRef} toggleModalFunction={setOTPSubmissionModal}></AadhaarOTPForm>} toggleModalFunction={setOTPSubmissionModal} ></NeutronModal>}
         </>
     );
 }

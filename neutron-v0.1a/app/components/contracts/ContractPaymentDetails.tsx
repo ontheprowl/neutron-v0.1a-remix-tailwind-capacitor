@@ -147,12 +147,11 @@ export default function ContractPaymentDetails({ editMode }: { editMode?: boolea
                             ContractDataStore.update(s => {
                                 s.hasAdvance = false
                             });
-                            formMethods.unregister('advancePercentage');
+                            formMethods.resetField('advancePercentage');
                         } else {
                             ContractDataStore.update(s => {
                                 s.hasAdvance = true
                             });
-                            formMethods.register('advancePercentage');
                         }
                     }}></AccentedToggle>
                     <div className="flex flex-col text-white">
@@ -171,6 +170,7 @@ export default function ContractPaymentDetails({ editMode }: { editMode?: boolea
                                 s.milestonesCount = 0;
                             }
                             )
+                            formMethods.resetField('milestones');
 
                         } else {
                             ContractDataStore.update(s => {

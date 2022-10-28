@@ -1,22 +1,23 @@
 import { useLoaderData, useNavigate, useSubmit } from "@remix-run/react";
-import { MouseEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { injectStyle } from "react-toastify/dist/inject-style";
-import { Contract, ContractCreationStages, ContractStatus } from "~/models/contracts";
+import type { Contract} from "~/models/contracts";
+import { ContractCreationStages, ContractStatus } from "~/models/contracts";
 import { ContractDataStore } from "~/stores/ContractStores";
 import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
 import { formatDateToReadableString } from "~/utils/utils";
 import ContractZeroState from "../contracts/ContractZeroState";
-import ChatIcon from "../inputs/ChatIcon";
 import PlaceholderDP from '~/assets/images/kartik.png'
 
 import DeleteIcon from "../inputs/DeleteIcon";
 import EditIcon from "../inputs/EditIcon";
-import PurpleWhiteButton from "../inputs/PurpleWhiteButton";
 import ViewIcon from "../inputs/ViewIcon";
 import MobileNavbarPadding from "../layout/MobileNavbarPadding";
 import NeutronModal from "../layout/NeutronModal";
 import { ContractDraftedStatus, ContractPublishedStatus } from "../layout/Statuses";
-import { AnimatePresence, motion, useElementScroll, useViewportScroll } from "framer-motion";
+import BackArrow from '~/assets/images/BackArrow.svg'
+import ForwardArrow from '~/assets/images/ForwardArrow.svg'
+import { AnimatePresence, motion, useViewportScroll } from "framer-motion";
 
 
 
@@ -62,7 +63,7 @@ export default function DashboardMobileUI() {
                         </div>
                         <div className="flex flex-row   justify-between">
                             <h3 className="prose prose-sm text-gray-300">{contract.clientName}</h3>
-                            <h4 className="prose prose-sm text-gray-300">{contract.endDate}</h4>
+                            <h4 className="prose prose-sm text-gray-300">{contract?.endDate}</h4>
                         </div>
                         <div className="flex flex-row space-x-5  justify-between">
                             <h2 className="prose prose-md text-white">
@@ -150,19 +151,32 @@ export default function DashboardMobileUI() {
             <motion.div className={` w-auto m-6 rounded-xl p-1  ${primaryGradientDark} z-10 translate-y-10`}>
                 <div className=" h-40 rounded-xl bg-bg-primary-dark text-white">
                     <div className="flex flex-col space-y-2 pt-6">
-                        <AnimatePresence exitBeforeEnter>
-                            <motion.div
-                                key={statIndex}
-                                animate={{ opacity: 1, x: 0 }}
-                                initial={{ opacity: 0, x: 100 }}
-                                exit={{ opacity: 0, x: -50 }}
-                                onTap={() => {
-                                    statIndex < 3 ? setStatIndex(statIndex + 1) : setStatIndex(0);
-                                }}
-                                transition={{ duration: 0.5 }} className="flex flex-col cursor-pointer hover:opacity-50 pt-6">
-                                {fundStats[statIndex]}
-                            </motion.div>
-                        </AnimatePresence>
+                        <div className="flex flex-row justify-between space-x-4 pt-6">
+                            <button className={`text-white hover:opacity-60 ${statIndex > 0 ? 'visible' : 'invisible'} transition-all flex flex-row justify-center items-center basis-1/5 `} onClick={() => {
+                                setStatIndex(statIndex - 1);
+                            }}><img alt="Back Arrow" src={BackArrow} /></button>
+                            <AnimatePresence exitBeforeEnter>
+
+
+                                <motion.div 
+                                    key={statIndex}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    initial={{ opacity: 0, x: 20 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    onTap={() => {
+                                        statIndex < 3 ? setStatIndex(statIndex + 1) : setStatIndex(0);
+                                    }}
+                                    transition={{ duration: 0.5 }} className="flex basis-3/5 flex-col text-center hover:opacity-50">
+                                    {fundStats[statIndex]}
+                                </motion.div>
+
+
+                            </AnimatePresence>
+                            <button className={`text-white hover:opacity-60 ${statIndex < 2 ? 'visible' : 'invisible'} basis-1/5 flex flex-row justify-center items-center transition-all`} onClick={() => {
+                                setStatIndex(statIndex + 1);
+                            }}><img src={ForwardArrow} alt="Forward Arrow" /></button>
+                        </div>
+
 
                         <p className="font-gilroy-medium text-[14px]"> ({currentUserData.contracts} Active Contract{currentUserData.contracts != 1 ? 's' : ''})</p>
                     </div>

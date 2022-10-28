@@ -1,7 +1,3 @@
-import * as React from "react";
-import { UIStore } from "../stores/UIStore";
-
-import { useNavigate } from "@remix-run/react";
 
 export default function ContractsButton({ selected }: { selected?: boolean }) {
   return (

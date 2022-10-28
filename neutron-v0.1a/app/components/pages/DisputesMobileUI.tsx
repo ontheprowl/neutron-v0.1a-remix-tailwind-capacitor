@@ -1,6 +1,6 @@
 import { Outlet, useLoaderData, useNavigate, useParams } from "@remix-run/react";
 import { useState } from "react";
-import { Dispute } from "~/models/disputes";
+import type { Dispute } from "~/models/disputes";
 import { formatDateToReadableString } from "~/utils/utils";
 import DisputesZeroState from "../disputes/DisputesZeroState";
 import MobileNavbarPadding from "../layout/MobileNavbarPadding";

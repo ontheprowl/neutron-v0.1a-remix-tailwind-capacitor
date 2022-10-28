@@ -1,13 +1,9 @@
-import { Form, Link, useActionData, useLoaderData, useNavigate } from "@remix-run/react";
+import { useLoaderData, useNavigate } from "@remix-run/react";
 
 import React from "react";
 import { useForm } from "react-hook-form";
 import Icon from "~/assets/images/iconFull.svg"
-import { generateAuthUrl, authorizeAndExecute } from "~/firebase/gapis-config.server";
-import useWindowDimensions from "~/hooks/useWindowDimensions";
-import { motion } from "framer-motion";
-import { createUserSession, requireUser, requireUserId } from "~/session.server";
-import { getUserById } from "~/models/user.server";
+import { requireUser } from "~/session.server";
 import { redirect } from "@remix-run/server-runtime";
 
 export async function loader({ request }: { request: Request }) {
