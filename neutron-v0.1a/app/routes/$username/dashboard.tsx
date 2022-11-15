@@ -1,14 +1,14 @@
 import { Link, useFetcher, useNavigate, useSubmit } from '@remix-run/react';
 import { primaryGradientDark } from '~/utils/neutron-theme-extensions';
 import { formatDateToReadableString } from '~/utils/utils';
-import type { ActionFunction, LoaderFunction} from '@remix-run/server-runtime';
+import type { ActionFunction, LoaderFunction } from '@remix-run/server-runtime';
 import { redirect } from '@remix-run/server-runtime';
 import { json } from '@remix-run/server-runtime';
 import { useLoaderData } from '@remix-run/react';
 import PlaceholderDP from "~/assets/images/kartik.png"
 import { firestore } from '~/firebase/neutron-config.server';
 import { collection, deleteDoc, doc, getDocs, query, where } from 'firebase/firestore';
-import type { Contract} from '~/models/contracts';
+import type { Contract } from '~/models/contracts';
 import { ContractCreationStages, ContractStatus } from '~/models/contracts';
 import ViewIcon from '~/components/inputs/ViewIcon';
 import EditIcon from '~/components/inputs/EditIcon';
@@ -20,10 +20,11 @@ import ContractZeroState from '~/components/contracts/ContractZeroState';
 import { ContractDraftedStatus, ContractPublishedStatus } from '~/components/layout/Statuses';
 import { ToastContainer } from 'react-toastify';
 import { injectStyle } from 'react-toastify/dist/inject-style';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import NeutronModal from '~/components/layout/NeutronModal';
 import { ContractDataStore } from '~/stores/ContractStores';
 import DashboardMobileUI from '~/components/pages/DashboardMobileUI';
+import AccentedToggle from '~/components/layout/AccentedToggleV1';
 
 
 export const loader: LoaderFunction = async ({ request, params }) => {
@@ -44,7 +45,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
     });
 
     return json({
-        contracts: contracts.filter((contract) => contract?.status != ContractStatus.Draft || contract?.creator == session?.metadata?.email).sort((a, b) => { return b.startDate - a.startDate }), disputes: [],
+        contracts: contracts.filter((contract) => contract?.status != ContractStatus.Draft || contract?.creator == session?.metadata?.email).sort((a, b) => { return b.startDate - a.startDate }).map((contract) => { return { ...contract, role: contract?.creator === session?.metadata?.email ? 'Issuer' : 'Receiver' } }), disputes: [],
         metadata: session.metadata, ownerUsername: ownerUsername
     });
 }
@@ -73,9 +74,9 @@ export default function Dashboard() {
 
     const fetcher = useFetcher();
 
-    useEffect(() => {
-        injectStyle();
-    })
+
+    
+
 
     const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
     const submit = useSubmit();
@@ -90,16 +91,55 @@ export default function Dashboard() {
     // })
     const [contractSelectedForDeletion, setContractSelectedForDeletion] = useState(currentContract);
     const [contractFilter, setContractFilter] = useState();
+    const [contractSortKey, setContractSortKey] = useState('');
+    const [sortAscending, setSortAscending] = useState(false);
+
+    useEffect(() => {
+        injectStyle();
+        console.log(contractSortKey)
+    }, [contractSortKey]);
 
     const currentUserData = userData.metadata;
 
+
+    const tableContracts = useMemo(()=>{
+        return userData?.contracts.filter((contract) => contractFilter ? contract.projectName?.includes(contractFilter) : true).sort((a, b) => {
+            let leftContract, rightContract;
+
+            if (sortAscending) {
+                leftContract = a;
+                rightContract = b;
+            }
+            else {
+                leftContract = b;
+                rightContract = a;
+            }
+            switch (contractSortKey) {
+
+                case 'value':
+                    return parseInt(leftContract?.contractValue.replace("₹", '').replace(',', '')) > parseInt(rightContract?.contractValue.replace("₹", '').replace(',', '')) ? 1 : -1
+                case 'date':
+
+                    return new Date(leftContract.endDate).getTime() - new Date(rightContract.endDate).getTime() > 0 ? 1 : -1;
+                case 'issuer':
+                    console.log(leftContract)
+                    return leftContract?.role == "Issuer" ? 1 : -1
+                case 'counterpartyName':
+                    const leftCounterParty = leftContract?.clientEmail == leftContract?.creator ? leftContract?.providerName : leftContract?.clientName;
+                    const rightCounterParty = rightContract?.clientEmail == rightContract?.creator ? rightContract?.providerName : rightContract?.clientName;
+                    return leftCounterParty == rightCounterParty ? 1 : -1
+                default:
+                    return 0;
+            }
+        });
+    },[contractFilter, contractSortKey, sortAscending, userData?.contracts])
 
     let navigate = useNavigate();
 
     return (
         <>
             <div className="hidden sm:flex sm:flex-row h-full ">
-                
+
                 <div id="activity-details-summary" className="flex flex-col w-full bg-bg-primary-dark ">
                     <div className='hidden sm:flex flex-row m-6 justify-between'>
                         <div className="flex flex-col">
@@ -142,15 +182,43 @@ export default function Dashboard() {
                             </div>
                         </div>
                     </div>
-                    {userData.contracts.length > 0 && <div className="flex flex-row bg-[#4d4d4d] h-10 mb-2 ml-6 space-x-4 p-2 w-1/2 border-2 border-gray-500 rounded-lg">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M17.5 17.5L14.5834 14.5833M16.6667 9.58333C16.6667 13.4954 13.4954 16.6667 9.58333 16.6667C5.67132 16.6667 2.5 13.4954 2.5 9.58333C2.5 5.67132 5.67132 2.5 9.58333 2.5C13.4954 2.5 16.6667 5.67132 16.6667 9.58333Z" stroke="#BCBCBC" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
+                    {userData.contracts.length > 0 && <div className=' flex flex-row items-center space-x-4 mx-6 pr-2 '>
+                        <div className="flex flex-row bg-[#4d4d4d] border-2 basis-1/2 h-10 space-x-4 p-2 w-1/2 border-gray-500 rounded-lg">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M17.5 17.5L14.5834 14.5833M16.6667 9.58333C16.6667 13.4954 13.4954 16.6667 9.58333 16.6667C5.67132 16.6667 2.5 13.4954 2.5 9.58333C2.5 5.67132 5.67132 2.5 9.58333 2.5C13.4954 2.5 16.6667 5.67132 16.6667 9.58333Z" stroke="#BCBCBC" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
 
-                        <input type="text" placeholder="Search" onChange={(e) => {
-                            setContractFilter(e?.target?.value);
-                        }} className="w-full bg-[#4d4d4d] border-0 text-white placeholder:text-white focus:border-transparent outline-none " />
+                            <input type="text" placeholder="Search through your contracts" onChange={(e) => {
+                                setContractFilter(e?.target?.value);
+                            }} className="w-full bg-[#4d4d4d] border-0 text-white placeholder:text-white focus:border-transparent outline-none " />
 
+                        </div>
+                        <div className=" text-white space-x-4  basis-1/2 w-full items-center flex justify-end flex-row">
+                            <div className='flex flex-row space-x-4 items-center'>
+                                <span>Sort By</span>
+                                <select onChange={(e) => {
+                                    setContractSortKey(e.target.value);
+                                }} defaultValue="none" className='border-2 border-gray-400 w-auto bg-bg-primary-dark p-2 rounded-xl'>
+                                    <option value="none">None (Default)</option>
+                                    <option value="issuer">Issuer / Receiver</option>
+                                    <option value="value">Contract Value</option>
+                                    <option value="date">Due Date</option>
+                                    <option value="counterpartyName">Counterparty Name</option>
+                                </select>
+                                <div className='flex flex-row space-x-4 items-center'>
+                                    <AccentedToggle variant='neutron-purple' name="sortOrder" control={sortAscending} onToggle={() => {
+                                        setSortAscending(!sortAscending);
+                                    }} ></AccentedToggle>
+                                    <div className="flex flex-col text-white">
+                                        <h1 className="font-gilroy-bold text-[18px]">Sort Order</h1>
+                                        <p className="font-gilroy-regular text-[14px] text-gray-300"> Order in ascending?</p>
+                                    </div>
+                                </div>
+                            </div>
+
+
+
+                        </div>
                     </div>}
                     {/* {currentContract ?
                     <div id="current-project-summary" className={`flex font-gilroy-regular flex-col sm:flex-row m-6 mt-2 w-auto rounded-xl h-auto min-h-52 ${primaryGradientDark} justify-between items-center`}>
@@ -194,10 +262,10 @@ export default function Dashboard() {
                                     <th scope="row" className="px-2 py-4 w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
                                         Project Name
                                     </th>
-                                    <th scope="row" className="px-2 py-4 w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
-                                        Client Name
+                                    <th scope="row" className="px-2 py-4 w-full font-medium text-center text-white dark:text-white">
+                                        Counter-party Name
                                     </th>
-                                    <th scope="row" className="px-2 py-4 w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
+                                    <th scope="row" className="px-2 py-4 w-full font-medium text-center text-white dark:text-white ">
                                         Contract Value & Due Date
                                     </th>
                                     <th scope="row" className="px-2 py-4 w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
@@ -211,7 +279,7 @@ export default function Dashboard() {
                                     </th>
 
                                 </tr>
-                                {userData?.contracts.filter((contract) => contractFilter ? contract.projectName?.includes(contractFilter) : true).map((contract: Contract, index: number) => {
+                                {tableContracts.map((contract: Contract, index: number) => {
 
                                     return (
                                         <tr key={contract.id} className={`border-b sm:flex sm:flex-row sm:justify-evenly sm:items-center w-full border-gray-400 dark:bg-gray-800 dark:border-gray-700 transition-all hover:bg-bg-primary-dark hover:bg-opacity-50 hover:border-accent-dark hover:drop-shadow-md dark:hover:bg-gray-600`}>
@@ -225,20 +293,20 @@ export default function Dashboard() {
                                                 </Link>
                                             </td>
                                             <td className="px-2 py-4  w-full text-center text-white">
-                                                {contract.clientName}
+                                                {contract?.clientEmail == contract.creator ? contract?.providerName : contract?.clientName}
                                             </td>
                                             <td className="px-2 py-4 w-full text-center text-white">
 
-                                                {contract.contractValue}
+                                                <span className="text-[20px]">{contract.contractValue}</span>
                                                 <br></br>
-                                                {contract.isSigned ? formatDateToReadableString(contract.signedDate) : contract.startDate}
+                                                {contract.isSigned ? formatDateToReadableString(contract.signedDate,false,true) : formatDateToReadableString(contract.startDate,false,true)}
 
                                             </td>
                                             <td className="  px-2 py-4 w-full translate-y-[-5px] text-center justify-center items-center flex-row flex ">
                                                 {contract?.status == ContractStatus.Draft ? <ContractDraftedStatus></ContractDraftedStatus> : <ContractPublishedStatus></ContractPublishedStatus>}
                                             </td>
                                             <td className="  px-2 py-4 w-full text-center text-white">
-                                                {contract?.creator === currentUserData.email ? 'Issuer' : 'Receiver'}
+                                                {contract?.role}
                                             </td>
                                             <td className=' px-2 py-4 w-full min-w-[160px] flex flex-row justify-center '>
                                                 <div className=" max-w-fit w-full space-x-2 flex flex-row justify-evenly ">

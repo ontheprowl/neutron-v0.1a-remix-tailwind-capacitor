@@ -19,7 +19,7 @@ export default function ProfileProfInformationForm() {
     const saveButtonStates = (state: string) => {
         switch (state) {
             case "idle":
-                return (<span> Save & Proceed </span>);
+                return (<span> Save Details </span>);
 
             case "submitting":
                 return (<span> Saving Details ...</span>)
@@ -49,9 +49,6 @@ export default function ProfileProfInformationForm() {
         if (fetcher.type === "done") {
             console.log("THE FETCHER TYPE IS " + fetcher.type)
             toast(<div><h2>Details saved!</h2></div>, { theme: "dark", type: "success" })
-            UIStore.update(s => {
-                s.profileTab = 2
-            })
         }
 
     }, [designation, experience, location, language, fetcher, trigger])
@@ -81,7 +78,7 @@ export default function ProfileProfInformationForm() {
             <div className="flex items-end mt-2 flex-col space-y-2 sm:space-y-0 sm:space-x-3 sm:flex-row w-full">
                 <div className=" space-y-3 w-full h-auto sm:basis-1/3">
                     <span className=" prose prose-md text-white">Experience ( in years )</span>
-                    <input  {...register('experience', { required: false })} type="number" max={50} placeholder="e.g : 5 years" defaultValue={userMetadata.experience} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg invalid:border-red-500 placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
+                    <input  {...register('experience', { required: false })} type="number" max={50} min={0} placeholder="e.g : 5 years" defaultValue={userMetadata.experience} className=" bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-sm rounded-lg invalid:border-red-500 placeholder-white block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white " />
                     <div className="w-full h-6  mt-3 text-left">
                         <ErrorMessage errors={errors} name='experience' render={(data) => {
                             return <span className="text-red-500 whitespace-nowrap z-10">{data.message}</span>

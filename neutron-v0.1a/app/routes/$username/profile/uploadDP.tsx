@@ -2,6 +2,7 @@ import type { ActionFunction } from "@remix-run/server-runtime";
 import { json, redirect, unstable_parseMultipartFormData as parseMultipartFormData } from "@remix-run/server-runtime";
 import type { UploadTaskSnapshot } from "firebase/storage";
 import { getDownloadURL, ref, uploadBytesResumable, } from "firebase/storage";
+import { juneClient } from "~/analytics/june-config.server";
 import createFirebaseStorageFileHandler from "~/firebase/FirebaseUploadHandler";
 
 import { storage } from "~/firebase/neutron-config.server";
@@ -37,7 +38,6 @@ export const action: ActionFunction = async ({ request }) => {
     const dpInputPath = formData.get("dpFile");
     console.log(`The dp has been uploaded to : ${dpInputPath}`)
     const metadataRef = await setFirestoreDocFromData({ ...session.metadata, photoURL: dpInputPath }, `metadata`, session?.metadata?.id);
-
 
     // const blob: Blob = await (await request.blob());
     // console.log(file)

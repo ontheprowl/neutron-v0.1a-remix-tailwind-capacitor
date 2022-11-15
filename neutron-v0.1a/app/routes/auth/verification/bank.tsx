@@ -8,6 +8,7 @@ import type { NeutronEvent } from "~/models/events";
 import { EventType, KYCEvent } from "~/models/events";
 import { PAYOUTS_PROD_AUTHORIZE_ENDPOINT, PAYOUTS_PROD_BANK_ACCOUNT_VERIFICATION_ENDPOINT } from "~/constants/cashfree";
 import { requireUser } from "~/session.server";
+import { trackJuneEvent } from "~/analytics/june-config.server";
 
 
 
@@ -87,6 +88,7 @@ export const action: ActionFunction = async ({ request, params }) => {
         if (bankAccountResponseBody.accountStatus == "VALID") {
             const bankAccountVerified: NeutronEvent = { uid: session?.metadata?.id, type: EventType.KYCEvent, event: KYCEvent.BankAccountDetailsVerified, payload: { data: {}, message: "A bank account has been successfully verified " } };
             // const updateRef = await updateFirestoreDocFromData({ bankVerified: true }, 'metadata', `${session?.metadata?.id}`);
+            trackJuneEvent(session?.metadata?.id, 'Bank details verified', { bankAccountNumber: bankAccount, ifsc: ifsc, phone: phone },'kycEvents');
             await sendEvent(bankAccountVerified, [session?.metadata?.id]);
         }
         else {

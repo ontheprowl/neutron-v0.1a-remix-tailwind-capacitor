@@ -8,6 +8,7 @@ import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
 import MandatoryAsterisk from "../layout/MandatoryAsterisk";
 import NeutronModal from "../layout/NeutronModal";
 import AadhaarOTPForm from "../auth/AadhaarOTPForm";
+import { UIStore } from "~/stores/UIStore";
 
 
 export default function ProfileAccountInformationForm() {
@@ -29,7 +30,7 @@ export default function ProfileAccountInformationForm() {
     const saveButtonStates = (state: string) => {
         switch (state) {
             case "idle":
-                return (<span> Submit KYC </span>);
+                return (<span> Submit KYC and Proceed </span>);
 
             case "submitting":
                 return (<span> Saving Details ...</span>)
@@ -50,19 +51,23 @@ export default function ProfileAccountInformationForm() {
 
     const { handleSubmit, register, trigger, getValues, formState: { errors }, control } = useForm();
 
-    const phoneNumber = useWatch({ control, name: 'phoneNumber' })
-    const bankAccount = useWatch({ control, name: 'bankAccount' })
-    const ifscCode = useWatch({ control, name: 'ifscCode' })
-    const address = useWatch({ control, name: 'address' })
-    const city = useWatch({ control, name: 'city' })
-    const state = useWatch({ control, name: 'state' })
-    const pincode = useWatch({ control, name: 'pincode' })
+    const phoneNumber = useWatch({ control, name: 'phoneNumber' });
+    const bankAccount = useWatch({ control, name: 'bankAccount' });
+    const ifscCode = useWatch({ control, name: 'ifscCode' });
+    const address = useWatch({ control, name: 'address' });
+    const PAN = useWatch({ control, name: 'PAN' });
+    const city = useWatch({ control, name: 'city' });
+    const state = useWatch({ control, name: 'state' });
+    const pincode = useWatch({ control, name: 'pincode' });
 
 
     useEffect(() => {
         trigger()
         if (profileUpdationFetcher.state === "loading") {
             toast(<div><h2>Details saved!</h2></div>, { theme: "dark", type: "success" })
+            UIStore.update(s => {
+                s.profileTab = 2
+            })
         }
 
         if (verifyAadhaarFetcher?.data) {
@@ -74,7 +79,7 @@ export default function ProfileAccountInformationForm() {
 
         }
 
-    }, [phoneNumber, bankAccount, ifscCode, address, city, state, pincode, profileUpdationFetcher, verifyAadhaarFetcher, trigger])
+    }, [phoneNumber, bankAccount, PAN, ifscCode, address, city, state, pincode, profileUpdationFetcher, verifyAadhaarFetcher, trigger])
 
     return (
         <>
@@ -108,7 +113,7 @@ export default function ProfileAccountInformationForm() {
                                 <span className=" prose prose-md text-white">PAN <MandatoryAsterisk></MandatoryAsterisk></span>
                                 {userMetadata?.panVerified ? <div className="bg-green-600 pl-2.5 pt-1 border-0 rounded-full w-8 h-8 text-white">✓</div> : ''}
                             </div>
-                            <input type="password" id="pan"  {...register('PAN', {
+                            <input type={userMetadata.PAN ? 'password' : 'text'} id="pan"  {...register('PAN', {
                                 required: true, pattern: {
                                     value: /[A-Z]{5}[0-9]{4}[A-Z]{1}/, message: "Not a valid PAN Number"
                                 }
@@ -124,7 +129,7 @@ export default function ProfileAccountInformationForm() {
                                 <span className=" prose prose-md text-white">Aadhaar <MandatoryAsterisk></MandatoryAsterisk></span>
                                 {userMetadata?.aadhaarVerified ? <div className="bg-green-600 pl-2.5 pt-1 border-0 rounded-full w-8 h-8 text-white">✓</div> : ''}
                             </div>
-                            <input type="password" id="aadhaar-number"  {...register('aadhaar', {
+                            <input type='password' id="aadhaar-number"  {...register('aadhaar', {
                                 required: true, pattern: {
                                     value: /^[2-9]{1}[0-9]{3}[0-9]{4}[0-9]{4}$/, message: "Not a valid Aadhaar number"
                                 }

@@ -1,7 +1,7 @@
 
 
 
-export default function DefaultSpinner({ size }: { size?: 'large' | 'regular' }) {
+export default function DefaultSpinner({ size, className }: { size?: 'large' | 'regular', className? : string },) {
 
     return (
         <svg role="status" className={`inline ${size && size == "large" ? 'w-20 h-20' : 'w-8 h-8'} self-center text-gray-200 animate-spin dark:text-gray-600 fill-purple-600`} viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">

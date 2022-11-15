@@ -4,6 +4,7 @@ import { getFirebaseDocs, setFirestoreDocFromData, updateFirestoreDocFromData } 
 import { requireUser } from "~/session.server";
 
 
+/** This action function takes care of the addition or updation of beneficiaries from the Neutron platform */
 export const action: ActionFunction = async ({ request, params }) => {
     console.log('request received at beneficiary updation handler');
     const session = await requireUser(request);

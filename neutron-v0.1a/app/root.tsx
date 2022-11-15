@@ -21,6 +21,7 @@ import {
 } from "@remix-run/react";
 import { useEffect } from "react";
 import { env } from 'process';
+import { useJune } from './utils/use-june';
 let isMount = true;
 
 export const links: LinksFunction = () => {
@@ -65,6 +66,21 @@ export const loader: LoaderFunction = async ({ request }) => {
 export function ErrorBoundary({ error }: { error: Error }) {
   let navigate = useNavigate();
 
+  const analytics = useJune("taPBsHKSJL8IG6BG");
+
+
+  useEffect(() => {
+    if (analytics) {
+      console.dir(analytics)
+      console.log("JUNE ANALYTICS active")
+      console.log("Registering error on June...")
+      analytics.track("Client-Side Error", {
+        error: `${error}`
+      });
+    }
+  }, [analytics, error])
+
+
 
   useEffect(() => {
     setTimeout(() => {
@@ -75,7 +91,7 @@ export function ErrorBoundary({ error }: { error: Error }) {
   let location = useLocation();
   let matches = useMatches();
 
-  React.useEffect(() => {
+  useEffect(() => {
     let mounted = isMount;
     isMount = false;
 

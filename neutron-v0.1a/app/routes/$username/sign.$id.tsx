@@ -4,6 +4,7 @@ import { getSingleDoc, sendEvent, updateFirestoreDocFromData } from "~/firebase/
 import type { NeutronEvent } from "~/models/events";
 import { ContractEvent, EventType } from "~/models/events";
 import { requireUser } from "~/session.server";
+import { juneClient, trackJuneEvent } from "~/analytics/june-config.server";
 
 
 
@@ -23,7 +24,7 @@ export const action: ActionFunction = async ({ request, params }) => {
     const uidMapping = await getSingleDoc(`/userUIDS/${username}`);
     const ownerUID = uidMapping?.uid;
     const signerEmail = formData.get('email');
-    const signerID = formData.get('id');
+    const signerID = formData.get('id') as string;
     const signerLegalName = formData.get('legalName');
     const isClient = formData.get('isClient');
     const viewers = JSON.parse(formData.get('viewers'));
@@ -42,6 +43,7 @@ export const action: ActionFunction = async ({ request, params }) => {
 
     const updateRef = await updateFirestoreDocFromData(payload, 'contracts', `${contractID}`);
 
+    trackJuneEvent(signerID, 'Contract Signed', { contractID: contractID }, 'signEvent');
 
     const contractSignEvent: NeutronEvent = {
         id: contractID, uid: ownerUID, type: EventType.ContractEvent, payload: {

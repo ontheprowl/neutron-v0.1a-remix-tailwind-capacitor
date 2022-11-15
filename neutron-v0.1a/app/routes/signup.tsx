@@ -1,4 +1,4 @@
-import {  Link, useActionData, useLoaderData, useNavigate, useSubmit, useTransition } from "@remix-run/react";
+import { Link, useActionData, useLoaderData, useNavigate, useSubmit, useTransition } from "@remix-run/react";
 
 import { json } from "@remix-run/server-runtime";
 import { redirect } from "@remix-run/server-runtime";
@@ -18,6 +18,7 @@ import { injectStyle } from "react-toastify/dist/inject-style";
 import DefaultSpinner from "~/components/layout/DefaultSpinner";
 import { env } from "process";
 import MandatoryAsterisk from "~/components/layout/MandatoryAsterisk";
+import { juneClient, trackJuneEvent } from "~/analytics/june-config.server";
 
 export async function loader({ request }: { request: Request }) {
 
@@ -86,6 +87,8 @@ export async function action({ request }: { request: Request }) {
     }, `metadata`, user.uid);
     // const uidMapRef = await setFirestoreDocFromData({ uid: user.uid }, `metadata`, user.email);
     const token = await user.getIdToken();
+
+    trackJuneEvent(user.uid, 'User Sign Up', { ...data }, 'userEvents');
     return createUserSession({ request: request, metadata: { 'path': ref.path }, userId: token, remember: true, redirectTo: `/checkEmail` })
   } catch (e) {
     console.log("\n Error during signup form submission being logged : \n ");

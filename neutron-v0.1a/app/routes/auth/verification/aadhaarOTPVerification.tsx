@@ -1,9 +1,10 @@
-import type { ActionFunction} from "@remix-run/server-runtime";
+import type { ActionFunction } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
 import { publicEncrypt } from "crypto";
 import { readFileSync } from "fs";
 import moment from "moment";
 import { env } from "process";
+import { trackJuneEvent } from "~/analytics/june-config.server";
 import { VERIFICATION_PROD_AADHAAR_OTP_VERIFY_ENDPOINT } from "~/constants/cashfree";
 import { sendEvent } from "~/firebase/queries.server";
 import type { NeutronEvent } from "~/models/events";
@@ -57,6 +58,8 @@ export const action: ActionFunction = async ({ request, params }) => {
         if (valid) {
             const aadhaarVerified: NeutronEvent = { uid: session?.metadata?.id, type: EventType.KYCEvent, event: KYCEvent.AadhaarVerified, payload: { data: {}, message: "An Aadhaar number has been successfully verified " } };
             // const updateRef = await updateFirestoreDocFromData({ aadhaarVerified: true }, 'metadata', `${session?.metadata?.id}`);
+            trackJuneEvent(session?.metadata?.id, 'Aadhaar verified', { ref_id: ref_id }, 'kycEvents');
+
             await sendEvent(aadhaarVerified, [session?.metadata?.id]);
         }
         else {

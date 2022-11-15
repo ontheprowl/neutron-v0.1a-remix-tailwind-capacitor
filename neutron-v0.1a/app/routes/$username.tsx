@@ -1,7 +1,7 @@
 import { UIStore } from "../stores/UIStore";
 import { primaryGradientDark } from "../utils/neutron-theme-extensions";
 import HomeButton from "../components/HomeButton";
-import { Outlet, useFetcher, useLoaderData, useNavigate } from "@remix-run/react";
+import { Outlet, useFetcher, useLoaderData, useLocation, useNavigate } from "@remix-run/react";
 import type { LoaderFunction } from "@remix-run/server-runtime";
 import { json, redirect } from "@remix-run/server-runtime";
 import { formatDateToReadableString } from "~/utils/utils";
@@ -87,6 +87,7 @@ export default function CustomUserPage() {
 
     const [logoutConfirmationModal, setLogoutConfirmationModal] = useState(false);
 
+    const location = useLocation();
     const [statIndex, setStatIndex] = useState(0);
 
 
@@ -94,20 +95,19 @@ export default function CustomUserPage() {
 
     const analytics = useJune("taPBsHKSJL8IG6BG");
 
-    // useEffect(() => {
+    useEffect(() => {
 
-    //     if (analytics) {
-    //         console.dir(analytics)
-    //         console.log("JUNE ANALYTICS active")
+        if (analytics) {
+            console.dir(analytics)
+            console.log("JUNE ANALYTICS active")
 
-    //         analytics.page();
-    //         analytics.identify(metadata.id, {
-    //             friends: 42,
-    //             email: metadata.email
-    //         }, { timestamp: new Date().toISOString() });
-    //     }
+            analytics.page(location.pathname);
+            analytics.identify(metadata.id, {
+                ...metadata,
+            }, { timestamp: new Date().toISOString() });
+        }
 
-    // }, [analytics, metadata])
+    }, [analytics, metadata, location])
 
 
     // * This effect ensures that the beamsClient is subscribing to all messages for the currently logged-in user

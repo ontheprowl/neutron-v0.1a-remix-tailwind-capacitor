@@ -24,7 +24,6 @@ const variants = {
 
 export default function AccentedToggle({ name, states, onToggle, variant, control }: { name: string, variant?: 'neutron-purple' | 'neutron-yellow', states?: { default: string, toggled: string }, control?: boolean, onToggle?: React.MouseEventHandler }) {
 
-    const formMethods = useFormContext();
     const [isOn, setIsOn] = useState(control ? control : false)
 
 
@@ -56,7 +55,7 @@ export default function AccentedToggle({ name, states, onToggle, variant, contro
                 transition={variant && variant == "neutron-purple" ? purpleSpring : spring}
             >
                 {states ? isOn ? `${states.default}` : `${states.toggled}` : ''}
-                <input type="checkbox" className='hidden' value={isOn ? 'true' : 'false'} {...formMethods.register(name)} ></input>
+                <input type="checkbox" className='hidden' value={isOn ? 'true' : 'false'}  ></input>
             </motion.div>
 
 

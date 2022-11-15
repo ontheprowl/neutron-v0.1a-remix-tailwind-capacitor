@@ -11,9 +11,10 @@ import { useForm } from "react-hook-form";
 import Icon from "~/assets/images/iconFull.svg"
 import { getAuth } from "firebase/auth";
 import { signIn } from "~/models/user.server";
-import { juneClient } from "~/analytics/june-config.server";
+import { trackJuneEvent } from "~/analytics/june-config.server";
 import { createUserSession, requireUser } from "~/session.server";
 import { getSingleDoc, updateFirestoreDocFromData } from "~/firebase/queries.server";
+import AuthPagesSidePanel from '~/assets/images/AuthPagesSidePanel.svg'
 import { doc } from "firebase/firestore";
 import { NeutronError } from "~/logging/NeutronError";
 import DefaultSpinner from "~/components/layout/DefaultSpinner";
@@ -89,10 +90,8 @@ export async function action({ request }: { request: Request }) {
       }
       // * Identify user login event on June 
 
-      juneClient.identify({
-        userId: user.uid,
-        traits: { ...user.metadata, ...metadata }
-      })
+
+      trackJuneEvent(user.uid, 'User Logged In', { ...user.metadata, ...metadata }, 'userEvents');
 
       return createUserSession({ request: request, metadata: { path: ref.path }, userId: token, remember: true, redirectTo: profileComplete ? `/${user.displayName}/dashboard` : `/${user.displayName}/profile` })
     } else {
@@ -159,7 +158,7 @@ export default function Login() {
   return (
     <div className=" sm:h-screen w-full justify-center bg-bg-primary-dark align-middle">
       <div className=" flex flex-row h-full w-full text-center">
-        <div id="left-panel" className="flex flex-col w-full sm:basis-3/5  h-full justify-center sm:justify-start mt-20 sm:mt-0 sm:items-start p-8">
+        <div id="left-panel" className="flex flex-col w-full sm:basis-7/12  h-full justify-center sm:justify-start mt-20 sm:mt-0 sm:items-start p-8">
           <img
             src={Icon}
             className="h-10 max-h-28 m-1 max-w-28 "
@@ -239,7 +238,8 @@ export default function Login() {
           </div>
 
         </div>
-        <div id="right-panel" className="hidden sm:flex sm:flex-col w-full basis-2/5 bg-origin-content bg-[url('/AuthPagesSidePanel.svg')] bg-cover bg-no-repeat ">
+        <div id="right-panel" className="hidden sm:flex sm:flex-col border-accent-dark  basis-5/12 w-full ">
+          <img className=" w-full h-full object-cover" alt="Neutron Auth Page Graphic" src={AuthPagesSidePanel}></img>
           {/* <img
             src={RightSidePanelIllustration}
             className="h-full m-1 w-full snap-center"

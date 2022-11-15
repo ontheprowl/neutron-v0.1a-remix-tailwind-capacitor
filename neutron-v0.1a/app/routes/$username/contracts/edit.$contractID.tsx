@@ -27,6 +27,7 @@ import { ContractCreator, ContractStatus } from '~/models/contracts';
 import { ToastContainer } from 'react-toastify';
 import { useEffect } from 'react';
 import { injectStyle } from 'react-toastify/dist/inject-style';
+import { trackJuneEvent } from '~/analytics/june-config.server';
 
 
 
@@ -92,6 +93,7 @@ export const action: ActionFunction = async ({ request, params }) => {
 
         const eventPublished = await sendEvent(contractCreationEvent, finalContractData?.viewers);
         const creatorMetadataRef = await updateFirestoreDocFromData({ contracts: numberOfContracts.valueOf() + 1 }, `metadata`, session?.metadata?.id);
+        trackJuneEvent(session?.metadata?.id, 'Contract Edited - Published', {clientEmail : finalContractData?.clientEmail, providerEmail : finalContractData?.providerEmail}, 'contractEvents');
 
         return redirect(`/${session?.metadata?.displayName}/contracts/${contractRef.id}`)
 
@@ -99,6 +101,8 @@ export const action: ActionFunction = async ({ request, params }) => {
         const contractRef = await updateFirestoreDocFromData({ ...finalContractData, status: ContractStatus.Draft }, `contracts`, `${contractID}`);
         // const contractDraftEvent: NeutronEvent = { event: ContractEvent.ContractDrafted, type: EventType.ContractEvent, payload: { data: { ...data }, message: 'A contract was drafted' }, uid: session?.metadata?.id, id: contractRef.id }
         // const eventDrafted = await sendEvent(contractDraftEvent);
+        trackJuneEvent(session?.metadata?.id, 'Contract Edited - Drafted', {clientEmail : finalContractData?.clientEmail, providerEmail : finalContractData?.providerEmail}, 'contractEvents');
+
         return redirect(`/${session?.metadata?.displayName}/contracts/${contractRef.id}`)
 
     }

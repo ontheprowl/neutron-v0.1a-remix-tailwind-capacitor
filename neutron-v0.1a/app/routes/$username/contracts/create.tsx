@@ -9,7 +9,7 @@ import ContractScopeOfWork from '~/components/contracts/ContractScopeOfWork';
 import ContractPaymentDetails from '~/components/contracts/ContractPaymentDetails';
 import ContractEditScreen from '~/components/contracts/ContractEditScreen';
 import ContractProcessStepper from '~/components/contracts/ContractProcessStepper';
-import type { ActionFunction, LoaderFunction} from '@remix-run/server-runtime';
+import type { ActionFunction, LoaderFunction } from '@remix-run/server-runtime';
 import { redirect } from '@remix-run/server-runtime';
 import { json } from '@remix-run/server-runtime';
 import MobileNavbarPadding from '~/components/layout/MobileNavbarPadding';
@@ -25,6 +25,7 @@ import { ToastContainer } from 'react-toastify';
 import { useEffect } from 'react';
 import { injectStyle } from 'react-toastify/dist/inject-style';
 import NeutronModal from '~/components/layout/NeutronModal';
+import { trackJuneEvent } from '~/analytics/june-config.server';
 
 
 
@@ -106,6 +107,8 @@ export const action: ActionFunction = async ({ request }) => {
         const numberOfContracts = new Number(session?.metadata?.contracts);
 
         const contractCreationEvent: NeutronEvent = { event: ContractEvent.ContractPublished, type: EventType.ContractEvent, payload: { data: { ...data }, message: 'A contract was created' }, uid: session?.metadata?.id, id: contractRef.id }
+        trackJuneEvent(session?.metadata?.id, 'Contract Created - Published', {clientEmail : finalContractData?.clientEmail, providerEmail : finalContractData?.providerEmail}, 'contractEvents');
+
         const eventPublished = await sendEvent(contractCreationEvent, finalContractData?.viewers);
         const creatorMetadataRef = await updateFirestoreDocFromData({ contracts: numberOfContracts.valueOf() + 1 }, `metadata`, session?.metadata?.id);
         // const providerMetadata = await updateFirestoreDocFromData({  }, `metadata`, finalContractData?.providerID);
@@ -118,6 +121,8 @@ export const action: ActionFunction = async ({ request }) => {
         const contractRef = await addFirestoreDocFromData({ ...finalContractData, status: ContractStatus.Draft }, `contracts`);
 
         const contractDraftEvent: NeutronEvent = { event: ContractEvent.ContractDrafted, type: EventType.ContractEvent, payload: { data: { ...data }, message: 'A contract was drafted' }, uid: session?.metadata?.id, id: contractRef.id }
+        trackJuneEvent(session?.metadata?.id, 'Contract Created - Drafted', {clientEmail : finalContractData?.clientEmail, providerEmail : finalContractData?.providerEmail}, 'contractEvents');
+
         const eventDrafted = await sendEvent(contractDraftEvent, finalContractData?.viewers);
         return redirect(`/${session?.metadata?.displayName}/contracts/${contractRef.id}`)
 

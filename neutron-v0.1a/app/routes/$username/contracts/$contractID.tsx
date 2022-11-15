@@ -28,6 +28,7 @@ import MobileNavbarPadding from "~/components/layout/MobileNavbarPadding";
 import { useEffect } from "react";
 import { injectStyle } from "react-toastify/dist/inject-style";
 import ContractViewMobileUI from "~/components/pages/ContractViewMobileUI";
+import { trackJuneEvent } from "~/analytics/june-config.server";
 
 
 /**
@@ -87,6 +88,7 @@ export const loader: LoaderFunction = async ({ params, request }) => {
     // if(session?.metadata?.displayName == ownerUsername){
 
     // }
+    trackJuneEvent(session?.metadata?.id,'Open Contract Event',{},'contractEvents', )
     return json({ contract: { ...currentContract, id: contractID }, metadata: session?.metadata, contractEvents: currentContractEvents, contractMessages: messagesArray, node_env: env.NODE_ENV, ownerUsername: ownerUsername, from: from, to: to });
 }
 

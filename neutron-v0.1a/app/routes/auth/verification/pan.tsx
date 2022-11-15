@@ -8,6 +8,7 @@ import type { NeutronEvent } from "~/models/events";
 import { EventType, KYCEvent } from "~/models/events";
 import { VERIFICATION_PROD_PAN_VERIFICATION_ENDPOINT } from "~/constants/cashfree";
 import { requireUser } from "~/session.server";
+import { trackJuneEvent } from "~/analytics/june-config.server";
 
 
 
@@ -46,7 +47,7 @@ export const action: ActionFunction = async ({ request, params }) => {
                 "x-client-secret": PAYOUTS_PROD_CLIENT_SECRET,
                 "x-cf-signature": encryptedData.toString("base64"),
                 "Content-Type": "application/json",
-                "x-api-version":'2022-10-26'
+                "x-api-version": '2022-10-26'
             },
             body: JSON.stringify({ name: name, pan: pan })
         });
@@ -56,6 +57,8 @@ export const action: ActionFunction = async ({ request, params }) => {
         if (valid) {
             const panVerified: NeutronEvent = { uid: session?.metadata?.id, type: EventType.KYCEvent, event: KYCEvent.PANVerified, payload: { data: {}, message: "A PAN number has been successfully verified " } };
             // const updateRef = await updateFirestoreDocFromData({ panVerified: true }, 'metadata', `${session?.metadata?.id}`);
+            trackJuneEvent(session?.metadata?.id, 'PAN verified', { pan: pan, name: name }, 'kycEvents');
+
             await sendEvent(panVerified, [session?.metadata?.id]);
         }
         else {

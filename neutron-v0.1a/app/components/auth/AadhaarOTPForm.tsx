@@ -1,10 +1,8 @@
-import { ErrorMessage } from "@hookform/error-message";
-import { useFetcher, useLoaderData, useTransition } from "@remix-run/react";
+import { useFetcher, useTransition } from "@remix-run/react";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
-import type { Milestone } from "~/models/contracts";
 import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
 import DefaultSpinner from "../layout/DefaultSpinner";
 

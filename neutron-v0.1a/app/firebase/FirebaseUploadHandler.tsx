@@ -11,6 +11,10 @@ export declare type UploadHandler = (
     args: UploadHandlerArgs
 ) => Promise<string | File | null | undefined>;
 
+
+/**
+ * This type represents an Upload Handler that manages uploads of files received bytewise to the server via Remix Form submissions
+ */
 export type FirebaseStorageUploadHandler = {
     uploadRoutine(buffer: Buffer, session?: any, filename?: string): Promise<string>;
     filter?(args: UploadHandlerArgs): boolean | Promise<boolean>;

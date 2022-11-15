@@ -32,27 +32,25 @@ export default function AccentedToggle({ name, states, onToggle }: { name?: stri
 
     const toggleSwitch = () => setIsOn(!isOn)
 
-    const spring = {
-        type: 'spring',
-        stiffness: 300,
-        damping: 30,
-        duration: 0.2
-    }
 
     return (
         <div onClick={onToggle ? (e) => {
             onToggle(e)
             toggleSwitch()
-        } : toggleSwitch} className={`flex flex-start w-[609px] bg-bg-primary-dark border-2 cursor-pointer border-gray-400 rounded-lg whitespace-nowrap ${isOn && 'place-content-end'}`}>
+        } : toggleSwitch} className={`flex flex-start w-[609px] bg-bg-secondary-dark border-2 transition-all border-gray-400 outline-none cursor-pointer ring-gray-400 rounded-lg whitespace-nowrap `}>
 
-            <motion.div
-                className={`flex w-6/12 sm:w-[304px] items-start p-3 rounded-md ${primaryGradientDark}`}
-                layout
-                transition={spring}
+            <div
+                className={`flex w-6/12 sm:w-[304px] items-start p-3 transition-all rounded-md ${isOn ? 'bg-bg-secondary-dark' : 'bg-purple-400'}`}
             >
-                {isOn ? states.toggled : states.default}
+                {states.default}
                 <input type="checkbox" className='hidden' value={isOn ? 'true' : 'false'} {...formMethods.register(name)} ></input>
-            </motion.div>
+            </div>
+            <div
+                className={`flex w-6/12 sm:w-[304px] items-start transition-all p-3 rounded-md   ${isOn ? 'bg-purple-400' : 'bg-bg-secondary-dark'}`}
+            >
+                {states.toggled}
+                <input type="checkbox" className='hidden' value={isOn ? 'true' : 'false'} {...formMethods.register(name)} ></input>
+            </div>
 
 
         </div >
