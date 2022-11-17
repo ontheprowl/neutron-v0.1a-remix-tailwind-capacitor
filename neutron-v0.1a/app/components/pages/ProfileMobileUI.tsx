@@ -9,7 +9,7 @@ import ProfileBasicDetailsForm from "../profile/ProfileBasicDetailsForm";
 import ProfileProfInformationForm from "../profile/ProfileProfInformationForm";
 import ProfileAccountInformationForm from "../profile/ProfileAccountInformationForm";
 import LogoutButton from "../LogoutButton";
-import { UIStore } from "~/stores/UIStore";
+import { AppStore } from "~/stores/UIStore";
 import NeutronModal from "../layout/NeutronModal";
 
 
@@ -33,7 +33,7 @@ export default function ProfileMobileUI() {
 
 
 
-    const tab = UIStore.useState(s => s.profileTab);
+    const tab = AppStore.useState(s => s.profileTab);
     const [logoutConfirmationModal, setLogoutConfirmationModal] = useState(false);
 
     return (
@@ -77,17 +77,17 @@ export default function ProfileMobileUI() {
                     </div>
                     <div className="flex flex-col w-auto sm:flex-col m-3 justify-evenly space-y-3 sm:space-x-0">
                         <button onClick={() => {
-                             UIStore.update(s => {
+                             AppStore.update(s => {
                                 s.profileTab = 0
                             })
                         }} className={`transition-all p-3 text-left text-white prose prose-md border-2  rounded-lg ${tab == 0 ? ' focus:border-purple-400 active:border-purple-400 border-purple-400 bg-bg-primary-dark' : "active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-secondary-dark hover:bg-bg-primary-dark"}`}>Basic Details</button>
                         <button onClick={() => {
-                            UIStore.update(s => {
+                            AppStore.update(s => {
                                 s.profileTab = 1
                             })
                         }} className={`transition-all p-3 border-2  whitespace-nowrap text-left text-white prose prose-md rounded-lg ${tab == 1 ? ' focus:border-purple-400 active:border-purple-400 border-purple-400 bg-bg-primary-dark' : "active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-secondary-dark hover:bg-bg-primary-dark"}`}>Professional Information</button>
                         <button onClick={() => {
-                             UIStore.update(s => {
+                             AppStore.update(s => {
                                 s.profileTab = 2
                             })
                         }} className={`transition-all p-3 border-2 text-left text-white prose  prose-md rounded-lg ${tab == 2 ? ' focus:border-purple-400 active:border-purple-400 border-purple-400 bg-bg-primary-dark' : "active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-secondary-dark hover:bg-bg-primary-dark"}`}>Account Information </button>
@@ -113,11 +113,11 @@ export default function ProfileMobileUI() {
 
             </div>
             {logoutConfirmationModal && <NeutronModal onConfirm={() => {
-                UIStore.update((s) => {
+                AppStore.update((s) => {
                     s.selectedTab = "Logout";
                 });
                 fetcher.submit(null, { method: 'post', action: "/logout" })
-                UIStore.update((s) => {
+                AppStore.update((s) => {
                     s.selectedTab = "Home";
                 });
             }} heading={<h1> You are about to log out of the Neutron app </h1>} body={<p> Are you sure you want to proceed?</p>} toggleModalFunction={setLogoutConfirmationModal}></NeutronModal>}

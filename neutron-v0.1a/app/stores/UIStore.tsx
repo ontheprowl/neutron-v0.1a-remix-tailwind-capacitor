@@ -2,10 +2,13 @@ import { Store } from 'pullstate';
 
 interface IUIStore {
     selectedTab: string,
-    profileTab: number
+    profileTab: number,
+    testMode: boolean
 }
 
-export const UIStore = new Store<IUIStore>({
+export const AppStore = new Store<IUIStore>({
     selectedTab: "Home",
-    profileTab: 0
+    profileTab: 0,
+    testMode: false
+
 })

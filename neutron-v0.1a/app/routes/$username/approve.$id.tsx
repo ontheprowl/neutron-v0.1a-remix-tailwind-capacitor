@@ -1,7 +1,7 @@
-import type { ActionFunction, LoaderFunction} from "@remix-run/server-runtime";
-import {  redirect } from "@remix-run/server-runtime";
+import type { ActionFunction, LoaderFunction } from "@remix-run/server-runtime";
+import { redirect } from "@remix-run/server-runtime";
 import { getSingleDoc, sendEvent, updateFirestoreDocFromData } from "~/firebase/queries.server";
-import type { Contract} from "~/models/contracts";
+import type { Contract } from "~/models/contracts";
 import { DeliverableStatus } from "~/models/contracts";
 import type { NeutronEvent } from "~/models/events";
 import { ContractEvent, EventType } from "~/models/events";
@@ -53,8 +53,8 @@ export const action: ActionFunction = async ({ request, params }) => {
             console.dir(milestonePayload)
 
 
-            const milestoneStatusUpdateRef = await updateFirestoreDocFromData(milestonePayload, `contracts`, contractID);
-            const nextMilestoneQueuedEvent = await sendEvent(milestoneCompletionEvent, contractData.viewers);
+            const milestoneStatusUpdateRef = await updateFirestoreDocFromData(milestonePayload, `${session?.metadata?.defaultTestMode?'testContracts':'contracts'}`, contractID);
+            const nextMilestoneQueuedEvent = await sendEvent(milestoneCompletionEvent, contractData.viewers,session?.metadata?.defaultTestMode);
         }
 
     } else {
@@ -72,8 +72,8 @@ export const action: ActionFunction = async ({ request, params }) => {
         console.dir(milestoneCompletionEvent);
         const milestonePayload: { [key: string]: any } = {};
         milestonePayload[`milestones.workMilestones.${Object.keys(contractData?.milestones?.workMilestones).length - 1}.status`] = DeliverableStatus.Approved;
-        const milestoneStatusUpdateRef = await updateFirestoreDocFromData(milestonePayload, `contracts`, contractID);
-        const lastMilestoneCompletedEvent = await sendEvent(milestoneCompletionEvent, contractData.viewers);
+        const milestoneStatusUpdateRef = await updateFirestoreDocFromData(milestonePayload, `${session?.metadata?.defaultTestMode?'testContracts':'contracts'}`, contractID);
+        const lastMilestoneCompletedEvent = await sendEvent(milestoneCompletionEvent, contractData.viewers, session?.metadata?.defaultTestMode);
     }
 
 

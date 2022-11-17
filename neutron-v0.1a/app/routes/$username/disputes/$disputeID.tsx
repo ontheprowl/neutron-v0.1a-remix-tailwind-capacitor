@@ -85,7 +85,7 @@ export const action: ActionFunction = async ({ request, params }) => {
 
     const disputeCancelledEvent: NeutronEvent = { type: EventType.ContractEvent, event: ContractEvent.ContractDisputeCancelled, uid: session?.metadata?.id, id: contractID, payload: { data: { queuedMilestone: milestone, nextMilestoneIndex: nextMilestoneIndex }, message: 'A contract dispute has been cancelled. Resuming standard contract flow...' } }
 
-    const eventRef = await sendEvent(disputeCancelledEvent, viewers);
+    const eventRef = await sendEvent(disputeCancelledEvent, viewers, session?.metadata?.defaultTestMode);
     return redirect(`${session?.metadata.displayName}/disputes`);
 
 }

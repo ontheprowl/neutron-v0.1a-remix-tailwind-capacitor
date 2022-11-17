@@ -66,6 +66,7 @@ export type NeutronEvent = {
 	id?: string;
 	uid: string;
 	type: EventType;
+	sandbox?:boolean;
 	event: ContractEvent | KYCEvent | ChatEvent | PaymentEvent;
 	payload?: EventPayload;
 	timestamp?: string;

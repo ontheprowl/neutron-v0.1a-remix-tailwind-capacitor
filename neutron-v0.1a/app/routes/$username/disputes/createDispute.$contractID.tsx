@@ -70,7 +70,7 @@ export const action: ActionFunction = async ({ request, params }) => {
 
         const initialMessage = await sendChatMessage(disputeType == DisputeType.Fraud ? "Fraud has been reported for this contract. The Neutron team will contact both parties in order to resolve this dispute. " : description, disputeType == DisputeType.DeadlineExtension ? providerID : clientID, disputeType == DisputeType.DeadlineExtension ? clientID : providerID, disputeRef.id)
 
-        const eventRef = await sendEvent(disputeRegisteredEvent, viewers);
+        const eventRef = await sendEvent(disputeRegisteredEvent, viewers, session?.metadata?.defaultTestMode);
         return redirect(`/${session?.metadata?.displayName}/disputes/${disputeRef.id}`);
     } else {
         throw Error("Invalid permissions to access this function...");

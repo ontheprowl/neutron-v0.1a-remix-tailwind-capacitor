@@ -1,6 +1,6 @@
 import { equalTo, onChildAdded, onValue, orderByChild, push, query, QueryConstraint, ref, set } from "firebase/database";
 
-import type { DocumentData, DocumentReference} from "firebase/firestore";
+import type { DocumentData, DocumentReference } from "firebase/firestore";
 import { getDocs, collection, addDoc, setDoc, doc, getDoc, deleteDoc, updateDoc } from "firebase/firestore";
 import { db, firestore } from "~/firebase/neutron-config.server";
 import type { EventType, NeutronEvent } from "~/models/events";
@@ -80,11 +80,17 @@ export async function sendChatMessage(message: string, from: string, to: string,
 
 }
 
-
-export async function sendEvent(eventData: NeutronEvent, viewers?: string[]) {
+/**
+ * Asynchronous utility function that sends an event to the Neutron Events pipeline 
+ * @param eventData The Neutron Event to be sent to the Events pipeline
+ * @param viewers An array of UIDs that indicates which users can view this 
+ * @param sandbox If true, the event being sent has been generated from a sandbox instance  
+ * @returns a promise that returns true
+ */
+export async function sendEvent(eventData: NeutronEvent, viewers?: string[], sandbox?: boolean): Promise<boolean> {
 
     try {
-        const result = await set(push(ref(db, 'events/' + eventData.type)), { ...eventData, timestamp: new Date().getTime(), viewers: viewers })
+        const result = await set(push(ref(db, 'events/' + eventData.type)), { ...eventData, sandbox: sandbox, timestamp: new Date().getTime(), viewers: viewers })
         return true
     }
     catch (e) {

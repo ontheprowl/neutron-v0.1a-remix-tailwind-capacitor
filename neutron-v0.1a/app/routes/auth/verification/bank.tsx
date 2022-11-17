@@ -89,12 +89,12 @@ export const action: ActionFunction = async ({ request, params }) => {
             const bankAccountVerified: NeutronEvent = { uid: session?.metadata?.id, type: EventType.KYCEvent, event: KYCEvent.BankAccountDetailsVerified, payload: { data: {}, message: "A bank account has been successfully verified " } };
             // const updateRef = await updateFirestoreDocFromData({ bankVerified: true }, 'metadata', `${session?.metadata?.id}`);
             trackJuneEvent(session?.metadata?.id, 'Bank details verified', { bankAccountNumber: bankAccount, ifsc: ifsc, phone: phone },'kycEvents');
-            await sendEvent(bankAccountVerified, [session?.metadata?.id]);
+            await sendEvent(bankAccountVerified, [session?.metadata?.id], session?.metadata?.defaultTestMode);
         }
         else {
             const bankAccountRejected: NeutronEvent = { uid: session?.metadata?.id, type: EventType.KYCEvent, event: KYCEvent.BankAccountDetailsRejected, payload: { data: {}, message: "A bank account has been rejected " } };
             // const updateRef = await updateFirestoreDocFromData({ bankVerified: false }, 'metadata', `${session?.metadata?.id}`);
-            await sendEvent(bankAccountRejected, [session?.metadata?.id]);
+            await sendEvent(bankAccountRejected, [session?.metadata?.id], session?.metadata?.defaultTestMode);
         }
 
         return json(bankAccountResponseBody);

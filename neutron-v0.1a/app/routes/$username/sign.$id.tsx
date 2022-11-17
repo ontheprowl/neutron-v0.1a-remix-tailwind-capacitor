@@ -41,7 +41,7 @@ export const action: ActionFunction = async ({ request, params }) => {
         payload['signedByProviderDate'] = signDate;
     }
 
-    const updateRef = await updateFirestoreDocFromData(payload, 'contracts', `${contractID}`);
+    const updateRef = await updateFirestoreDocFromData(payload, session?.metadata?.defaultTestMode ? 'testContracts' : `contracts`, `${contractID}`);
 
     trackJuneEvent(signerID, 'Contract Signed', { contractID: contractID }, 'signEvent');
 
@@ -55,7 +55,7 @@ export const action: ActionFunction = async ({ request, params }) => {
             }, message: ''
         }, event: isClient ? ContractEvent.ContractSignedByBoth : ContractEvent.ContractPendingSignByClient
     }
-    const eventAdded = await sendEvent(contractSignEvent, viewers);
+    const eventAdded = await sendEvent(contractSignEvent, viewers,session?.metadata?.defaultTestMode);
 
     return redirect(`/${username}/contracts/${contractID}`)
 

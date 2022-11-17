@@ -1,6 +1,6 @@
 import { useNavigate } from "@remix-run/react";
 import * as React from "react";
-import { UIStore } from "../stores/UIStore";
+import { AppStore } from "../stores/UIStore";
 
 export default function CalendarButton() {
 
@@ -9,7 +9,7 @@ export default function CalendarButton() {
     <button
       className="p-1"
       onClick={() => {
-        UIStore.update((s) => {
+        AppStore.update((s) => {
           s.selectedTab = "Calendar";
         });
         navigate('calendar')

@@ -5,7 +5,7 @@ import { ErrorMessage } from '@hookform/error-message'
 import { toast } from "react-toastify";
 import DefaultSpinner from "../layout/DefaultSpinner";
 import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
-import { UIStore } from "~/stores/UIStore";
+import { AppStore } from "~/stores/UIStore";
 
 
 

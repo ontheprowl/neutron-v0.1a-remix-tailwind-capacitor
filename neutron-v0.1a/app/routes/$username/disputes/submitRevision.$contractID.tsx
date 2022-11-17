@@ -40,7 +40,7 @@ export const action: ActionFunction = async ({ request, params }) => {
         console.dir(milestonePayload)
         const revisionRef = await updateFirestoreDocFromData(milestonePayload, `contracts`, contractID);
         const milestoneFeedbackEvent: NeutronEvent = { type: EventType.ContractEvent, event: ContractEvent.ContractMilestoneInFeedback, id: contractID, uid: session.metadata?.id, payload: { data: { milestone: milestone, milestoneIndex: milestoneIndex, revision: revision }, message: ' A revision request has been acknowledged for a milestone in this contract' } }
-        await sendEvent(milestoneFeedbackEvent, viewers);
+        await sendEvent(milestoneFeedbackEvent, viewers, session?.metadata?.defaultTestMode);
         return redirectBack(request, { fallback: '/' });
 
     } else {

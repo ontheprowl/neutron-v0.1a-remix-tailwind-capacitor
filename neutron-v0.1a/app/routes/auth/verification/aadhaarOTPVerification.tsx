@@ -60,12 +60,12 @@ export const action: ActionFunction = async ({ request, params }) => {
             // const updateRef = await updateFirestoreDocFromData({ aadhaarVerified: true }, 'metadata', `${session?.metadata?.id}`);
             trackJuneEvent(session?.metadata?.id, 'Aadhaar verified', { ref_id: ref_id }, 'kycEvents');
 
-            await sendEvent(aadhaarVerified, [session?.metadata?.id]);
+            await sendEvent(aadhaarVerified, [session?.metadata?.id], session?.metadata?.defaultTestMode);
         }
         else {
             const aadhaarRejected: NeutronEvent = { uid: session?.metadata?.id, type: EventType.KYCEvent, event: KYCEvent.AadhaarRejected, payload: { data: {}, message: "An Aadhaar number has been rejected " } };
             // const updateRef = await updateFirestoreDocFromData({ aadhaarVerified: false }, 'metadata', `${session?.metadata?.id}`);
-            await sendEvent(aadhaarRejected, [session?.metadata?.id]);
+            await sendEvent(aadhaarRejected, [session?.metadata?.id], session?.metadata?.defaultTestMode);
         }
         return json(responseBody);
 

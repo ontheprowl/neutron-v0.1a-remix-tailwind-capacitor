@@ -8,7 +8,7 @@ import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
 import MandatoryAsterisk from "../layout/MandatoryAsterisk";
 import NeutronModal from "../layout/NeutronModal";
 import AadhaarOTPForm from "../auth/AadhaarOTPForm";
-import { UIStore } from "~/stores/UIStore";
+import { AppStore } from "~/stores/UIStore";
 
 
 export default function ProfileAccountInformationForm() {
@@ -30,7 +30,7 @@ export default function ProfileAccountInformationForm() {
     const saveButtonStates = (state: string) => {
         switch (state) {
             case "idle":
-                return (<span> Submit KYC and Proceed </span>);
+                return (<span className="whitespace-nowrap"> Submit KYC and Proceed </span>);
 
             case "submitting":
                 return (<span> Saving Details ...</span>)
@@ -65,12 +65,11 @@ export default function ProfileAccountInformationForm() {
         trigger()
         if (profileUpdationFetcher.state === "loading") {
             toast(<div><h2>Details saved!</h2></div>, { theme: "dark", type: "success" })
-            UIStore.update(s => {
-                s.profileTab = 2
-            })
         }
 
         if (verifyAadhaarFetcher?.data) {
+            console.log("DATA IN RESPONSE FROM AADHAAR FETCHER");
+            console.dir(verifyAadhaarFetcher?.data)
             const data = JSON.parse(verifyAadhaarFetcher.data);
             if (data.status) {
                 setOTPSubmissionModal(true);
@@ -221,7 +220,7 @@ export default function ProfileAccountInformationForm() {
 
                 </div>
                 <button
-                    className={`w-40 rounded-lg mt-2 self-start ${primaryGradientDark} text-white p-3 border-2 border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white font-gilroy-black font-[18px] transition-all`}
+                    className={`w-auto rounded-lg mt-2 self-start ${primaryGradientDark} text-white p-3 border-2 border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white font-gilroy-black font-[18px] transition-all`}
                     type="button" onClick={() => {
                         setKYCSubmissionModal(!kycSubmissionModal);
                     }}

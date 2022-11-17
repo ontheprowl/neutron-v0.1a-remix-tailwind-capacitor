@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import DefaultSpinner from "../layout/DefaultSpinner";
 import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
 import MandatoryAsterisk from "../layout/MandatoryAsterisk";
-import { UIStore } from "~/stores/UIStore";
+import { AppStore } from "~/stores/UIStore";
 
 
 
@@ -50,7 +50,7 @@ export default function ProfileBasicDetailsForm() {
         if (fetcher.type === "done") {
             console.log("THE FETCHER TYPE IS " + fetcher.type)
             toast(<div><h2>Details saved!</h2></div>, { theme: "dark", type: "success" })
-            UIStore.update(s => {
+            AppStore.update(s => {
                 s.profileTab = 1
             })
         }

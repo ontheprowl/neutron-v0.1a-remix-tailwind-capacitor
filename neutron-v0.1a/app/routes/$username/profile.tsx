@@ -18,9 +18,10 @@ import { requireUser } from '~/session.server';
 import { injectStyle } from 'react-toastify/dist/inject-style';
 import ProfileMobileUI from '~/components/pages/ProfileMobileUI';
 import NeutronModal from '~/components/layout/NeutronModal';
-import { UIStore } from '../../stores/UIStore';
+import { AppStore } from '../../stores/UIStore';
 import { juneClient, trackJuneEvent } from '~/analytics/june-config.server';
 import DefaultSpinner from '~/components/layout/DefaultSpinner';
+import AccentedToggle from '~/components/layout/AccentedToggleV1';
 
 
 
@@ -88,9 +89,16 @@ export default function Profile() {
     const userMetadata = data.metadata;
     const profilePicture = userMetadata.photoURL;
 
+
+    const [testMode, setTestMode] = useState(userMetadata?.defaultTestMode ? userMetadata?.defaultTestMode : false);
+
     useEffect(() => {
         injectStyle();
-    })
+       
+    });
+
+
+    console.log(testMode)
 
 
 
@@ -98,7 +106,7 @@ export default function Profile() {
         return userMetadata?.panVerified && userMetadata?.bankVerified && userMetadata?.aadhaarVerified;
     };
 
-    const tab = UIStore.useState(s => s.profileTab);
+    const tab = AppStore.useState(s => s.profileTab);
     const [profileModal, setProfileModal] = useState(!kycComplete());
 
     return (
@@ -114,12 +122,12 @@ export default function Profile() {
                                 dpInput?.click()
                             }}>
 
-                                <div className="h-32 -z-10 w-32 mt-8 translate-y-[-50px] bg-[#e5e5e5] border-4 cursor-pointer hover:opacity-50 hover:ring-1 outline-none transition-all hover:ring-[#8364E8] border-solid border-black rounded-full self-center  object-contain" id="dp-overlay">
+                                <div className="h-32 -z-10 w-32 mt-8 translate-y-[-50px] bg-[#e5e5e5] border-4 cursor-pointer hover:opacity-50 hover:ring-1 outline-none transition-all hover:ring-[#8364E8] border-solid border-black rounded-full self-center" id="dp-overlay">
                                     {fetcher.state == "submitting" ?
                                         <svg role="status" className={`inline w-20 h-20 mt-5 self-center text-gray-200 animate-spin dark:text-gray-600 fill-purple-600`} viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
                                             <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" />
                                             <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill" />
-                                        </svg> : <img alt="profile" src={profilePicture ? profilePicture : PlaceholderDP} ></img>}
+                                        </svg> : <img alt="profile" className='rounded-full h-full w-full' src={profilePicture ? profilePicture : PlaceholderDP} ></img>}
                                 </div>
 
 
@@ -153,20 +161,21 @@ export default function Profile() {
                         </div> */}
                         <div className="flex p-2 flex-row sm:flex-col m-3 justify-evenly sm:space-y-5 space-x-4 sm:space-x-0">
                             <button onClick={() => {
-                                UIStore.update(s => {
+                                AppStore.update(s => {
                                     s.profileTab = 0
                                 })
                             }} className={`transition-all p-3 border-2 text-left text-white prose prose-md rounded-lg ${tab == 0 ? ' border-transparent    bg-bg-primary-dark' : "active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-secondary-dark hover:bg-bg-primary-dark"}`}>Basic Details</button>
                             <button onClick={() => {
-                                UIStore.update(s => {
+                                AppStore.update(s => {
                                     s.profileTab = 1
                                 })
                             }} className={`transition-all p-3 border-2  whitespace-nowrap text-left text-white prose prose-md rounded-lg ${tab == 1 ? '   border-transparent bg-bg-primary-dark' : "active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-secondary-dark hover:bg-bg-primary-dark"}`}>Account Information</button>
                             <button onClick={() => {
-                                UIStore.update(s => {
+                                AppStore.update(s => {
                                     s.profileTab = 2
                                 })
                             }} className={`transition-all p-3 border-2 text-left text-white prose prose-md rounded-lg ${tab == 2 ? '   border-transparent bg-bg-primary-dark' : "active:bg-bg-secondary-dark active:border-accent-dark border-transparent hover:border-2 bg-bg-secondary-dark hover:bg-bg-primary-dark"}`}>Professional Information</button>
+                            
                         </div>
                     </div>
 

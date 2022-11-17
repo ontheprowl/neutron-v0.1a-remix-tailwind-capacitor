@@ -103,13 +103,13 @@ export const action: ActionFunction = async ({ request }) => {
             finalContractData['milestones'] = finalContractData?.milestonesProcessed;
             delete finalContractData?.milestonesProcessed;
         }
-        const contractRef = await addFirestoreDocFromData({ ...finalContractData, status: ContractStatus.Published }, `contracts`);
+        const contractRef = await addFirestoreDocFromData({ ...finalContractData, status: ContractStatus.Published }, session?.metadata?.defaultTestMode?'testContracts':`contracts`);
         const numberOfContracts = new Number(session?.metadata?.contracts);
 
         const contractCreationEvent: NeutronEvent = { event: ContractEvent.ContractPublished, type: EventType.ContractEvent, payload: { data: { ...data }, message: 'A contract was created' }, uid: session?.metadata?.id, id: contractRef.id }
         trackJuneEvent(session?.metadata?.id, 'Contract Created - Published', {clientEmail : finalContractData?.clientEmail, providerEmail : finalContractData?.providerEmail}, 'contractEvents');
 
-        const eventPublished = await sendEvent(contractCreationEvent, finalContractData?.viewers);
+        const eventPublished = await sendEvent(contractCreationEvent, finalContractData?.viewers,session?.metadata?.defaultTestMode);
         const creatorMetadataRef = await updateFirestoreDocFromData({ contracts: numberOfContracts.valueOf() + 1 }, `metadata`, session?.metadata?.id);
         // const providerMetadata = await updateFirestoreDocFromData({  }, `metadata`, finalContractData?.providerID);
 
@@ -118,12 +118,12 @@ export const action: ActionFunction = async ({ request }) => {
     } else {
 
 
-        const contractRef = await addFirestoreDocFromData({ ...finalContractData, status: ContractStatus.Draft }, `contracts`);
+        const contractRef = await addFirestoreDocFromData({ ...finalContractData, status: ContractStatus.Draft }, session?.metadata?.defaultTestMode?'testContracts':`contracts`);
 
         const contractDraftEvent: NeutronEvent = { event: ContractEvent.ContractDrafted, type: EventType.ContractEvent, payload: { data: { ...data }, message: 'A contract was drafted' }, uid: session?.metadata?.id, id: contractRef.id }
         trackJuneEvent(session?.metadata?.id, 'Contract Created - Drafted', {clientEmail : finalContractData?.clientEmail, providerEmail : finalContractData?.providerEmail}, 'contractEvents');
 
-        const eventDrafted = await sendEvent(contractDraftEvent, finalContractData?.viewers);
+        const eventDrafted = await sendEvent(contractDraftEvent, finalContractData?.viewers,session?.metadata?.defaultTestMode);
         return redirect(`/${session?.metadata?.displayName}/contracts/${contractRef.id}`)
 
     }

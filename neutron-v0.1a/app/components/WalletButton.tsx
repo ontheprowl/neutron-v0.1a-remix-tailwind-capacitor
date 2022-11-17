@@ -1,6 +1,6 @@
 import { useNavigate } from '@remix-run/react';
 import * as React from 'react'
-import { UIStore } from '../stores/UIStore';
+import { AppStore } from '../stores/UIStore';
 
 export default function WalletButton() {
 
@@ -9,7 +9,7 @@ export default function WalletButton() {
   return (
     <button className="p-1 transition-all"
       onClick={() => {
-        UIStore.update((s) => {
+        AppStore.update((s) => {
           s.selectedTab = "Wallet";
           navigate('disputes')
         });

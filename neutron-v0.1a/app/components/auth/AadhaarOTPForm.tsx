@@ -3,6 +3,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
+import { AppStore } from "~/stores/UIStore";
 import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
 import DefaultSpinner from "../layout/DefaultSpinner";
 
@@ -36,9 +37,13 @@ export default function AadhaarOTPForm({ toggleModalFunction, verificationRef }:
         trigger();
         if (fetcher.type == "done") {
             toast(<div><h2>OTP submitted successfully!</h2></div>, { theme: "dark", type: "success" });
+            
             if (toggleModalFunction) toggleModalFunction(false);
+            AppStore.update(s => {
+                s.profileTab = 2
+            })
         }
-    }, [fetcher, trigger, otp])
+    }, [fetcher, trigger, otp, toggleModalFunction])
 
     function submitOTPStates(state: string) {
         switch (state) {

@@ -28,7 +28,7 @@ export const action: ActionFunction = async ({ request, params }) => {
 
     const disputeRejectedEvent: NeutronEvent = { type: EventType.ContractEvent, event: ContractEvent.ContractDisputeRejected, uid: session?.metadata?.id, id: contractID, payload: { data: { queuedMilestone: milestone, nextMilestoneIndex: nextMilestoneIndex, dispute: dispute, disputeID: disputeID }, message: 'A contract dispute has been rejected' } }
 
-    const eventRef = await sendEvent(disputeRejectedEvent, viewers);
+    const eventRef = await sendEvent(disputeRejectedEvent, viewers, session?.metadata?.defaultTestMode);
     return redirect(`${session?.metadata?.displayName}/disputes`);
 
 }

@@ -23,7 +23,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
     const session = await requireUser(request, true);
     const viewerUsername = session?.metadata?.displayName;
     const ownerUsername = params.username
-    const disputesQuery = query(collection(firestore, `disputes`), where("viewers", "array-contains", session?.metadata?.id));
+    const disputesQuery = query(collection(firestore, session?.metadata?.defaultTestMode?`testDisputes`:`disputes`), where("viewers", "array-contains", session?.metadata?.id));
     //TODO : Make metadata fetching dynamic
     // const disputesQuery = query(collection(firestore, 'disputes'), limit(5));
     const disputesData = await getDocs(disputesQuery);

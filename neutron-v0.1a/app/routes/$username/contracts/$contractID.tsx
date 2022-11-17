@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "@remix-run/react";
-import type { ActionFunction, LoaderFunction} from "@remix-run/server-runtime";
+import type { ActionFunction, LoaderFunction } from "@remix-run/server-runtime";
 import { redirect } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
 import { useLoaderData } from "@remix-run/react";
@@ -41,9 +41,14 @@ import { trackJuneEvent } from "~/analytics/june-config.server";
 export const loader: LoaderFunction = async ({ params, request }) => {
 
     const session = await requireUser(request, true);
+
+    console.log(" \n The user's metadata on conteract load is \n");
+    console.dir(session?.metadata)
     const ownerUsername = params.username
     const contractID = params.contractID;
-    const currentContract = await getSingleDoc(`contracts/${contractID}`);
+    const currentContract = await getSingleDoc(`${session?.metadata?.defaultTestMode ? 'testContracts' : `contracts`}/${contractID}`);
+    console.log(" \n The contract value is is \n");
+    console.dir(currentContract)
     const contractViewers: String[] = currentContract?.viewers;
     console.log("LIST OF CONTRACT VIEWERS IS ")
     console.dir(contractViewers)
@@ -88,7 +93,7 @@ export const loader: LoaderFunction = async ({ params, request }) => {
     // if(session?.metadata?.displayName == ownerUsername){
 
     // }
-    trackJuneEvent(session?.metadata?.id,'Open Contract Event',{},'contractEvents', )
+    trackJuneEvent(session?.metadata?.id, 'Open Contract Event', {}, 'contractEvents',)
     return json({ contract: { ...currentContract, id: contractID }, metadata: session?.metadata, contractEvents: currentContractEvents, contractMessages: messagesArray, node_env: env.NODE_ENV, ownerUsername: ownerUsername, from: from, to: to });
 }
 
@@ -145,22 +150,22 @@ export const action: ActionFunction = async ({ params, request }) => {
         milestonePayload[`milestones.workMilestones.${finalDeliverableData.milestoneIndex}.status`] = DeliverableStatus.SubmittedExternally;
 
         console.dir(milestonePayload)
-        await updateFirestoreDocFromData(milestonePayload, `contracts`, contractID);
+        await updateFirestoreDocFromData(milestonePayload, `${session?.metadata?.defaultTestMode ? 'testContracts' : `contracts`}`, contractID);
 
         // await updateFirestoreDocFromData({ deliverables: arrayUn({ name: 'test' }) }, `users/contracts/${session?.metadata?.id}`, contractID);
         const deliverableSubmissionEvent: NeutronEvent = { event: ContractEvent.ContractMilestoneSubmitted, type: EventType.ContractEvent, payload: { data: { milestone: { ...finalDeliverableData.milestone, submissionPath: '[EXTERNAL]', status: DeliverableStatus.SubmittedExternally }, metadata: session?.metadata, nextMilestoneIndex: finalDeliverableData.milestoneIndex }, message: 'A contract milestone deliverable was submitted' }, uid: session?.metadata?.id, id: contractID }
-        const eventAdded = await sendEvent(deliverableSubmissionEvent, viewers);
+        const eventAdded = await sendEvent(deliverableSubmissionEvent, viewers, session?.metadata?.defaultTestMode);
 
     } else {
         milestonePayload[`milestones.workMilestones.${finalDeliverableData.milestoneIndex}.submissionPath`] = finalDeliverableData.deliverableFile;
         milestonePayload[`milestones.workMilestones.${finalDeliverableData.milestoneIndex}.status`] = DeliverableStatus.SubmittedForApproval;
         console.dir(milestonePayload)
 
-        await updateFirestoreDocFromData(milestonePayload, `contracts`, contractID);
+        await updateFirestoreDocFromData(milestonePayload, `${session?.metadata?.defaultTestMode ? 'testContracts' : `contracts`}`, contractID);
 
         // await updateFirestoreDocFromData({ deliverables: arrayUn({ name: 'test' }) }, `users/contracts/${session?.metadata?.id}`, contractID);
         const deliverableSubmissionEvent: NeutronEvent = { event: ContractEvent.ContractMilestoneSubmitted, type: EventType.ContractEvent, payload: { data: { milestone: { ...finalDeliverableData.milestone, submissionPath: finalDeliverableData.deliverableFile, status: DeliverableStatus.SubmittedForApproval }, metadata: session?.metadata, nextMilestoneIndex: finalDeliverableData.milestoneIndex }, message: 'A contract milestone deliverable was submitted' }, uid: session?.metadata?.id, id: contractID }
-        const eventAdded = await sendEvent(deliverableSubmissionEvent, viewers);
+        const eventAdded = await sendEvent(deliverableSubmissionEvent, viewers, session?.metadata?.defaultTestMode);
 
     }
 
@@ -251,7 +256,7 @@ export default function DetailedContractView() {
                                     s.viewStage == 1 ? s.viewStage = 0 : s.viewStage = 1;
                                 })
                             }} className=' p-4 text-center bg-[#E6E0FA] sm:w-full text-[#765AD1] basis-1/2 prose prose-md transition-all rounded-lg active:border-white whitespace-nowrap hover:bg-white'>{`${stage == 1 ? 'Back To Overview' : 'Open Contract'}`}</button>
-                            <a href={contractData.attachment && contractData.attachment!="null"?contractData.attachment:"#"} className=" hover:bg-bg-secondary-dark bg-bg-primary-dark basis-1/2 transition-all active:bg-bg-secondary-dark border-2 border-transparent border-purple-400 hover:border-purple-400 p-4 rounded-xl">
+                            <a href={contractData.attachment && contractData.attachment != "null" ? contractData.attachment : "#"} className=" hover:bg-bg-secondary-dark bg-bg-primary-dark basis-1/2 transition-all active:bg-bg-secondary-dark border-2 border-transparent border-purple-400 hover:border-purple-400 p-4 rounded-xl">
                                 <div className="flex flex-row space-x-8 text-white items-center">
                                     <span>
                                         <svg width="16" height="20" viewBox="0 0 16 20" fill="none" xmlns="http://www.w3.org/2000/svg">

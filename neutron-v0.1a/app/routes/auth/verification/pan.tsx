@@ -59,12 +59,12 @@ export const action: ActionFunction = async ({ request, params }) => {
             // const updateRef = await updateFirestoreDocFromData({ panVerified: true }, 'metadata', `${session?.metadata?.id}`);
             trackJuneEvent(session?.metadata?.id, 'PAN verified', { pan: pan, name: name }, 'kycEvents');
 
-            await sendEvent(panVerified, [session?.metadata?.id]);
+            await sendEvent(panVerified, [session?.metadata?.id], session?.metadata?.defaultTestMode);
         }
         else {
             const panRejected: NeutronEvent = { uid: session?.metadata?.id, type: EventType.KYCEvent, event: KYCEvent.PANRejected, payload: { data: {}, message: "A PAN number has been rejected " } };
             // const updateRef = await updateFirestoreDocFromData({ panVerified: false }, 'metadata', `${session?.metadata?.id}`);
-            await sendEvent(panRejected, [session?.metadata?.id]);
+            await sendEvent(panRejected, [session?.metadata?.id], session?.metadata?.defaultTestMode);
         }
 
         return json(responseBody);

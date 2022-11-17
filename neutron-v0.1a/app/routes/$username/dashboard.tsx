@@ -34,7 +34,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
     const ownerUsername = params.username;
 
-    const contractsQuery = query(collection(firestore, `contracts`), where("viewers", "array-contains", session?.metadata?.id));
+    const contractsQuery = query(collection(firestore, session?.metadata?.defaultTestMode?`testContracts`:`contracts`), where("viewers", "array-contains", session?.metadata?.id));
     //TODO : Make metadata fetching dynamic
     // const disputesQuery = query(collection(firestore, 'disputes'), limit(5));
     const contractsData = await getDocs(contractsQuery);

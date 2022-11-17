@@ -1,4 +1,4 @@
-import type { ActionFunction, LoaderFunction} from "@remix-run/server-runtime";
+import type { ActionFunction, LoaderFunction } from "@remix-run/server-runtime";
 import { redirect } from "@remix-run/server-runtime";
 import { sendEvent, updateFirestoreDocFromData } from "~/firebase/queries.server";
 import { DisputeStatus } from "~/models/disputes";
@@ -30,7 +30,7 @@ export const action: ActionFunction = async ({ request, params }) => {
 
     const disputeInProcessEvent: NeutronEvent = { type: EventType.ContractEvent, event: ContractEvent.ContractDisputeInProcess, uid: session?.metadata?.id, id: contractID, payload: { data: { queuedMilestone: milestone, nextMilestoneIndex: nextMilestoneIndex, dispute: dispute, disputeID: disputeID, disputeData: disputeData }, message: 'A contract dispute has been accepted' } }
 
-    const eventRef = await sendEvent(disputeInProcessEvent, viewers);
+    const eventRef = await sendEvent(disputeInProcessEvent, viewers, session?.metadata?.defaultTestMode);
     return redirect(`${session?.metadata?.displayName}/disputes`);
 
 }

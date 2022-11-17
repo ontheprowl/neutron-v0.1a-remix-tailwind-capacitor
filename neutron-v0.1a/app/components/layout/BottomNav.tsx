@@ -1,4 +1,4 @@
-import { UIStore } from "~/stores/UIStore";
+import { AppStore } from "~/stores/UIStore";
 import { secondaryGradient } from "~/utils/neutron-theme-extensions";
 import { formatDateToReadableString } from "~/utils/utils";
 import HomeButtonMobile from '~/components/HomeButtonMobile'
@@ -23,7 +23,7 @@ import { DEFAULT_CONTRACT_STATE } from "~/models/contracts";
 export default function BottomNav() {
 
 
-    let tab = UIStore.useState((s) => s.selectedTab);
+    let tab = AppStore.useState((s) => s.selectedTab);
 
     let navigate = useNavigate();
 
@@ -40,7 +40,7 @@ export default function BottomNav() {
             <div
                 className={`transition-all flex flex-col align-middle text-[14px] focus:opacity-50  active:opacity-60 `}
                 onClick={() => {
-                    UIStore.update(s => {
+                    AppStore.update(s => {
                         s.selectedTab = "Home"
                     })
                     navigate("dashboard")
@@ -57,7 +57,7 @@ export default function BottomNav() {
             <div
                 className="focus:opacity-50 whitespace-nowrap text-[14px]  active:opacity-60"
                 onClick={() => {
-                    UIStore.update(s => {
+                    AppStore.update(s => {
                         s.selectedTab = "Create Contract"
                     })
                     navigate("contracts/create")
@@ -77,7 +77,7 @@ export default function BottomNav() {
                 className={`transition-all flex flex-col align-middle text-[14px] focus:opacity-50  active:opacity-60`}
 
                 onClick={() => {
-                    UIStore.update(s => {
+                    AppStore.update(s => {
                         s.selectedTab = "Disputes"
                     })
                     navigate("disputes")

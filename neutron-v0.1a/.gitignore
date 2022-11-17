@@ -4,6 +4,9 @@ node_modules
 /public/build
 .env
 
+.vscode
+.github
+
 serviceAccountKey.json
 cp-test-payouts.pem
 cp-production-payouts.pem
