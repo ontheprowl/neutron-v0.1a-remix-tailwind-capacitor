@@ -6,6 +6,7 @@ node_modules
 
 .vscode
 .github
+.node-persist
 
 serviceAccountKey.json
 cp-test-payouts.pem

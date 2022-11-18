@@ -102,6 +102,7 @@ export default function Dashboard() {
     const currentUserData = userData.metadata;
 
 
+
     const tableContracts = useMemo(()=>{
         return userData?.contracts.filter((contract) => contractFilter ? contract.projectName?.includes(contractFilter) : true).sort((a, b) => {
             let leftContract, rightContract;
@@ -293,7 +294,7 @@ export default function Dashboard() {
                                                 </Link>
                                             </td>
                                             <td className="px-2 py-4  w-full text-center text-white">
-                                                {contract?.clientEmail == contract.creator ? contract?.providerName : contract?.clientName}
+                                                {contract?.clientEmail == currentUserData.email ? contract?.providerName : contract?.clientName}
                                             </td>
                                             <td className="px-2 py-4 w-full text-center text-white">
 

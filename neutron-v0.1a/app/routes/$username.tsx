@@ -94,6 +94,9 @@ export default function CustomUserPage() {
     const { pathname } = useLocation();
     const [statIndex, setStatIndex] = useState(0);
 
+    const kycComplete = useMemo(() => {
+        return metadata?.panVerified && metadata?.bankVerified && metadata?.aadhaarVerified;
+    }, [metadata]);
 
 
     //* Test Mode state either respects the user's default setting, or reverts to default app-wide setting ( true )
@@ -119,7 +122,7 @@ export default function CustomUserPage() {
         if (toggleUserModeFetcher.type == "done") {
             setTestMode(metadata?.defaultTestMode);
         }
-    },[metadata?.defaultTestMode, toggleUserModeFetcher]);
+    }, [metadata?.defaultTestMode, toggleUserModeFetcher]);
 
 
     //* June integration 
@@ -383,8 +386,8 @@ export default function CustomUserPage() {
 
                                 <p className="font-gilroy-bold text-[14px] text-center mt-5"> {currentUserData.contracts} Active Contract{currentUserData.contracts != 1 ? 's' : ''}</p>
                             </div>
-                            <div id="toggle-use-mode" className='flex flex-row space-x-4 items-center'>
-                                <AccentedToggle variant='neutron-purple' name="sortOrder" control={testMode} onToggle={() => {
+                            {kycComplete && <div id="toggle-use-mode" className='flex flex-row space-x-4 items-center'>
+                                <AccentedToggle variant='neutron-purple' name="sortOrder" onToggle={() => {
                                     console.log('Toggling user mode...')
                                     toggleUserModeFetcher.submit({}, { action: `/${metadata.displayName}/profile/setUserMode`, method: 'post' })
                                 }} ></AccentedToggle>
@@ -392,7 +395,7 @@ export default function CustomUserPage() {
                                     <h1 className="font-gilroy-bold text-[18px]">Switch Mode</h1>
                                     <p className="font-gilroy-regular text-[14px] text-gray-300">{testMode ? 'Switch to Production' : 'Switch to Sandbox'}</p>
                                 </div>
-                            </div>
+                            </div>}
 
                             <div className="flex flex-row p-5 pb-0 pt-0 items-center border-t-2 border-gray-300 justify-end space-x-2 ">
                                 <img alt="profile" src={currentUserData.photoURL ? currentUserData.photoURL : PlaceholderDP} className="h-10 w-10 mt-16 translate-y-[-30px]  bg-[#e5e5e5]  hover:opacity-50 hover:ring-1 outline-none transition-all hover:ring-[#8364E8] border-solid border-black rounded-full self-start ml-6  object-contain"></img>

@@ -1,6 +1,7 @@
 
+import { useLocation, useNavigate } from '@remix-run/react';
 import { motion, useAnimation } from 'framer-motion';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { ContractDataStore } from '~/stores/ContractStores';
 import { primaryGradientDark } from '~/utils/neutron-theme-extensions';
@@ -28,6 +29,12 @@ export default function AccentedToggle({ name, states, onToggle, variant, contro
 
 
     const toggleSwitch = () => setIsOn(!isOn)
+
+    let location = useLocation();
+
+    useEffect(() => {
+        setIsOn(false);
+    }, [location])
 
     const spring = {
         type: 'spring',

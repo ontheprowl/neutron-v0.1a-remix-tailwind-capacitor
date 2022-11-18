@@ -28,8 +28,7 @@ export default function AadhaarOTPForm({ toggleModalFunction, verificationRef }:
     const errors = methods.formState.errors;
     const control = methods.control;
     const otp = useWatch({ control: control, name: 'otp' });
-
-    const transition = useTransition();
+    
     let fetcher = useFetcher();
 
 
@@ -48,8 +47,8 @@ export default function AadhaarOTPForm({ toggleModalFunction, verificationRef }:
     function submitOTPStates(state: string) {
         switch (state) {
             case "idle":
-            case "loading":
                 return (<span> Submit Aadhaar Verification OTP </span>);
+            case "loading":
             case "submitting":
                 return (<DefaultSpinner></DefaultSpinner>);
         }
@@ -67,7 +66,7 @@ export default function AadhaarOTPForm({ toggleModalFunction, verificationRef }:
             <div className="flex flex-row w-full h-auto">
                 <input type="password" {...methods.register('otp', { required: 'An OTP is required to verify your Aadhaar number' })} id="revision-description" className=" bg-bg-primary-dark h-auto w-50 pt-3 pb-3 pl-4 pr-4 border-gray-300 text-white text-md rounded-lg placeholder-white w-full dark:bg-gray-700 dark:border-gray-600  dark:placeholder-white dark:text-white placeholder:overflow-ellipsis sm:overflow-visible mb-5" placeholder="Please enter your OTP" required />
             </div >
-            <button type="submit" className={`w-auto z-0 sm:w-full sm:min-w-[200px] self-center whitespace-nowrap rounded-lg ${primaryGradientDark} border-2 border-transparent hover:border-white font-gilroy-black text-white p-4 transition-all`}>{submitOTPStates(transition.state)} </button>
+            <button type="submit" className={`w-auto z-0 sm:w-full sm:min-w-[200px] self-center whitespace-nowrap rounded-lg ${primaryGradientDark} border-2 border-transparent hover:border-white font-gilroy-black text-white p-4 transition-all`}>{submitOTPStates(fetcher.state)} </button>
 
         </form>
     )

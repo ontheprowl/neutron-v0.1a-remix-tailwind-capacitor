@@ -8,6 +8,7 @@ export type UserState = {
   id?: string;
   profileUrl?: string;
   age?: number;
+  defaultTestMode?:boolean;
   email: string;
   funds?: Funds;
   // user?:User;
@@ -33,6 +34,7 @@ export const DEFAULT_USER_STATE: UserState = {
     disputedFunds: 0,
     disbursedFunds: 0,
   },
+  defaultTestMode:true
 };
 
 export type Password = {

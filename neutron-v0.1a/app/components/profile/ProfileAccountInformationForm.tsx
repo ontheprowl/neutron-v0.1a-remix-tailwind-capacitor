@@ -220,7 +220,7 @@ export default function ProfileAccountInformationForm() {
 
                 </div>
                 <button
-                    className={`w-auto rounded-lg mt-2 self-start ${primaryGradientDark} text-white p-3 border-2 border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white font-gilroy-black font-[18px] transition-all`}
+                    className={`w-60 rounded-lg mt-2 self-start ${primaryGradientDark} text-white p-3 border-2 border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white font-gilroy-black font-[18px] transition-all`}
                     type="button" onClick={() => {
                         setKYCSubmissionModal(!kycSubmissionModal);
                     }}
