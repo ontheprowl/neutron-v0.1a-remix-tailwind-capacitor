@@ -17,7 +17,7 @@ export const action: ActionFunction = async ({ request }) => {
 
     const PAYMENTS_PROD_APP_ID = env.PAYMENTS_PROD_APP_ID;
     const PAYMENTS_PROD_APP_SECRET = env.PAYMENTS_PROD_APP_SECRET;
-
+    const NODE_ENV = env.NODE_ENV;
     // * Bifurcate payment API flow based on testMode vs Production check
 
     const session = await requireUser(request);
@@ -67,7 +67,7 @@ export const action: ActionFunction = async ({ request }) => {
 
 
             console.log(" Simulating pay-in of INR" + payload.order_amount + " to Neutron");
-            const successHandlerURL = new URL(`http://localhost:3000/${session?.metadata?.displayName}/payment/success/${payload?.order_meta?.order_token}`);
+            const successHandlerURL = new URL(`https://${NODE_ENV === "development" ? "localhost:3000" : "app.neutron.money"}/${session?.metadata?.displayName}/payment/success/${payload?.order_meta?.order_token}`);
             const params = successHandlerURL.searchParams;
             params.set("order_id",randomUUID());
             params.set("order_token",randomUUID());
