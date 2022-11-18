@@ -90,7 +90,7 @@ export async function sendChatMessage(message: string, from: string, to: string,
 export async function sendEvent(eventData: NeutronEvent, viewers?: string[], sandbox?: boolean): Promise<boolean> {
 
     try {
-        const result = await set(push(ref(db, 'events/' + eventData.type)), { ...eventData, sandbox: sandbox, timestamp: new Date().getTime(), viewers: viewers })
+        const result = await set(push(ref(db, 'events/' + eventData.type)), { ...eventData, sandbox: sandbox ? sandbox : false, timestamp: new Date().getTime(), viewers: viewers })
         return true
     }
     catch (e) {
