@@ -17,11 +17,9 @@ export async function loader({ request }: { request: Request }) {
 export default function Home() {
   const data = useLoaderData();
   const parsedData = JSON.parse(data);
-  console.log(parsedData)
   let navigate = useNavigate();
   // const [user, loading, error] = useAuthState(auth);
 
-  const { register, handleSubmit } = useForm();
 
   React.useEffect(() => {
     if (parsedData.loggedIn) {
@@ -31,14 +29,12 @@ export default function Home() {
           navigate("/session/dashboard");
         }
         else {
-          console.log(parsedData)
 
           window.location.href = parsedData.authurl;
         }
       }, 500);
     } else {
       setTimeout(() => {
-        console.log('NO LOGGED IN USER DETECTED... redirecting to login page')
 
         navigate("login");
       }, 500);

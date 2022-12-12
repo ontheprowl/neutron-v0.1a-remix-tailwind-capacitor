@@ -40,8 +40,6 @@ export const loader: LoaderFunction = async ({ request, params }) => {
     const contractID = params.contractID;
 
     const contract = await getSingleDoc(`contracts/${contractID}`);
-
-    console.dir(users)
     // const result = await getFirebaseDocs(`users/contracts/${session?.metadata?.id}`)
     return json({ metadata: session?.metadata, contract: contract, validEmails: users.map((value) => (value.data.email)), users: users });
 
@@ -157,26 +155,15 @@ export default function ContractEdit() {
             <div className={`bg-[#2A2A2A] p-3 rounded-lg border-2 border-solid border-purple-400 h-50 sm:h-auto m-6`}>
                 <FormProvider {...methods}>
                     <form onSubmit={
-                        methods.handleSubmit(async (data) => {
-                            console.log("HANDLE SUBMIT HAS BEEN INVOKED")
-                            console.log("This is the contract creation data")
-                            console.dir(data);
+                        methods.handleSubmit(async (data) => {                            
                             data = { ...data, isPublished: true }
                             const formdata = new FormData();
 
                             if (creator == ContractCreator.IndividualServiceProvider) {
-                                console.log("Creator is the service Provider ");
-
                                 data = { ...data, providerEmail: metadata?.email, providerName: metadata?.firstName + ' ' + metadata?.lastName, creator: creator }
-                                console.dir(data)
-
                             }
                             else {
-                                console.log("The creator is the client ");
                                 data = { ...data, clientEmail: metadata?.email, clientName: metadata?.firstName + ' ' + metadata?.lastName, creator: creator }
-                                console.dir(data)
-
-
                             }
                             const clientAdditionalDetails = returnUserUIDAndUsername(data.clientEmail, users);
                             const providerAdditionalDetails = returnUserUIDAndUsername(data.providerEmail, users);
@@ -195,7 +182,6 @@ export default function ContractEdit() {
                                 }
 
                                 if (key === 'milestones') {
-                                    console.log("REDUNDANT MILESTONES DETECTED")
                                     continue;
                                 }
 
@@ -216,7 +202,6 @@ export default function ContractEdit() {
                             submit(formdata, { method: "post", encType: 'multipart/form-data' });
 
                         }, (errors) => {
-                            console.log(errors)
                         })
                     }>
                         <AnimatePresence exitBeforeEnter>

@@ -71,9 +71,6 @@ export function ErrorBoundary({ error }: { error: Error }) {
 
   useEffect(() => {
     if (analytics) {
-      console.dir(analytics)
-      console.log("JUNE ANALYTICS active")
-      console.log("Registering error on June...")
       analytics.track("Client-Side Error", {
         error: `${error}`
       });

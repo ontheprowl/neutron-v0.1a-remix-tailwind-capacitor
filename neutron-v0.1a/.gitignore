@@ -18,3 +18,4 @@ cp-production-payouts.pem
 /prisma/data.db-journal
 
 /app/styles/tailwind.css
+neutron-v0.1a\fly.toml

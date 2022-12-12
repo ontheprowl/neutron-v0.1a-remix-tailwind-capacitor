@@ -37,7 +37,6 @@ const PAYOUTS_PROD_REQUEST_TRANSFER_ENDPOINT = 'https://payout-api.cashfree.com/
 export const action: ActionFunction = async ({ request, params }) => {
 
     const payoutValue = params.amount?.replace('₹','');
-    console.log(`PAYOUT VALUE IS : ` + payoutValue)
     const contractID = params.contractID;
     const ownerUsername = params.username;
     const PAYOUTS_PROD_CLIENT_ID = env.PAYOUTS_PROD_CLIENT_ID;
@@ -46,11 +45,7 @@ export const action: ActionFunction = async ({ request, params }) => {
     if (PAYOUTS_PROD_CLIENT_ID && PAYOUTS_PROD_CLIENT_SECRET && payoutValue) {
         const data = await request.formData();
         const payload = data.get('beneficiary');
-        console.log(payload)
         const beneficiary: Beneficiary = JSON.parse(payload);
-
-        console.log("\n BENEFICIARY FOR PAYOUT REQUEST IS : \n")
-        console.dir(beneficiary)
 
         const UNIX_TIMESTAMP = moment().unix();
         const authorizationPayload = PAYOUTS_PROD_CLIENT_ID + "." + UNIX_TIMESTAMP;
@@ -66,7 +61,6 @@ export const action: ActionFunction = async ({ request, params }) => {
             Buffer.from(authorizationPayload)
         );
 
-        console.log("\n FETCHING AUTH TOKEN \n ")
         const response = await fetch(PAYOUTS_PROD_AUTHORIZE_ENDPOINT, {
             method: "POST",
             headers: {
@@ -76,16 +70,10 @@ export const action: ActionFunction = async ({ request, params }) => {
             },
         });
         const responseBody = await response.json();
-        console.log(responseBody)
         const token = responseBody.data.token;
 
-        console.log("\n FETCHING BENEFICIARY \n ")
 
         const beneficiaryDetails = await getCashfreeBeneficiary(beneficiary, token);
-        console.log("Beneficiary retrieved :")
-        console.dir(beneficiaryDetails)
-
-        console.log("\n PROCESSING PAYOUT : \n")
 
         const responseRequestTransfer = await fetch(PAYOUTS_PROD_REQUEST_TRANSFER_ENDPOINT, {
             method: "POST",
@@ -101,8 +89,6 @@ export const action: ActionFunction = async ({ request, params }) => {
         })
 
         const responseRequestTransferBody = await responseRequestTransfer.json();
-        console.log("\n PAYOUT REQUEST RESULT \n");
-        console.dir(responseRequestTransferBody)
         const uidMapping = await getSingleDoc(`/userUIDS/${ownerUsername}`);
         const ownerUID = uidMapping?.uid;
         const payoutCompletedEvent: NeutronEvent = { id: contractID, uid: ownerUID, type: EventType.ContractEvent, event: ContractEvent.ContractPayoutCompleted, payload: { data: responseRequestTransferBody, message: "Contract payout has been completed" } }
@@ -133,7 +119,6 @@ async function getCashfreeBeneficiary(beneficiary: Beneficiary, token: string) {
     let beneficiaryDetails = await responseGetBeneficiary.json();
 
     if (beneficiaryDetails.subCode && beneficiaryDetails.subCode == "404") {
-        console.log("\n BENEFICIARY NOT AVAILABLE, CREATING A NEW BENEFICIARY \n ")
 
         const responseAddBeneficiary = await fetch(PAYOUTS_PROD_ADD_BENEFICIARY_ENDPOINT, {
             method: "POST",
@@ -143,8 +128,6 @@ async function getCashfreeBeneficiary(beneficiary: Beneficiary, token: string) {
             body: JSON.stringify(beneficiary)
         })
         const responseAddBeneficiaryBody = await responseAddBeneficiary.json();
-        console.log('\n response (add beneficiary) is : \n ')
-        console.log(responseAddBeneficiaryBody)
 
         const responseGetBeneficiary2 = await fetch(PAYOUTS_PROD_GET_BENFICIARY_ENDPOINT + `${beneficiary.beneId}`, {
             method: "GET",

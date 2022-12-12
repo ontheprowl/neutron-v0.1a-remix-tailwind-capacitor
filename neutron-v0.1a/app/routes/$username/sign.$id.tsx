@@ -16,7 +16,6 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
 export const action: ActionFunction = async ({ request, params }) => {
 
-    console.log("request received at signage handler")
     const session = await requireUser(request, true);
     const contractID = params.id;
     const username = params.username;

@@ -28,6 +28,7 @@ import { ContractDataStore } from "~/stores/ContractStores";
 import { DEFAULT_CONTRACT_STATE } from "~/models/contracts";
 import { useJune } from "~/utils/use-june";
 import AccentedToggle from "~/components/layout/AccentedToggleV1";
+import { logtail } from "~/logging/logtail-config.client";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
 
@@ -86,8 +87,6 @@ export default function CustomUserPage() {
     let fetcher = useFetcher();
     const toggleUserModeFetcher = useFetcher();
 
-    console.dir(metadata)
-
 
     const [logoutConfirmationModal, setLogoutConfirmationModal] = useState(false);
 
@@ -102,23 +101,19 @@ export default function CustomUserPage() {
     //* Test Mode state either respects the user's default setting, or reverts to default app-wide setting ( true )
 
     const [testMode, setTestMode] = useState(metadata?.defaultTestMode ? metadata?.defaultTestMode : false);
-    console.log(testMode)
 
     // ? Need to examine if this is the best way to persist state on the client. Refactor into useLocalStorage hook
 
     useEffect(() => {
-        console.log('testMode in setter ' + testMode)
         window.localStorage.setItem('testMode', testMode);
     }, [testMode]);
 
     useEffect(() => {
-        console.log('testMode in getter ' + (window.localStorage.getItem('testMode') === 'true'));
         setTestMode(window.localStorage.getItem('testMode') === 'true');
     }, []);
 
 
     useEffect(() => {
-        console.log(toggleUserModeFetcher.type)
         if (toggleUserModeFetcher.type == "done") {
             setTestMode(metadata?.defaultTestMode);
         }
@@ -132,8 +127,6 @@ export default function CustomUserPage() {
     useEffect(() => {
 
         if (analytics) {
-            console.dir(analytics)
-            console.log("JUNE ANALYTICS active")
 
             analytics.page(pathname);
             analytics.identify(metadata.id, {
@@ -162,7 +155,6 @@ export default function CustomUserPage() {
     }, [metadata])
 
     const [rotation, cycleRotation] = useCycle([0, 180, 360]);
-    console.dir(data)
 
     let tab = AppStore.useState((s) => s.selectedTab);
 
@@ -175,10 +167,15 @@ export default function CustomUserPage() {
         }, 1000);
     }, [navigate]);
 
+    useEffect(()=>{
+        logtail.info("Test log!")
+    })
+
     const date = useMemo(formatDateToReadableString, []);
 
 
     const currentUserData = data.metadata;
+    logtail.info("Test log 2!")
 
 
     const fundStats: JSX.Element[] = [
@@ -200,7 +197,7 @@ export default function CustomUserPage() {
         </div>];
 
     return (
-        <div className={`flex font-gilroy-bold h-auto w-full flex-col sm:flex-col bg-bg-primary-dark border-4  ${testMode ? ' border-accent-dark' : 'border-transparent'}`}>
+        <div className={`flex font-gilroy-bold h-auto w-full flex-col sm:flex-col bg-bg-primary-dark sm:border-4  ${testMode ? ' border-accent-dark' : 'border-transparent'}`}>
             {testMode && <div className={` absolute top-0 transition-all z-40 box-decoration-clone h-auto w-auto bg-accent-dark p-2 font-gilroy-medium self-center text-center whitespace-nowrap rounded-b-xl`}>Sandbox</div>}
             <div className="flex flex-row">
                 <aside className="hidden sm:h-auto sm:min-h-screen sm:flex sm:w-auto" aria-label="Sidebar">
@@ -388,7 +385,6 @@ export default function CustomUserPage() {
                             </div>
                             {kycComplete && <div id="toggle-use-mode" className='flex flex-row space-x-4 items-center'>
                                 <AccentedToggle variant='neutron-purple' name="sortOrder" onToggle={() => {
-                                    console.log('Toggling user mode...')
                                     toggleUserModeFetcher.submit({}, { action: `/${metadata.displayName}/profile/setUserMode`, method: 'post' })
                                 }} ></AccentedToggle>
                                 <div className="flex flex-col text-white">

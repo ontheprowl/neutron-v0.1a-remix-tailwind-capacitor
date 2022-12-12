@@ -115,7 +115,6 @@ export default function MilestoneStepper() {
             {
                 payinModal && <NeutronModal onConfirm={() => {
                     const payload = structurePayinPayload(contract, ownerUsername, metadata, node_env);
-                    console.dir(payload);
                     const formData = new FormData();
                     formData.append("payload", JSON.stringify(payload))
                     fetcher.submit(formData, { method: 'post', action: `${ownerUsername}/handlers/payment` })
@@ -133,19 +132,15 @@ export default function MilestoneStepper() {
         let navigate = useNavigate();
 
 
-        //Temporary state to keep track of payout trigger
-        const payoutTriggered = ContractDataStore.useState(s => s.payoutTriggered)
 
-        const { contract, metadata, ownerUsername } = data;
+        const { contract, metadata } = data;
 
 
-        console.dir(metadata)
 
 
         const id = crypto.randomUUID();
 
         if (dispute) {
-            console.dir(dispute)
             return (
                 <div className="flex flex-col space-x-3 ml-3 items-center border-2 border-dashed border-red-600 rounded-xl">
                     <div className="flex flex-col self-start m-5 ml-0 w-full space-x-3 space-y-3">
@@ -264,9 +259,6 @@ export default function MilestoneStepper() {
                     {approve && metadata.email == contract.clientEmail ?
                         <div className="flex flex-col justify-start space-y-3 p-3">
                             <FormButton onClick={() => {
-                                
-                                console.dir("MILESTONE GOING TO APPROVAL ACTION :")
-                                console.dir(milestone);
                                 setTargetMilestoneInfo({ milestone: milestone, nextMilestoneIndex: Number(nextMilestoneIndex) + 1 });
                                 setApprovalModal(true);
 
@@ -417,7 +409,6 @@ export default function MilestoneStepper() {
 
             case ContractEvent.ContractMilestonePending:
 
-                console.dir(milestone)
                 return (
                     <div>
                         <MilestoneStep index={eventIndex} status={variant} milestone={variant == MilestoneStatus.Completed ? undefined : milestone} nextMilestoneIndex={nextMilestoneIndex} name={variant == MilestoneStatus.Completed ? `Deliverable submitted for milestone ${milestone.name}` : ""} subline={variant == MilestoneStatus.Completed ? formatDateToReadableString(event.timestamp, false, true) : 'Current Status'} submit ></MilestoneStep>
@@ -497,11 +488,9 @@ export default function MilestoneStepper() {
         for (let currentIndex = 0; currentIndex < events.length - 1; currentIndex++) {
             const currentEvent = events[currentIndex]
             
-            console.dir(currentEvent)
             milestoneArray.push(generateStepForEvent(currentEvent, MilestoneStatus.Completed, currentIndex))
         }
         
-        console.dir(events[events.length - 1]);
         milestoneArray.push(generateStepForEvent(events[events.length - 1], MilestoneStatus.Current, events.length - 1))
         // milestoneArray.push(
         //     <div key={key}>

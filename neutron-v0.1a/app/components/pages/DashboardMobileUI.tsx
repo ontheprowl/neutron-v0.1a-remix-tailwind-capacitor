@@ -39,7 +39,6 @@ export default function DashboardMobileUI() {
         })
     })
 
-    console.log("SCROLL POSITION IS " + scrollPosition);
     const userData: { contracts: Contract[], disputes: any[], metadata: any, ownerUsername: string } = useLoaderData();
 
     const contracts = userData.contracts;

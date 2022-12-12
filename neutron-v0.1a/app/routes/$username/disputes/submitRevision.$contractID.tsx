@@ -30,14 +30,12 @@ export const action: ActionFunction = async ({ request, params }) => {
     const viewers = payload?.viewers;
     const newRevisions = Number.parseInt(payload?.revisions) - 1;
     if (session && contractID) {
-        console.log("Revision request has been submitted for contract with ID : " + contractID + " for milestone with index " + milestoneIndex);
         const revision: Revision = { id: randomUUID(), description: description }
 
         const milestonePayload: { [key: string]: any } = {}
         milestonePayload['revisions'] = newRevisions;
         milestonePayload[`milestones.workMilestones.${milestoneIndex}.status`] = DeliverableStatus.InFeedback;
         milestonePayload[`milestones.workMilestones.${milestoneIndex}.revision`] = revision;
-        console.dir(milestonePayload)
         const revisionRef = await updateFirestoreDocFromData(milestonePayload, `contracts`, contractID);
         const milestoneFeedbackEvent: NeutronEvent = { type: EventType.ContractEvent, event: ContractEvent.ContractMilestoneInFeedback, id: contractID, uid: session.metadata?.id, payload: { data: { milestone: milestone, milestoneIndex: milestoneIndex, revision: revision }, message: ' A revision request has been acknowledged for a milestone in this contract' } }
         await sendEvent(milestoneFeedbackEvent, viewers, session?.metadata?.defaultTestMode);

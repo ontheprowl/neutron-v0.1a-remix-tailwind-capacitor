@@ -274,7 +274,6 @@ export default function ContractPaymentDetails({ editMode }: { editMode?: boolea
 
                 // If milestones defined, construct milestones from inputted milestone details, else construct singleton milestone for overall contract
                 if (milestonesFromForm) {
-                    console.dir(milestonesFromForm)
                     milestonesPayload['workMilestones'] = {}
 
                     for (const milestone of milestonesFromForm) {

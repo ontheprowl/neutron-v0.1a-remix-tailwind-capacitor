@@ -96,7 +96,6 @@ export default function Dashboard() {
 
     useEffect(() => {
         injectStyle();
-        console.log(contractSortKey)
     }, [contractSortKey]);
 
     const currentUserData = userData.metadata;
@@ -123,7 +122,6 @@ export default function Dashboard() {
 
                     return new Date(leftContract.endDate).getTime() - new Date(rightContract.endDate).getTime() > 0 ? 1 : -1;
                 case 'issuer':
-                    console.log(leftContract)
                     return leftContract?.role == "Issuer" ? 1 : -1
                 case 'counterpartyName':
                     const leftCounterParty = leftContract?.clientEmail == leftContract?.creator ? leftContract?.providerName : leftContract?.clientName;

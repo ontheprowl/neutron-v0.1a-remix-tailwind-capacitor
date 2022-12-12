@@ -10,7 +10,6 @@ import { setFirestoreDocFromData } from "~/firebase/queries.server";
 import { requireUser } from "~/session.server";
 
 export const action: ActionFunction = async ({ request }) => {
-    console.log("REQUEST ARRIVED")
 
     const session = await requireUser(request, true);
 
@@ -20,14 +19,11 @@ export const action: ActionFunction = async ({ request }) => {
 
     const formData = await parseMultipartFormData(request, createFirebaseStorageFileHandler({
         async uploadRoutine(buffer, session, filename) {
-            console.log("Entered upload Routine")
             const storageRef = ref(storage, `users/images/${session.metadata?.id}/${filename}`)
-            console.log("ref generated")
 
             const snapshot: UploadTaskSnapshot = await uploadBytesResumable(storageRef, buffer.buffer);
-            console.log(snapshot.metadata)
-            console.log('Profile Picture uploaded to storage....');
             while (snapshot.bytesTransferred < snapshot.totalBytes) {
+                // * Specific statement to log
                 console.log("Bytes transferred : " + (snapshot.totalBytes - snapshot.bytesTransferred));
             }
             return getDownloadURL(snapshot.ref)
@@ -36,7 +32,6 @@ export const action: ActionFunction = async ({ request }) => {
     }));
 
     const dpInputPath = formData.get("dpFile");
-    console.log(`The dp has been uploaded to : ${dpInputPath}`)
     const metadataRef = await setFirestoreDocFromData({ ...session.metadata, photoURL: dpInputPath }, `metadata`, session?.metadata?.id);
 
     // const blob: Blob = await (await request.blob());

@@ -10,7 +10,6 @@ export function useJune(writeKey: string) {
       let [response] = await AnalyticsBrowser.load({
         writeKey,
       });
-      console.log("ANALYTICS INITIALIZED")
       setAnalytics(response);
     };
     loadAnalytics();

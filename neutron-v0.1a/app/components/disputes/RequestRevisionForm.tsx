@@ -57,7 +57,6 @@ export default function RequestRevisionForm({ milestone, milestoneIndex, toggleM
 
     return (
         <form onSubmit={methods.handleSubmit(async (data) => {
-            console.dir(data)
             const form = new FormData();
             const payload = { ...data, milestone: milestone, milestoneIndex: milestoneIndex, revisions: contract.revisions, viewers: contract?.viewers };
             form.append('payload', JSON.stringify(payload));

@@ -27,14 +27,8 @@ export default function createFirebaseStorageFileHandler({
     session
 }: FirebaseStorageUploadHandler): UploadHandler {
     return async (args) => {
-        console.log("ENTERED FIREBASE HANDLER ")
         const { data, contentType, filename } = args;
 
-
-
-        console.log(filename)
-        console.log(contentType)
-        console.log(data)
         const chunks: Buffer[] = [];
 
         // const stream = new WritableStream(chunks)
@@ -43,18 +37,16 @@ export default function createFirebaseStorageFileHandler({
         }
         // Get the file as a buffer
         const buffer = Buffer.concat(chunks);
-        console.log(buffer)
 
         if (!filename?.includes('.')) {
-            console.log("NON FILE KEY DETECTED");
+            // * NON FILE KEY DETECTED 
             if (buffer.toString().includes('[') || buffer.toString().includes('{')) {
-                console.log("JSON DETECTED")
-                console.log("PURE JSON " + buffer.toString())
+                // * JSON DETECTED
+                // * PURE JSON
                 const temp = JSON.parse(buffer.toString())
-                console.dir(temp)
                 return JSON.stringify(temp)
             } else {
-                console.log(`PLAIN STRING DETECTED`);
+                // * PLAIN STRING DETECTED
                 return buffer.toString();
 
             }
@@ -62,7 +54,6 @@ export default function createFirebaseStorageFileHandler({
         }
 
         const uploadPath = await uploadRoutine(buffer, session, filename);
-        console.log(uploadPath)
         return uploadPath;
 
         // Save the Buffer to the file

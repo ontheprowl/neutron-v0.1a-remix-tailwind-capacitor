@@ -79,7 +79,6 @@ export async function action({ request }: { request: Request }) {
     await sendEmailVerification(user, { url: `http://${env.NODE_ENV === "development" ? "localhost:3000" : "app.neutron.money"}/auth/verification/google` });
 
 
-    console.log("\n verification email sent \n");
     const userUIDRef = await setFirestoreDocFromData({ uid: user.uid, email: user.email, profileComplete: false }, 'userUIDS', `${displayName}`)
 
     const ref = await setFirestoreDocFromData({
@@ -91,8 +90,6 @@ export async function action({ request }: { request: Request }) {
     trackJuneEvent(user.uid, 'User Sign Up', { ...data }, 'userEvents');
     return createUserSession({ request: request, metadata: { 'path': ref.path }, userId: token, remember: true, redirectTo: `/checkEmail` })
   } catch (e) {
-    console.log("\n Error during signup form submission being logged : \n ");
-    console.dir(e)
     const neutronError = new NeutronError(e);
     return json({ type: neutronError.type, message: neutronError.message });
   }

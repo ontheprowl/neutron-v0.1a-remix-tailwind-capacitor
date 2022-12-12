@@ -18,8 +18,6 @@ export default function DisputeViewMobileUI() {
     let submit = useSubmit();
     let fetcher = useFetcher();
     let navigate = useNavigate();
-    console.log("LOADER DATA IS ")
-    console.dir(data)
     const selectedDispute: Dispute = data.selectedDispute;
     const messages = data.messages;
     const metadata = data.metadata;

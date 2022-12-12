@@ -32,13 +32,11 @@ export default function ContractViewMobileUI() {
 
     const data = useLoaderData();
     const contractData = data.contract;
-    console.dir(contractData)
     const currentUser = data.metadata
     const overviewStages = [<ContractOverview published={contractData?.isPublished == "true"} key={0} ></ContractOverview>, <ContractEditScreen viewMode key={1} ></ContractEditScreen>]
 
 
     function generateMilestoneStats(milestones: { [x: string]: any }) {
-        console.dir(milestones)
         if (!milestones || Object.keys(milestones).length == 0) {
             return <h1 className="text-white pl-2 pr-3"> No milestones </h1>
         }

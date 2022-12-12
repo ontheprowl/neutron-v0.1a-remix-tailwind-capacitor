@@ -29,7 +29,6 @@ export default function RaiseDisputeForm({ milestone, milestoneIndex, client, to
 
     return (
         <form onSubmit={methods.handleSubmit(async (data) => {
-            console.dir(data)
             const form = new FormData();
             const payload = { ...data, contractName: contract.projectName, milestone: milestone, nextMilestoneIndex: milestoneIndex, contract: contract, raisedBy: metadata?.email, description: data.description ? data.description : `A deadline extension of ${data?.extension} days is requested for this contract`, viewers: contract.viewers };
             form.append('payload', JSON.stringify(payload));

@@ -6,7 +6,6 @@ import { requireUser } from "~/session.server";
 
 /** This action function takes care of the addition or updation of beneficiaries from the Neutron platform */
 export const action: ActionFunction = async ({ request, params }) => {
-    console.log('request received at beneficiary updation handler');
     const session = await requireUser(request);
     const submissionData = await request.formData();
     const beneficiary = submissionData.get('beneficiary') as string;
@@ -14,7 +13,6 @@ export const action: ActionFunction = async ({ request, params }) => {
 
     if (session && session.metadata) {
         const existingBeneficiaryEmails = await getFirebaseDocs('beneficiaries', true);
-        console.dir(existingBeneficiaryEmails);
         if (existingBeneficiaryEmails.includes((elem) => elem.email == beneficiaryData?.email)) {
             const updateBeneficiaryRef = await updateFirestoreDocFromData(beneficiaryData, 'beneficiaries', beneficiaryData?.email);
 

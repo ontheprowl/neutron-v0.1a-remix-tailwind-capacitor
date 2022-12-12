@@ -38,10 +38,8 @@ export const action: ActionFunction = async ({ request }) => {
 
     const data = await request.formData();
     const id = data.get('id');
-    console.log(data);
     const docRef = doc(firestore, `contracts/${id}`);
     await deleteDoc(docRef);
-    console.log(`Contract deleted from firestore with id ${id}`);
     const numberOfContracts = new Number(session?.metadata?.contracts);
 
     const metadataRef = await setFirestoreDocFromData({ ...session?.metadata, contracts: numberOfContracts.valueOf() - 1 }, `metadata`, session?.metadata?.id);
@@ -57,7 +55,6 @@ export default function ListContracts() {
     const disputes: Dispute[] = [];
     const contracts = loaderData.contracts;
     const currentUser = loaderData.metadata;
-    console.log(contracts)
 
     const [contractsTab, setContractsTab] = useState(true);
     const [currentContract, setCurrentContract] = useState(-1);

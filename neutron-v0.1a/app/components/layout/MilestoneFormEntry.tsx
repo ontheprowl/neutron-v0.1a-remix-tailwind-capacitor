@@ -58,7 +58,6 @@ export default function MilestoneFormEntry({ milestoneNumber }: { milestoneNumbe
                     ContractDataStore.update((s) => {
                         s.milestonesCount += 1;
                     });
-                    console.log(`number of deliverables is : ${milestoneNumber}`);
                 }} className={""} />
                 {milestoneNumber > 0 ? <CrossButton onClick={() => {
                     ContractDataStore.update((s) => {

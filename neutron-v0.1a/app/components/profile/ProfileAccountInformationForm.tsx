@@ -68,8 +68,6 @@ export default function ProfileAccountInformationForm() {
         }
 
         if (verifyAadhaarFetcher?.data) {
-            console.log("DATA IN RESPONSE FROM AADHAAR FETCHER");
-            console.dir(verifyAadhaarFetcher?.data)
             const data = JSON.parse(verifyAadhaarFetcher.data);
             if (data.status) {
                 setOTPSubmissionModal(true);
@@ -237,7 +235,6 @@ export default function ProfileAccountInformationForm() {
 
                 const data = getValues();
                 const form = new FormData()
-                console.log(data);
                 form.append('payload', JSON.stringify(data));
 
                 //* Verify bank account details

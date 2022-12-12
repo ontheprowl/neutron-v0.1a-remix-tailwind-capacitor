@@ -45,6 +45,8 @@
     "@hookform/error-message": "^2.0.0",
     "@june-so/analytics-next": "^1.36.5",
     "@june-so/analytics-node": "^6.1.1",
+    "@logtail/browser": "^0.1.12",
+    "@logtail/node": "^0.1.14",
     "@pusher/push-notifications-web": "^1.1.0",
     "@remix-run/node": "^1.5.1",
     "@remix-run/react": "^1.5.1",

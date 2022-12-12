@@ -15,15 +15,12 @@ export const logout = (auth: Auth) => {
 
 
 export const generalFilesUploadRoutine = async (buffer: Buffer, session: any, filename: string) => {
-  console.log("Entered upload Routine")
   const storageRef = ref(storage, `users/documents/${session.metadata?.id}/${filename}`)
-  console.log("ref generated")
 
   const snapshot: UploadTaskSnapshot = await uploadBytesResumable(storageRef, buffer.buffer);
-  console.log(snapshot.metadata)
-  console.log('Contract document uploaded to storage....');
+
   while (snapshot.state != "success") {
-    console.log("Still running")
+    continue;
   }
   return getDownloadURL(snapshot.ref)
 

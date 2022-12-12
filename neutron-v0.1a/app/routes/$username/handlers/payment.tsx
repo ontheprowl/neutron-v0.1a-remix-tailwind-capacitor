@@ -26,10 +26,8 @@ export const action: ActionFunction = async ({ request }) => {
 
     if (!testMode) {
         if (PAYMENTS_PROD_APP_ID && PAYMENTS_PROD_APP_SECRET) {
-            console.log('request received!!!')
-            console.log('payload is :')
+           
             const payloadString = (await request.formData()).get("payload");
-            console.log(payloadString)
 
             const payload = JSON.parse(payloadString)
 
@@ -45,11 +43,8 @@ export const action: ActionFunction = async ({ request }) => {
                 body: JSON.stringify(payload),
             });
             const responseBody = await response.json();
-            console.log('response body is : ')
-            console.log(responseBody)
+        
             if (responseBody["payment_link"]) {
-                console.log("payment link exists....")
-                console.log(responseBody.payment_link)
                 return redirect(responseBody["payment_link"]);
             } else {
                 return json(responseBody)
@@ -58,15 +53,12 @@ export const action: ActionFunction = async ({ request }) => {
 
     } else {
         if (PAYMENTS_PROD_APP_ID && PAYMENTS_PROD_APP_SECRET) {
-            console.log('request received!!!')
-            console.log('payload is :')
+           
             const payloadString = (await request.formData()).get("payload");
-            console.log(payloadString)
 
             const payload = JSON.parse(payloadString);
 
 
-            console.log(" Simulating pay-in of INR" + payload.order_amount + " to Neutron");
             const successHandlerURL = new URL(`https://${NODE_ENV === "development" ? "localhost:3000" : "app.neutron.money"}/${session?.metadata?.displayName}/payment/success/${payload?.order_meta?.order_token}`);
             const params = successHandlerURL.searchParams;
             params.set("order_id",randomUUID());

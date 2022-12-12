@@ -70,12 +70,9 @@ export const action: ActionFunction = async ({ request }) => {
     }
 
     const metadataRef = await setFirestoreDocFromData({ ...session.metadata, ...data, profileComplete: true }, `metadata`, session?.metadata?.id);
-    console.log("Logging relevant event to June")
     trackJuneEvent(session?.metadata?.id, 'Profile Updated', {
         ...data
     }, 'profileEvents');
-
-    console.log("Finished logging relevant event to June")
 
     return json({ status: "success", message: `details updated successfully for user ${session.metadata?.id} ` })
 }
@@ -96,9 +93,6 @@ export default function Profile() {
         injectStyle();
        
     });
-
-
-    console.log(testMode)
 
 
 

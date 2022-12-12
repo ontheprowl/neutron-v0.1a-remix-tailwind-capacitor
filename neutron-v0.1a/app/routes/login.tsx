@@ -85,7 +85,6 @@ export async function action({ request }: { request: Request }) {
       if (!firstLogin && !(email == "test@test.com" || email == "demo@neutron-demo.com" || email == "tester@neutronalpha.in") && user?.displayName) {
         const emailResult = await sendTeamEmail(email, user?.displayName, { "FIRSTNAME": user?.displayName }, 13);
         const updateLoginMetadataRef = await updateFirestoreDocFromData({ firstLogin: true }, 'metadata', `${user.uid}`);
-        console.dir(emailResult)
 
       }
       // * Identify user login event on June 
@@ -98,7 +97,6 @@ export async function action({ request }: { request: Request }) {
       throw new Error("neutron-auth/email-not-verified");
     }
   } catch (e: any) {
-    console.dir(e)
     const neutronError = new NeutronError(e);
     return json({ type: neutronError.type, message: neutronError.message });
   }

@@ -48,7 +48,6 @@ export default function ProfileBasicDetailsForm() {
     useEffect(() => {
         trigger()
         if (fetcher.type === "done") {
-            console.log("THE FETCHER TYPE IS " + fetcher.type)
             toast(<div><h2>Details saved!</h2></div>, { theme: "dark", type: "success" })
             AppStore.update(s => {
                 s.profileTab = 1
@@ -60,7 +59,6 @@ export default function ProfileBasicDetailsForm() {
     return (<form onSubmit={
         handleSubmit(async (data) => {
             const form = new FormData()
-            console.log(data);
             form.append('payload', JSON.stringify(data));
 
             fetcher.submit(form, { method: "post" });

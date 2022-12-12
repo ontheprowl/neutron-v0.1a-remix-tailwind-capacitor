@@ -26,7 +26,6 @@ export const action: ActionFunction = async ({ request, params }) => {
     const phone = data.get('phone');
     const ifsc = data.get('ifsc');
     const bankAccount = data.get('bankAccount');
-    console.log(`ACCOUNT NO IS : ` + bankAccount);
     const PAYOUTS_PROD_CLIENT_ID = env.PAYOUTS_PROD_CLIENT_ID;
     const PAYOUTS_PROD_CLIENT_SECRET = env.PAYOUTS_PROD_CLIENT_SECRET;
 
@@ -48,7 +47,6 @@ export const action: ActionFunction = async ({ request, params }) => {
             Buffer.from(authorizationPayload)
         );
 
-        console.log("\n FETCHING AUTH TOKEN \n ")
         const response = await fetch(PAYOUTS_PROD_AUTHORIZE_ENDPOINT, {
             method: "POST",
             headers: {
@@ -58,12 +56,8 @@ export const action: ActionFunction = async ({ request, params }) => {
             },
         });
         const responseBody = await response.json();
-        console.log(responseBody)
         const token = responseBody.data.token;
 
-        console.log(token)
-
-        console.log('\n PROCEEDING TO BANK ACCOUNT VERIFICATION \n');
 
         const bankAccountVerificationURL = PAYOUTS_PROD_BANK_ACCOUNT_VERIFICATION_ENDPOINT + '?' + new URLSearchParams({
             phone: phone,
@@ -72,7 +66,6 @@ export const action: ActionFunction = async ({ request, params }) => {
             ifsc: ifsc
         }).toString();
 
-        console.log(bankAccountVerificationURL);
 
         const bankAccountVerificationResponse = await fetch(bankAccountVerificationURL, {
             method: "GET",
@@ -83,7 +76,6 @@ export const action: ActionFunction = async ({ request, params }) => {
         })
 
         const bankAccountResponseBody = await bankAccountVerificationResponse.json();
-        console.log(bankAccountResponseBody);
 
         if (bankAccountResponseBody.accountStatus == "VALID") {
             const bankAccountVerified: NeutronEvent = { uid: session?.metadata?.id, type: EventType.KYCEvent, event: KYCEvent.BankAccountDetailsVerified, payload: { data: {}, message: "A bank account has been successfully verified " } };

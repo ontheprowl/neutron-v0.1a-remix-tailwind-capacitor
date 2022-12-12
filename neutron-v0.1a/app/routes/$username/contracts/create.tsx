@@ -38,7 +38,6 @@ const stages = [<ContractClientInformation key={0}></ContractClientInformation>,
 export const loader: LoaderFunction = async ({ request }) => {
     const session = await requireUser(request, true);
     const users = await getFirebaseDocs('userUIDS');
-    console.dir(users)
     // const result = await getFirebaseDocs(`users/contracts/${session?.metadata?.id}`)
     return json({ metadata: session?.metadata, validEmails: users.map((value) => (value.data.email)), users: users });
 
@@ -89,17 +88,10 @@ export const action: ActionFunction = async ({ request }) => {
     }
 
     const finalContractData = { ...data }
-    console.dir(finalContractData)
-
-
-
-
-
 
     if (finalContractData?.isPublished == "true") {
 
         if (finalContractData?.milestonesProcessed) {
-            console.log("MILESTONES BEING TRANSFORMED TO NEW KEY");
             finalContractData['milestones'] = finalContractData?.milestonesProcessed;
             delete finalContractData?.milestonesProcessed;
         }
@@ -178,9 +170,6 @@ export default function ContractCreation() {
                 <FormProvider {...methods}>
                     <form onSubmit={
                         methods.handleSubmit(async (data) => {
-
-
-                            console.dir(data);
                             data = { ...data, isPublished: true }
                             const formdata = new FormData();
 
@@ -243,10 +232,6 @@ export default function ContractCreation() {
                                 formdata.append(key, data[key]);
 
                             }
-
-
-                            console.dir(data);
-
 
                             submit(formdata, { method: "post", encType: 'multipart/form-data' });
 

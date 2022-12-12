@@ -56,10 +56,6 @@ export const loader: LoaderFunction = async ({ request }) => {
                     const photoURL = result.data.photos[0]?.url;
                     const uid = randomUUID();
 
-                    
-                    console.dir(result.data);
-
-
 
                     // CREATE NEW FIREBASE PASSWORD
 

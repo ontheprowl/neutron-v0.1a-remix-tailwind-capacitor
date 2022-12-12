@@ -1,5 +1,4 @@
 import { Outlet, useLoaderData, useNavigate, useParams } from "@remix-run/react";
-import { useState } from "react";
 import type { Dispute } from "~/models/disputes";
 import { formatDateToReadableString } from "~/utils/utils";
 import DisputesZeroState from "../disputes/DisputesZeroState";
@@ -13,10 +12,6 @@ export default function DisputesMobileUI() {
 
     const data = useLoaderData();
 
-    const [selectedIndex, setSelectedIndex] = useState(0)
-
-    console.log(selectedIndex)
-
     const params = useParams();
 
     const disputeID = params.disputeID;
@@ -24,16 +19,7 @@ export default function DisputesMobileUI() {
 
 
     const metadata = data.metadata;
-    const messages = data.result;
     const disputes: Dispute[] = data.disputes;
-    console.log("disputes")
-    console.dir(disputes)
-
-    const selectedDispute = disputes[selectedIndex];
-
-
-    console.log("messages on client side ")
-    console.dir(messages)
 
     return (
         <div className='flex flex-col sm:hidden sm:h-0  h-[95vh] mt-12'>

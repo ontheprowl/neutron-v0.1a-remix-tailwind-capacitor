@@ -113,7 +113,6 @@ export default function ContractEditScreen({ viewMode, editMode }: { viewMode?: 
                                     let data: {
                                         [x: string]: any;
                                     } = { ...formMethods.getValues(), isPublished: false };
-                                    console.dir(data);
                                     const formdata = new FormData();
 
                                     //TODO: Creator specific contract 

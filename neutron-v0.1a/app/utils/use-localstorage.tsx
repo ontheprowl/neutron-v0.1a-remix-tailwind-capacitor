@@ -14,7 +14,6 @@ export function useLocalStorage(itemKey: string, defaultValue: any): (any | Reac
     const [localStorageItem, setLocalStorageItem] = useState(defaultValue);
 
     useEffect(() => {
-        console.log("GETTER SIDE EFFECT")
         const item = window.localStorage.getItem(itemKey);
         if (item) {
             setLocalStorageItem(item);
@@ -24,7 +23,6 @@ export function useLocalStorage(itemKey: string, defaultValue: any): (any | Reac
     }, [itemKey]);
 
     useEffect(() => {
-        console.log("SETTER SIDE EFFECT")
         window.localStorage.setItem(itemKey, localStorageItem);
     }, [localStorageItem, itemKey]);
 

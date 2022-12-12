@@ -42,16 +42,10 @@ export const loader: LoaderFunction = async ({ params, request }) => {
 
     const session = await requireUser(request, true);
 
-    console.log(" \n The user's metadata on conteract load is \n");
-    console.dir(session?.metadata)
     const ownerUsername = params.username
     const contractID = params.contractID;
     const currentContract = await getSingleDoc(`${session?.metadata?.defaultTestMode ? 'testContracts' : `contracts`}/${contractID}`);
-    console.log(" \n The contract value is is \n");
-    console.dir(currentContract)
     const contractViewers: String[] = currentContract?.viewers;
-    console.log("LIST OF CONTRACT VIEWERS IS ")
-    console.dir(contractViewers)
 
     //* This block enforces privileged access to this contract
     if (!contractViewers || !contractViewers.includes(session?.metadata?.id)) {
@@ -77,12 +71,10 @@ export const loader: LoaderFunction = async ({ params, request }) => {
         const queryData = await get(messageQuery);
 
         const data = queryData.val();
-        console.log(data)
         if (data) {
             for (const [key, value] of Object.entries(data)) {
                 messagesArray.push(value)
             }
-            console.log(messagesArray)
         }
         // if (messages.length != messagesArray.length)
         //     setMessages(messagesArray)
@@ -112,28 +104,22 @@ export const action: ActionFunction = async ({ params, request }) => {
     const contractID = params.contractID;
 
 
-    console.log(`from the Action Function`);
     const formData = await parseMultipartFormData(request, createFirebaseStorageFileHandler({
         uploadRoutine: generalFilesUploadRoutine,
         session: session
     }));
 
-    console.log("contract payload")
     const data = {}
     for (const key of formData.keys()) {
         let value = formData.get(key);
-        console.log(`Key : ${key}`)
         if (value?.toString().includes('[') || value?.toString()?.includes('{')) {
             value = JSON.parse(value)
         }
-        console.dir(`Value : ${value}`)
         data[key] = value;
     }
 
     const finalDeliverableData = { ...data }
 
-    console.log('Final deliverable data is : ')
-    console.dir(finalDeliverableData)
 
     const milestonePayload: { [key: string]: any } = {}
     const ownerUsername = params.username;
@@ -149,7 +135,6 @@ export const action: ActionFunction = async ({ params, request }) => {
         milestonePayload[`milestones.workMilestones.${finalDeliverableData.milestoneIndex}.submissionPath`] = '[EXTERNAL]';
         milestonePayload[`milestones.workMilestones.${finalDeliverableData.milestoneIndex}.status`] = DeliverableStatus.SubmittedExternally;
 
-        console.dir(milestonePayload)
         await updateFirestoreDocFromData(milestonePayload, `${session?.metadata?.defaultTestMode ? 'testContracts' : `contracts`}`, contractID);
 
         // await updateFirestoreDocFromData({ deliverables: arrayUn({ name: 'test' }) }, `users/contracts/${session?.metadata?.id}`, contractID);
@@ -159,7 +144,6 @@ export const action: ActionFunction = async ({ params, request }) => {
     } else {
         milestonePayload[`milestones.workMilestones.${finalDeliverableData.milestoneIndex}.submissionPath`] = finalDeliverableData.deliverableFile;
         milestonePayload[`milestones.workMilestones.${finalDeliverableData.milestoneIndex}.status`] = DeliverableStatus.SubmittedForApproval;
-        console.dir(milestonePayload)
 
         await updateFirestoreDocFromData(milestonePayload, `${session?.metadata?.defaultTestMode ? 'testContracts' : `contracts`}`, contractID);
 
@@ -195,14 +179,12 @@ export default function DetailedContractView() {
 
     const data = useLoaderData();
     const contractData = data.contract;
-    console.dir(contractData)
     const currentUser = data.metadata
     const overviewStages = [<ContractOverview published={contractData?.isPublished == "true"} key={0} ></ContractOverview>, <ContractEditScreen viewMode key={1} ></ContractEditScreen>]
 
     const params = useParams();
 
     function generateMilestoneStats(milestones: { [x: string]: any }) {
-        console.dir(milestones)
         if (!milestones || Object.keys(milestones).length == 0) {
             return <h1 className="text-white pl-2 pr-3"> No milestones </h1>
         }

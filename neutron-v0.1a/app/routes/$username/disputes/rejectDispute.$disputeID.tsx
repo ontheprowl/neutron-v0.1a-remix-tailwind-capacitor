@@ -9,7 +9,6 @@ import { requireUser } from "~/session.server";
 
 
 export const action: ActionFunction = async ({ request, params }) => {
-    console.log("REQUEST RECEIVED AT REJECT DISPUTE HANDLER")
     const session = await requireUser(request);
     const formData = await request.formData();
     const payload = JSON.parse(formData.get('payload'));

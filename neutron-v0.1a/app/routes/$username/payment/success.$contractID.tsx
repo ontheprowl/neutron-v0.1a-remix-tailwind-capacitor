@@ -13,23 +13,17 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
     const session = await requireUser(request, true);
 
-    console.log("User's metadata is :");
-    console.dir(session)
     const url = new URL(request.url);
     const orderID = url.searchParams.get("order_id");
     const orderToken = url.searchParams.get("order_token");
     if (session) {
-        console.log("PAYMENT SUCCESS NOTIFICATION RECEIVED...")
-        console.log("PARAMS ARE ");
-        console.dir(params);
         const contractID = params.contractID;
         const ownerUsername = params.username;
 
         const uidMapping = await getSingleDoc(`/userUIDS/${ownerUsername}`);
         const ownerUID = uidMapping?.uid;
         const queuedContract = await getSingleDoc(`${session?.metadata?.defaultTestMode?'testContracts':'contracts'}/${contractID}`);
-        console.dir("queued contract milestones are ")
-        console.log(queuedContract?.milestones)
+
         if (queuedContract?.milestones?.advance) {
             const queuedMilestone = queuedContract?.milestones?.advance;
             const nextMilestoneIndex = 0;

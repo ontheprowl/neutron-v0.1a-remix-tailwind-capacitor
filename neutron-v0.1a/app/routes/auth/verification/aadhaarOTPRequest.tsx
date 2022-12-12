@@ -13,7 +13,6 @@ export const action: ActionFunction = async ({ request, params }) => {
     const session = await requireUser(request);
     const data = await request.formData();
     const aadhaarNumber = data.get('aadhaarNumber');
-    console.log(`AADHAAR IS : ` + aadhaarNumber);
     const PAYOUTS_PROD_CLIENT_ID = env.PAYOUTS_PROD_CLIENT_ID;
     const PAYOUTS_PROD_CLIENT_SECRET = env.PAYOUTS_PROD_CLIENT_SECRET;
 
@@ -33,7 +32,6 @@ export const action: ActionFunction = async ({ request, params }) => {
             Buffer.from(authorizationPayload)
         );
 
-        console.log("\n SUBMITTING AADHAAR FOR VERIFICATION \n ")
         const response = await fetch(VERIFICATION_PROD_AADHAAR_OTP_REQUEST_ENDPOINT, {
             method: "POST",
             headers: {
@@ -46,7 +44,6 @@ export const action: ActionFunction = async ({ request, params }) => {
             body: JSON.stringify({ aadhaar_number: aadhaarNumber })
         });
         const responseBody = await response.json();
-        console.log(responseBody)
         const status = responseBody.status == "SUCCESS";
 
 

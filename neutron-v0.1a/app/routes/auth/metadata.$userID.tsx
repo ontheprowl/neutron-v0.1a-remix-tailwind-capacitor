@@ -11,9 +11,6 @@ export const loader: LoaderFunction = async ({ request, params }) => {
     const session = await requireUser(request);
     const userID = params.userID;
     const metadata = await getSingleDoc(`metadata/` + userID);
-    console.log('Metadata retrieved \n');
-
-    console.dir(metadata)
     return json({ metadata: metadata })
 
 }

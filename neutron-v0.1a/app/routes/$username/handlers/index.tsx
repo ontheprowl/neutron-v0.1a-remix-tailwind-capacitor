@@ -1,4 +1,3 @@
-import { useLoaderData } from "@remix-run/react";
 import { redirect } from "@remix-run/server-runtime";
 import { oAuth2Client } from "~/firebase/gapis-config.server";
 import fs from 'fs';
@@ -9,9 +8,6 @@ const TOKEN_PATH = "tokens.json"
 
 export async function action({ request }: { request: Request }) {
     const session = await requireUser(request, true);
-
-    console.log(await request.json());
-
     return redirect(`/${session?.metadata?.displayName}/dashboard`)
 
 }
@@ -41,11 +37,4 @@ export async function loader({ request }: { request: Request }) {
 
 
     return redirect(`/${session?.metadata?.displayName}/dashboard`)
-}
-
-export default function RedirectComponent() {
-
-
-    const action = useLoaderData();
-    return <p> {action}</p>
 }

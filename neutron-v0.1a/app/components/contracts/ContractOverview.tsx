@@ -187,10 +187,7 @@ export default function ContractOverview({ published }: { published?: boolean })
     <DisputesChatComponent disableMessage={'This is a preview of the contract chat'} disabled={!published} key={1} messages={messages} from={from} to={to} customKey={data.id}></DisputesChatComponent>
     ]
 
-
-    console.log(published);
     const milestones = published ? data.milestones : data.milestonesProcessed;
-    console.log(milestones)
 
 
 

@@ -21,15 +21,11 @@ import { generateTextForDisputeType } from "~/utils/utils";
 
 
 export const loader: LoaderFunction = async ({ request, params }) => {
-    console.log("SERVER SIDE LOADER")
     const session = await requireUser(request, true);
     const disputeID = params.disputeID;
-    console.log("DISPUTE ID IS : " + disputeID)
 
 
     const selectedDispute: Dispute = await getSingleDoc(`disputes/${disputeID}`) as Dispute;
-    console.log("SELECTED DISPUTE IS :")
-    console.dir(selectedDispute)
 
     let messagesArray: Array<{ text: string, to: string, from: string, timestamp: string }> = []
     let from = session?.metadata?.id;
@@ -81,7 +77,6 @@ export const action: ActionFunction = async ({ request, params }) => {
     const disputeID = params.disputeID;
 
     const disputeRef = await deleteFirestoreDoc('disputes', `${disputeID}`);
-    console.log("dispute deleted successfully!")
 
     const disputeCancelledEvent: NeutronEvent = { type: EventType.ContractEvent, event: ContractEvent.ContractDisputeCancelled, uid: session?.metadata?.id, id: contractID, payload: { data: { queuedMilestone: milestone, nextMilestoneIndex: nextMilestoneIndex }, message: 'A contract dispute has been cancelled. Resuming standard contract flow...' } }
 
@@ -94,12 +89,9 @@ export const action: ActionFunction = async ({ request, params }) => {
 
 export default function DetailedDisputeView() {
 
-
     const data = useLoaderData();
     let submit = useSubmit();
     let fetcher = useFetcher();
-    console.log("LOADER DATA IS ")
-    console.dir(data)
     const selectedDispute: Dispute = data.selectedDispute;
     const messages = data.messages;
     const metadata = data.metadata;

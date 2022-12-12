@@ -22,8 +22,6 @@ export default function DisputesChatComponent({ from, to, messages, fullHeight, 
         setMessages(messages);
     }, [messages])
 
-    console.dir("MESSAGES are :")
-    console.dir(messages)
     return (
         <div className={` flex flex-col h-[70vh] pb-4 sm:pb-0 sm:h-full ${fullHeight ? '' : 'max-h-[550px]'} border-2 sm:border-0 border-purple-400 bg-bg-secondary-dark sm:bg-inherit overflow-y-scroll w-full  rounded-lg items-stretch`}>
 

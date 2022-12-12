@@ -54,10 +54,8 @@ export default function AadhaarOTPForm({ toggleModalFunction, verificationRef }:
         }
     }
 
-    console.log("VERIFICATION REF IS :" + verificationRef);
     return (
         <form onSubmit={methods.handleSubmit(async (data) => {
-            console.dir(data)
             const form = new FormData();
             form.append('otp', data.otp);
             form.append('ref_id', verificationRef);

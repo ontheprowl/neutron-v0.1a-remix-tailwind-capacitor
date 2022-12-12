@@ -13,7 +13,6 @@ export const action: ActionFunction = async ({ request, params }) => {
 
 
     if (session) {
-        console.dir("REQUEST RECEIVED AT DISPUTE CREATION HANDLER")
 
         const data = await request.formData();
 
@@ -60,7 +59,6 @@ export const action: ActionFunction = async ({ request, params }) => {
         const contractOwner = await getSingleDoc(`userUIDS/${ownerUsername}`);
         const newDispute: Dispute = { contractID: contractID, data: disputeType == DisputeType.DeadlineExtension ? { extension: extension } : {}, currentMilestone: currentMilestone, nextMilestoneIndex: nextMilestoneIndex, description: description, type: disputeType, severity: disputeSeverity, raisedBy: raisedBy, status: DisputeStatus.Raised, client: { email: clientEmail, id: clientID, name: clientName }, provider: { email: providerEmail, id: providerID, name: providerName }, contractName: contractName, viewers: [clientID, providerID], createdOn : new Date().getTime() }
 
-        console.dir(newDispute)
         const disputeRef = await addFirestoreDocFromData(newDispute, 'disputes');
 
         const disputeRegisteredEvent = {

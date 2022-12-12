@@ -47,7 +47,6 @@ export default function ProfileProfInformationForm() {
     useEffect(() => {
         trigger()
         if (fetcher.type === "done") {
-            console.log("THE FETCHER TYPE IS " + fetcher.type)
             toast(<div><h2>Details saved!</h2></div>, { theme: "dark", type: "success" })
         }
 
@@ -56,7 +55,6 @@ export default function ProfileProfInformationForm() {
     return (<form onSubmit={
         handleSubmit(async (data) => {
             const form = new FormData()
-            console.log(data);
             form.append('payload', JSON.stringify(data));
 
             fetcher.submit(form, { method: "post" });

@@ -18,7 +18,6 @@ export const action: ActionFunction = async ({ request, params }) => {
     const data = await request.formData();
     const otp = data.get('otp');
     const ref_id = data.get('ref_id');
-    console.log(`OTP IS : ` + otp);
     const PAYOUTS_PROD_CLIENT_ID = env.PAYOUTS_PROD_CLIENT_ID;
     const PAYOUTS_PROD_CLIENT_SECRET = env.PAYOUTS_PROD_CLIENT_SECRET;
 
@@ -38,7 +37,6 @@ export const action: ActionFunction = async ({ request, params }) => {
             Buffer.from(authorizationPayload)
         );
 
-        console.log("\n SUBMITTING AADHAAR FOR VERIFICATION \n ")
         const response = await fetch(VERIFICATION_PROD_AADHAAR_OTP_VERIFY_ENDPOINT, {
             method: "POST",
             headers: {
@@ -51,7 +49,6 @@ export const action: ActionFunction = async ({ request, params }) => {
             body: JSON.stringify({ otp: otp, ref_id: ref_id })
         });
         const responseBody = await response.json();
-        console.log(responseBody)
         const valid = responseBody.status == "VALID";
 
 
