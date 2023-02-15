@@ -1,22 +1,15 @@
-import { json, LoaderFunction, redirect } from "@remix-run/node";
+import type { LoaderFunction } from "@remix-run/node";
+import { json } from "@remix-run/node";
 import { Outlet, useLoaderData, useNavigate } from "@remix-run/react";
 import { collection, getDocs, where, query } from "firebase/firestore";
-import { ParamHTMLAttributes, useState } from "react";
-import { useAuthState } from "react-firebase-hooks/auth";
-import DisputesChatComponent from "~/components/disputes/DisputesChatComponent";
+import { useState } from "react";
 import DisputesZeroState from "~/components/disputes/DisputesZeroState";
 import MobileNavbarPadding from "~/components/layout/MobileNavbarPadding";
 import { DisputeSeverityGenerator, DisputeStatusGenerator } from "~/components/layout/Statuses";
-import DashboardMobileUI from "~/components/pages/DashboardMobileUI";
 import DisputesMobileUI from "~/components/pages/DisputesMobileUI";
-import { auth, db, firestore } from "~/firebase/neutron-config.server";
-import { fetchEvents, getFirebaseDocs, getSingleDoc, sendChatMessage } from "~/firebase/queries.server";
-import { ContractCreator } from "~/models/contracts";
-import { Dispute, DisputeSeverity, DisputeStatus, DisputeType } from "~/models/disputes";
-import { EventType } from "~/models/events";
-import { UserState } from "~/models/user";
+import { firestore } from "~/firebase/neutron-config.server";
+import type { Dispute } from "~/models/disputes";
 import { requireUser } from "~/session.server";
-import { formatDateToReadableString } from "~/utils/utils";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
 

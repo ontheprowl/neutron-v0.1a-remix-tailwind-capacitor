@@ -11,16 +11,11 @@ import { useEffect, useState } from 'react';
  */
 export function useLocalStorage(itemKey: string, defaultValue: any): (any | React.Dispatch<any>)[] {
 
-    const [localStorageItem, setLocalStorageItem] = useState(defaultValue);
+    let localInitializer = null
 
-    useEffect(() => {
-        const item = window.localStorage.getItem(itemKey);
-        if (item) {
-            setLocalStorageItem(item);
-        }
+    if (window) localInitializer = window.localStorage.getItem(itemKey)
 
-        return () => { window.localStorage.removeItem(itemKey) }
-    }, [itemKey]);
+    const [localStorageItem, setLocalStorageItem] = useState(localInitializer != null ? localInitializer : defaultValue);
 
     useEffect(() => {
         window.localStorage.setItem(itemKey, localStorageItem);

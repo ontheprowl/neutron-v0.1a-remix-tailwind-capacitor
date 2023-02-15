@@ -1,17 +1,18 @@
-import { equalTo, onChildAdded, onValue, orderByChild, push, query, QueryConstraint, ref, set } from "firebase/database";
 
-import type { DocumentData, DocumentReference } from "firebase/firestore";
-import { getDocs, collection, addDoc, setDoc, doc, getDoc, deleteDoc, updateDoc } from "firebase/firestore";
+import { serverDatabase, serverFirestore } from "./firebase-exports.server";
+
+
 import { db, firestore } from "~/firebase/neutron-config.server";
 import type { EventType, NeutronEvent } from "~/models/events";
+import { cacheObject, hasKey } from "~/redis/queries.server";
 
 
 
 // * Integrate server-side caching here
 
 
-export async function getFirebaseDocs(collectionName: string, onlyKeys?: boolean, path?: string): Promise<DocumentData[]> {
-    const querySnapshot = await getDocs(collection(firestore, collectionName, path ? path : ''));
+export async function getFirebaseDocs(collectionName: string, onlyKeys?: boolean, path?: string): Promise<any[]> {
+    const querySnapshot = await serverFirestore.getDocs(serverFirestore.collection(firestore, collectionName, path ? path : ''));
     const result: any[] = []
 
     if (onlyKeys) {
@@ -35,27 +36,30 @@ export async function getFirebaseDocs(collectionName: string, onlyKeys?: boolean
 
 export async function addFirestoreDocFromData(data: any, collectionName: string, path?: string): Promise<DocumentReference<any>> {
 
-    const docRef = await addDoc(collection(firestore, `${path ? `${collectionName}/${path}` : `${collectionName}`}`), data);
+    const docRef = await serverFirestore.addDoc(serverFirestore.collection(firestore, `${path ? `${collectionName}/${path}` : `${collectionName}`}`), data);
     return docRef
 }
 
 
 export async function setFirestoreDocFromData(data: any, collectionName: string, path: string): Promise<DocumentReference<any>> {
-
-    const docRef = doc(firestore, `${collectionName}/${path}`)
-    await setDoc(docRef, data);
+    const pathString = `${collectionName}/${path}`
+    if (await hasKey(pathString)) {
+        const result = await cacheObject(pathString, data)
+    }
+    const docRef = serverFirestore.doc(firestore, pathString)
+    await serverFirestore.setDoc(docRef, data);
     return docRef;
 }
 
 export async function deleteFirestoreDoc(collectionName: string, path: string): Promise<DocumentReference<any>> {
-    const docRef = doc(firestore, `${collectionName}/${path}`)
-    await deleteDoc(docRef);
+    const docRef = serverFirestore.doc(firestore, `${collectionName}/${path}`)
+    await serverFirestore.deleteDoc(docRef);
     return docRef
 }
 
 
 export async function getSingleDoc(docPath: string): Promise<DocumentData | undefined> {
-    const currentDoc = await getDoc(doc(firestore, docPath));
+    const currentDoc = await serverFirestore.getDoc(serverFirestore.doc(firestore, docPath));
     return currentDoc.data()
 
 }
@@ -65,7 +69,7 @@ export async function sendChatMessage(message: string, from: string, to: string,
 
     try {
         const messageKey = key ? from + to + key : from + to;
-        const result = await set(push(ref(db, 'messages/' + btoa((messageKey).split('').sort().join('')))), { text: message, to: to, from: from, timestamp: new Date().toUTCString() })
+        const result = await serverDatabase.set(serverDatabase.push(serverDatabase.ref(db, 'messages/' + btoa((messageKey).split('').sort().join('')))), { text: message, to: to, from: from, timestamp: new Date().toUTCString() })
         return true
     }
     catch (e) {
@@ -85,7 +89,7 @@ export async function sendChatMessage(message: string, from: string, to: string,
 export async function sendEvent(eventData: NeutronEvent, viewers?: string[], sandbox?: boolean): Promise<boolean> {
 
     try {
-        const result = await set(push(ref(db, 'events/' + eventData.type)), { ...eventData, sandbox: sandbox ? sandbox : false, timestamp: new Date().getTime(), viewers: viewers })
+        const result = await serverDatabase.set(serverDatabase.push(serverDatabase.ref(db, 'events/' + eventData.type)), { ...eventData, sandbox: sandbox ? sandbox : false, timestamp: new Date().getTime(), viewers: viewers })
         return true
     }
     catch (e) {
@@ -97,18 +101,18 @@ export async function fetchEvents(type: EventType, id?: string, byUser?: boolean
     let eventsQuery
     if (id) {
         if (byUser) {
-            eventsQuery = query(ref(db, 'events/' + type), orderByChild("uid"), equalTo(id));
+            eventsQuery = serverDatabase.query(serverDatabase.ref(db, 'events/' + type), serverDatabase.orderByChild("uid"), serverDatabase.equalTo(id));
         }
         else {
-            eventsQuery = query(ref(db, 'events/' + type), orderByChild("id"), equalTo(id));
+            eventsQuery = serverDatabase.query(serverDatabase.ref(db, 'events/' + type), serverDatabase.orderByChild("id"), serverDatabase.equalTo(id));
         }
     } else {
-        eventsQuery = query(ref(db, 'events/' + type));
+        eventsQuery = serverDatabase.query(serverDatabase.ref(db, 'events/' + type));
     }
     let fetchedEvents: NeutronEvent[] = []
 
     try {
-        onValue(eventsQuery, (snapshot) => {
+        serverDatabase.onValue(eventsQuery, (snapshot) => {
             const events = snapshot.val();
             if (events) {
                 for (const [key, value] of Object.entries(events)) {
@@ -136,13 +140,13 @@ export async function fetchEvents(type: EventType, id?: string, byUser?: boolean
 export async function fetchLatestEvent(type: EventType, uid?: string): Promise<NeutronEvent> {
     let eventsQuery;
     if (uid) {
-        eventsQuery = query(ref(db, 'events/' + type), orderByChild("id"), equalTo(uid));
+        eventsQuery = serverDatabase.query(serverDatabase.ref(db, 'events/' + type), serverDatabase.orderByChild("id"), serverDatabase.equalTo(uid));
     }
     else {
-        eventsQuery = query(ref(db, 'events/' + type));
+        eventsQuery = serverDatabase.query(serverDatabase.ref(db, 'events/' + type));
     }
     let fetchedEvent: NeutronEvent;
-    onChildAdded(eventsQuery, (snapshot) => {
+    serverDatabase.onChildAdded(eventsQuery, (snapshot) => {
         const event: NeutronEvent = snapshot.val();
         fetchedEvent = event;
 
@@ -154,7 +158,7 @@ export async function fetchLatestEvent(type: EventType, uid?: string): Promise<N
 
 
 export async function updateFirestoreDocFromData(data: any, collectionName: string, path: string): Promise<DocumentReference<any>> {
-    const updatedDocRef = doc(firestore, collectionName, path)
-    await updateDoc(updatedDocRef, data)
+    const updatedDocRef = serverFirestore.doc(firestore, collectionName, path)
+    await serverFirestore.updateDoc(updatedDocRef, data)
     return updatedDocRef
 }

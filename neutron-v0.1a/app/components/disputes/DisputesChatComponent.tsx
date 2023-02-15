@@ -1,14 +1,16 @@
 import { useFetcher, useLoaderData } from "@remix-run/react"
 import { AnimatePresence, motion } from "framer-motion"
-import React from "react"
+import React, { useEffect } from "react"
 import { formatDateToReadableString } from "~/utils/utils"
 import SendIcon from '~/assets/images/SendIcon.svg'
 import { primaryGradientDark } from "~/utils/neutron-theme-extensions"
+import { useList } from "react-firebase-hooks/database"
+import { clientGet, clientQuery, clientRef, db } from "~/firebase/neutron-config.client"
 
 
 
 
-export default function DisputesChatComponent({ from, to, messages, fullHeight, customKey, disabled, disableMessage }: { from: string, to: string, messages: Array<any>, customKey?: string, fullHeight?: boolean, disabled?: boolean, disableMessage?: string }) {
+export default function DisputesChatComponent({ from, to, fullHeight, customKey, disabled, disableMessage, id }: { from: string, to: string, customKey?: string, fullHeight?: boolean, id?: string, disabled?: boolean, disableMessage?: string }) {
 
 
     const loaderData = useLoaderData();
@@ -18,9 +20,24 @@ export default function DisputesChatComponent({ from, to, messages, fullHeight, 
 
     const [newMessage, setNewMessage] = React.useState('')
 
-    React.useEffect(() => {
-        setMessages(messages);
-    }, [messages])
+
+
+    useEffect(() => {
+        if (from && to) {
+            const messageQuery = clientQuery(clientRef(db, 'messages/' + btoa((from + to + customKey).split('').sort().join(''))));
+            let result: { text: string, to: string, from: string, timestamp: string }[] = []
+            clientGet(messageQuery).then((snapshot) => {
+                const data = snapshot.val();
+                console.log(data)
+                if (data) {
+                    for (const [key, value] of Object.entries(data)) {
+                        result.push(value)
+                    }
+                }
+                setMessages(result)
+            });
+        }
+    }, [customKey, from, to])
 
     return (
         <div className={` flex flex-col h-[70vh] pb-4 sm:pb-0 sm:h-full ${fullHeight ? '' : 'max-h-[550px]'} border-2 sm:border-0 border-purple-400 bg-bg-secondary-dark sm:bg-inherit overflow-y-scroll w-full  rounded-lg items-stretch`}>

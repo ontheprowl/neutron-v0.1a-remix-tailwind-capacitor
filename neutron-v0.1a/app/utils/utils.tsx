@@ -115,7 +115,7 @@ export const formatDateToReadableString = (milliseconds?: string | number, onlyT
             "-" +
             date.getFullYear()
             // + ' ' + date.getHours() + ":" + (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()) + ":" + (date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds());
-        ;
+            ;
         return formattedDate;
     }
 
@@ -160,9 +160,9 @@ export const ValidationPatterns = {
 
 
 /**
- * Utility function that prepares a payload according to the Cashfree Payment Gateway API specifications 
+ * Utility function that prepares a payload according to the Razorpay Orders API specifications
  * 
- * For the API specifications, see {@link https://docs.cashfree.com/reference/createorder}
+ * For the API specifications, see {@link https://razorpay.com/docs/api/orders/}
  * 
  * @param {Contract} contract The contract for which the payload has to be constructed 
  * @param {string} ownerUsername Username of the contract owner. Used to construct the return_url
@@ -178,21 +178,12 @@ export const structurePayinPayload = (contract: Contract, ownerUsername: string,
     const orderId = crypto.randomUUID();
 
     const payload = {
-        customer_details: {
-            customer_id: payingUserData.id,
-            customer_email: payingUserData.email,
-            customer_phone: payingUserData.phoneNumber
+        receipt: orderId,
+        notes: {
+            contract: contract.id,
         },
-        order_id: orderId,
-        order_meta: {
-            return_url: `https://${environment === "development" ? "localhost:3000" : "app.neutron.money"}/${ownerUsername}/payment/success/${contract.id}?order_id={order_id}&order_token={order_token}`,
-            order_id: orderId,
-            order_token: contract.id,
-            notify_url: 'https://us-central1-neutron-expo.cloudfunctions.net/cashfreeNotificationWebhook'
-
-        },
-        order_amount: totalValue,
-        order_currency: "INR"
+        amount: totalValue*100, // * Razorpay processes payment requests where the amounts are defined in paisa (?)
+        currency: "INR"
     }
     return payload;
 }

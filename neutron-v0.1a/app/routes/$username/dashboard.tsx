@@ -5,9 +5,8 @@ import type { ActionFunction, LoaderFunction } from '@remix-run/server-runtime';
 import { redirect } from '@remix-run/server-runtime';
 import { json } from '@remix-run/server-runtime';
 import { useLoaderData } from '@remix-run/react';
-import PlaceholderDP from "~/assets/images/kartik.png"
 import { firestore } from '~/firebase/neutron-config.server';
-import { collection, deleteDoc, doc, getDocs, query, where } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getCountFromServer, getDocs, limit, query, where } from 'firebase/firestore';
 import type { Contract } from '~/models/contracts';
 import { ContractCreationStages, ContractStatus } from '~/models/contracts';
 import ViewIcon from '~/components/inputs/ViewIcon';
@@ -34,12 +33,17 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
     const ownerUsername = params.username;
 
-    const contractsQuery = query(collection(firestore, session?.metadata?.defaultTestMode?`testContracts`:`contracts`), where("viewers", "array-contains", session?.metadata?.id));
+    const url = new URL(request.url);
+    const page = url.searchParams.get("page");
+
+
+    const contractsQuery = query(collection(firestore, session?.metadata?.defaultTestMode ? `testContracts` : `contracts`), where("viewers", "array-contains", session?.metadata?.id));
+
     //TODO : Make metadata fetching dynamic
     // const disputesQuery = query(collection(firestore, 'disputes'), limit(5));
     const contractsData = await getDocs(contractsQuery);
-    // const disputesData = await getDocs(disputesQuery)
 
+    // const disputesData = await getDocs(disputesQuery)
     const contracts: { [x: string]: any }[] = contractsData.docs.map((document) => {
         return { id: document.id, ...document.data() };
     });
@@ -75,7 +79,7 @@ export default function Dashboard() {
     const fetcher = useFetcher();
 
 
-    
+
 
 
     const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
@@ -102,7 +106,7 @@ export default function Dashboard() {
 
 
 
-    const tableContracts = useMemo(()=>{
+    const tableContracts = useMemo(() => {
         return userData?.contracts.filter((contract) => contractFilter ? contract.projectName?.includes(contractFilter) : true).sort((a, b) => {
             let leftContract, rightContract;
 
@@ -131,7 +135,7 @@ export default function Dashboard() {
                     return 0;
             }
         });
-    },[contractFilter, contractSortKey, sortAscending, userData?.contracts])
+    }, [contractFilter, contractSortKey, sortAscending, userData?.contracts])
 
     let navigate = useNavigate();
 
@@ -139,7 +143,7 @@ export default function Dashboard() {
         <>
             <div className="hidden sm:flex sm:flex-row h-full ">
 
-                <div id="activity-details-summary" className="flex flex-col w-full bg-bg-primary-dark ">
+                <div id="activity-details-summary" className="flex flex-col w-full bg-white ">
                     <div className='hidden sm:flex flex-row m-6 justify-between'>
                         <div className="flex flex-col">
                             <article className="">
@@ -298,7 +302,7 @@ export default function Dashboard() {
 
                                                 <span className="text-[20px]">{contract.contractValue}</span>
                                                 <br></br>
-                                                {contract.isSigned ? formatDateToReadableString(contract.signedDate,false,true) : formatDateToReadableString(contract.startDate,false,true)}
+                                                {contract.isSigned ? formatDateToReadableString(contract.signedDate, false, true) : formatDateToReadableString(contract.startDate, false, true)}
 
                                             </td>
                                             <td className="  px-2 py-4 w-full translate-y-[-5px] text-center justify-center items-center flex-row flex ">

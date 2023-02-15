@@ -1,6 +1,6 @@
 import * as PusherPushNotifications from "@pusher/push-notifications-web";
 
-export const isSafari = () => {
+export const isSafari = function(){
   return (
     /constructor/i.test(window.HTMLElement) ||
     (function (p) {
@@ -10,7 +10,7 @@ export const isSafari = () => {
         (typeof safari !== "undefined" && window["safari"].pushNotification)
     )
   );
-};
+}();
 
 export let beamsClient: PusherPushNotifications.Client;
 if (!isSafari) {

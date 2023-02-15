@@ -2,15 +2,11 @@
 import { initializeApp } from "firebase/app";
 import admin from 'firebase-admin';
 import { applicationDefault, initializeApp as initializeAdminApp } from "firebase-admin/app";
-import { CompleteFn, EmailAuthProvider, FacebookAuthProvider, getAuth, GoogleAuthProvider, onAuthStateChanged, PhoneAuthProvider } from 'firebase/auth'
-import { getFirestore } from 'firebase/firestore'
-import { getStorage } from 'firebase/storage'
-import { getDatabase } from 'firebase/database'
 import { getSingleDoc } from "./queries.server";
+import { serverApp, serverAuth, serverDatabase, serverFirestore, serverStorage } from "./firebase-exports.server";
 
 
 require('dotenv').config();
-
 
 
 // Your web app's Firebase configuration
@@ -39,12 +35,11 @@ if (!admin.apps.length) {
 export const adminAuth = admin.auth();
 export const adminMessaging = admin.messaging();
 export const adminFirestore = admin.firestore();
-export const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const firestore = getFirestore(app);
-export const storage = getStorage(app);
-export const db = getDatabase(app);
-export const googleProvider = new GoogleAuthProvider();
+export const app = serverApp.initializeApp(firebaseConfig);
+export const auth = serverAuth.getAuth(app);
+export const firestore = serverFirestore.getFirestore(app);
+export const storage = serverStorage.getStorage(app);
+export const db = serverDatabase.getDatabase(app);
 
 
 export async function getSessionToken(idToken: string) {

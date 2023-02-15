@@ -64,23 +64,24 @@ export const loader: LoaderFunction = async ({ params, request }) => {
 
     let messagesArray: Array<{ text: string, to: string, from: string, timestamp: string }> = []
 
-    if (from && to) {
-        const messageQuery = query(ref(db, 'messages/' + btoa((from + to + contractID).split('').sort().join(''))));
+    // if (from && to) {
+    //     const messageQuery = query(ref(db, 'messages/' + btoa((from + to + contractID).split('').sort().join(''))));
 
 
-        const queryData = await get(messageQuery);
+    //     const queryData = await get(messageQuery);
 
-        const data = queryData.val();
-        if (data) {
-            for (const [key, value] of Object.entries(data)) {
-                messagesArray.push(value)
-            }
-        }
-        // if (messages.length != messagesArray.length)
-        //     setMessages(messagesArray)
+    //     const data = queryData.val();
+    //     if (data) {
+    //         for (const [key, value] of Object.entries(data)) {
+    //             messagesArray.push(value)
+    //         }
+    //     }
+    //     // if (messages.length != messagesArray.length)
+    //     //     setMessages(messagesArray)
 
 
-    }
+    // }
+    
 
     // if(session?.metadata?.displayName == ownerUsername){
 
@@ -171,9 +172,7 @@ export default function DetailedContractView() {
     const sidePanelStage = ContractDataStore.useState(s => s.sidePanelStage);
     let navigate = useNavigate();
 
-    useEffect((
-
-    ) => {
+    useEffect(() => {
         injectStyle();
     })
 

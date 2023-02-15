@@ -10,26 +10,38 @@ if ("serviceWorker" in navigator) {
 
 
   // Use the window load event to keep the page load performant
-  window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("/entry.worker.js")
-      .then(() => navigator.serviceWorker.ready.then((serviceWorkerRegistration) => {
-        // const beamsClient = new PusherPushNotifications.Client({
-        //   instanceId: 'd45267dd-8950-4cbd-ad07-678a6460917d',
-        //   serviceWorkerRegistration: serviceWorkerRegistration,
-        // })
+  async function loadSW() {
+    console.log("loaded");
 
-        // window.sessionStorage.setItem('pusherBeamsClient', JSON.stringify(beamsClient));
+    return navigator.serviceWorker.register("/entry.worker.js")
+      .then(() => navigator.serviceWorker.ready
+        .then((registration) => {
+          const subscription = registration.pushManager.getSubscription();
+          return { subscription, registration };
+        })
+        .then(async (sub) => {
+          if (await sub.subscription) {
+            return sub.subscription;
+          }
 
-        // beamsClient
-        //   .start()
-        //   .then(() => beamsClient.getDeviceId())
-        //   .then(() => console.log("Successfully registered and subscribed!"))
-        //   .then(() => beamsClient.addDeviceInterest("hello"))
-        //   .then(() => beamsClient.getDeviceInterests())
-        //   .then((interests) => console.log("Current interests:", interests))
-        //   .catch(console.error);
-      }))
+          const subInfo = await fetch("/resources/subscribe");
+          const returnedSubscription = await subInfo.text();
+
+          const convertedVapidKey = urlBase64ToUint8Array(returnedSubscription);
+          return sub.registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: convertedVapidKey,
+          });
+        })
+        .then(async (subscription) => {
+          await fetch("/resources/subscribe", {
+            method: "POST",
+            body: JSON.stringify({
+              subscription: subscription,
+              type: "POST_SUBSCRIPTION",
+            }),
+          });
+        }))
       .then(() => {
         if (navigator.serviceWorker.controller) {
           navigator.serviceWorker.controller.postMessage({
@@ -48,7 +60,13 @@ if ("serviceWorker" in navigator) {
       .catch((error) => {
         console.error("Service worker registration failed", error);
       });
-  });
+  }
+
+  if (document.readyState === "complete" || document.readyState === "interactive") {
+    loadSW();
+  } else {
+    window.addEventListener("load", loadSW);
+  }
 }
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
@@ -64,31 +82,3 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return outputArray;
 }
 
-navigator.serviceWorker.ready
-  .then((registration) => {
-    const subscription = registration.pushManager.getSubscription();
-    return { subscription, registration };
-  })
-  .then(async (sub) => {
-    if (await sub.subscription) {
-      return sub.subscription;
-    }
-
-    const subInfo = await fetch("/resources/subscribe");
-    const returnedSubscription = await subInfo.text();
-
-    const convertedVapidKey = urlBase64ToUint8Array(returnedSubscription);
-    return sub.registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: convertedVapidKey,
-    });
-  })
-  .then(async (subscription) => {
-    await fetch("/resources/subscribe", {
-      method: "POST",
-      body: JSON.stringify({
-        subscription: subscription,
-        type: "POST_SUBSCRIPTION",
-      }),
-    });
-  });

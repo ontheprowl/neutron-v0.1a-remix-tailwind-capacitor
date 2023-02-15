@@ -80,7 +80,6 @@ async function handleMessage(event: ExtendableMessageEvent) {
 
 async function handleFetch(event: FetchEvent): Promise<Response> {
   const url = new URL(event.request.url);
-
   if (isAssetRequest(event.request)) {
     const cached = await caches.match(event.request, {
       cacheName: ASSET_CACHE,

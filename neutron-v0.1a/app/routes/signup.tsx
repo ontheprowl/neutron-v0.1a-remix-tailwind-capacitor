@@ -16,9 +16,12 @@ import { toast, ToastContainer } from "react-toastify";
 import { NeutronError } from "~/logging/NeutronError";
 import { injectStyle } from "react-toastify/dist/inject-style";
 import DefaultSpinner from "~/components/layout/DefaultSpinner";
+import AuthPagesSidePanel from '~/assets/images/AuthPageSidePanel2.svg'
+
 import { env } from "process";
 import MandatoryAsterisk from "~/components/layout/MandatoryAsterisk";
 import { juneClient, trackJuneEvent } from "~/analytics/june-config.server";
+import { NeutronToastContainer, emitToast } from "~/utils/toasts/NeutronToastContainer";
 
 export async function loader({ request }: { request: Request }) {
 
@@ -84,6 +87,7 @@ export async function action({ request }: { request: Request }) {
     const ref = await setFirestoreDocFromData({
       ...DEFAULT_USER_STATE, email: user.email, id: user.uid, displayName: user.displayName, creationTime: user.metadata.creationTime, profileComplete: false
     }, `metadata`, user.uid);
+
     // const uidMapRef = await setFirestoreDocFromData({ uid: user.uid }, `metadata`, user.email);
     const token = await user.getIdToken();
 
@@ -94,6 +98,8 @@ export async function action({ request }: { request: Request }) {
     return json({ type: neutronError.type, message: neutronError.message });
   }
 }
+
+
 
 
 
@@ -138,30 +144,30 @@ export default function Signup() {
   useEffect(() => {
     const neutronError = actionData as NeutronError;
     if (neutronError) {
-      toast(<div><h2>{neutronError.message}</h2></div>, { theme: "dark", type: "error" })
 
+      emitToast(
+        <h1 className="prose prose-xl text-black font-gilroy-bold">
+          {neutronError.message}
+        </h1>, null, "error");
 
 
     }
   }, [actionData])
 
   return (
-    <div className=" sm:h-screen w-full justify-center bg-bg-primary-dark align-middle">
-      <div className=" flex flex-row h-full w-full text-center">
+    <div className=" sm:h-screen w-full justify-center bg-white align-middle">
+      <div className=" flex flex-row-reverse h-full w-full text-center">
         <div id="left-panel" className="flex flex-col w-full sm:basis-3/5  h-full justify-center sm:justify-start sm:items-start mt-20 sm:mt-0 p-8">
-          <img
-            src={Icon}
-            className="h-10 max-h-28 m-1 max-w-28 "
-            alt="hi there"
-          ></img>
           <div id="form-container" className=" w-full h-full flex flex-row justify-center mt-10 sm:mt-0">
             <div className="flex flex-col w-full h-full justify-center">
-              <div className="bg-bg-primary-dark rounded-lg text-left self-center p-2 w-full sm:w-[500px]">
+              <div className="bg-white rounded-lg text-left self-center p-2 w-full sm:w-[500px]">
                 <h1
-                  className={`text-left sm:ml-0 font-gilroy-black text-white text-[30px]`}
+                  className={`text-left sm:ml-0 font-gilroy-bold text-black text-[30px]`}
                 >
                   Sign Up
                 </h1>
+                <h2 className="prose prose-sm font-gilroy-medium text-secondary-text">An AR revolution awaits</h2>
+
 
                 <div className=" flex flex-col sm:flex-row items-start space-y-2 sm:space-y-0  w-full justify-between">
                   <div className="flex flex-col justify-items-start space-y-2 mt-2 w-full   ">
@@ -176,12 +182,12 @@ export default function Signup() {
                       })}
                     >
                       <div className="text-left space-y-1 w-full">
-                        <span className=" prose prose-md text-white font-gilroy-black text-[22px]">Username <MandatoryAsterisk></MandatoryAsterisk></span>
+                        <span className=" prose prose-md text-black font-gilroy-bold text-[14px]">Username <MandatoryAsterisk></MandatoryAsterisk></span>
                         <input  {...register('displayName', {
                           required: true, validate: (v) => {
                             return IsUsernameAvailable(v) || 'This username is already taken';
                           }
-                        })} type="text" placeholder="e.g: freelancer3341" defaultValue={''} className=" transition-all bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 caret-bg-accent-dark focus:outline-none focus:border-accent-dark focus:ring-2 focus:ring-accent-dark text-white active:caret-yellow-400 text-sm rounded-lg placeholder-[#C1C1C1] block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white font-gilroy-medium " />
+                        })} type="text" placeholder="e.g: freelancer3341" defaultValue={''} className=" transition-all bg-[#FFFFFF] pt-3 pb-3 pl-4 pr-4 border-2 border-[#DCDCDC] caret-bg-accent-dark focus:outline-none  text-neutral-base active:caret-yellow-400 text-sm rounded-lg placeholder-[#BCBDBD] block w-full h-12 font-gilroy-medium font-[18px] " />
                         <div className="w-full h-5 mt-1 text-left">
                           <ErrorMessage errors={errors} name='displayName' render={(data) => {
                             return <span className="text-red-700 pl-1 mt-3 z-10 font-gilroy-black text-left">{data.message}</span>
@@ -189,8 +195,8 @@ export default function Signup() {
                         </div>
                       </div>
                       <div className="text-left space-y-1 w-full">
-                        <span className=" prose prose-md text-white font-gilroy-black text-[22px]">Email <MandatoryAsterisk></MandatoryAsterisk></span>
-                        <input defaultValue={''}  {...register('email', { required: true, pattern: { value: ValidationPatterns.emailValidationPattern, message: 'This is not a valid email ID' } })} type="text" placeholder="e.g: name@example.com" className=" transition-all bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 caret-bg-accent-dark focus:outline-none focus:border-accent-dark focus:ring-2 focus:ring-accent-dark text-white active:caret-yellow-400 text-sm rounded-lg placeholder-[#C1C1C1] block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white font-gilroy-medium" />
+                        <span className=" prose prose-md text-black font-gilroy-bold text-[14]">Email <MandatoryAsterisk></MandatoryAsterisk></span>
+                        <input defaultValue={''}  {...register('email', { required: true, pattern: { value: ValidationPatterns.emailValidationPattern, message: 'This is not a valid email ID' } })} type="text" placeholder="e.g: name@example.com" className=" transition-all bg-[#FFFFFF] pt-3 pb-3 pl-4 pr-4 border-2 border-[#DCDCDC] caret-bg-accent-dark focus:outline-none  text-[#BCBDBD] active:caret-yellow-400 text-sm rounded-lg placeholder-[#BCBDBD] block w-full h-12 font-gilroy-medium font-[18px] " />
                         <div className="w-full h-5 mt-1 text-left">
                           <ErrorMessage errors={errors} name='email' render={(data) => {
                             return <span className="text-red-700 pl-1 mt-3 z-10 font-gilroy-black text-left">{data.message}</span>
@@ -199,8 +205,8 @@ export default function Signup() {
                       </div>
 
                       <div className="text-left space-y-1 w-full">
-                        <span className=" prose prose-md text-white font-gilroy-black text-[22px]">Password <MandatoryAsterisk></MandatoryAsterisk></span>
-                        <input  {...register('password', { required: true, minLength: { value: 8, message: " Password should at least be 8 characters" } })} type="password" placeholder="Enter Password" className="  transition-all bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 caret-bg-accent-dark focus:outline-none focus:border-accent-dark focus:ring-2 focus:ring-accent-dark text-white active:caret-yellow-400 text-sm rounded-lg placeholder-[#C1C1C1] block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white font-gilroy-medium " />
+                        <span className=" prose prose-md text-black font-gilroy-bold text-[14px]">Password <MandatoryAsterisk></MandatoryAsterisk></span>
+                        <input  {...register('password', { required: true, minLength: { value: 8, message: " Password should at least be 8 characters" } })} type="password" placeholder="Enter Password" className=" transition-all bg-white pt-3 pb-3 pl-4 pr-4 border-2 border-[#DCDCDC] caret-bg-accent-dark focus:outline-none  text-[#BCBDBD] active:caret-yellow-400 text-sm rounded-lg placeholder-[#BCBDBD] block w-full h-12 font-gilroy-medium font-[18px] " />
                         <div className="w-full h-5 mt-1 text-left">
                           <ErrorMessage errors={errors} name='password' render={(data) => {
                             return <span className="text-red-700 mt-3 z-10 font-gilroy-black text-left">{data.message}</span>
@@ -208,8 +214,8 @@ export default function Signup() {
                         </div>
                       </div>
                       <div className="text-left space-y-1 w-full">
-                        <span className=" prose prose-md text-white font-gilroy-black text-[22px]">Confirm Password <MandatoryAsterisk></MandatoryAsterisk></span>
-                        <input  {...register('passwordConfirmation', { required: true, validate: (v) => v == password || "Passwords do not match" })} type="password" placeholder="Confirm Password" className="  transition-all bg-[#4A4A4A] pt-3 pb-3 pl-4 pr-4 border-gray-300 caret-bg-accent-dark focus:outline-none focus:border-accent-dark focus:ring-2 focus:ring-accent-dark text-white active:caret-yellow-400 text-sm rounded-lg placeholder-[#C1C1C1] block w-full h-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-white dark:text-white font-gilroy-medium " />
+                        <span className=" prose prose-md  text-black font-gilroy-bold text-[14px]">Confirm Password <MandatoryAsterisk></MandatoryAsterisk></span>
+                        <input  {...register('passwordConfirmation', { required: true, validate: (v) => v == password || "Passwords do not match" })} type="password" placeholder="Confirm Password" className=" transition-all bg-white pt-3 pb-3 pl-4 pr-4 border-2 border-[#DCDCDC] caret-bg-accent-dark focus:outline-none  text-[#BCBDBD] active:caret-yellow-400 text-sm rounded-lg placeholder-[#BCBDBD] block w-full h-12 font-gilroy-medium font-[18px] " />
                         <div className="w-full h-5 mt-1 text-left">
                           <ErrorMessage errors={errors} name='passwordConfirmation' render={(data) => {
                             return <span className="text-red-700 pl-1 mt-3 z-10 font-gilroy-black text-left">{data.message}</span>
@@ -218,7 +224,7 @@ export default function Signup() {
                       </div>
                       <div className="flex flex-col sm:flex-row  items-center justify-start space-y-4 sm:space-y-0 sm:space-x-4 mt-3">
                         <button
-                          className="w-full rounded-lg basis-1/2 h-full  bg-accent-dark p-3 border-2 border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-black font-gilroy-black font-[18px] transition-all"
+                          className="w-full basis-1/2 rounded-lg  bg-[#6950ba] p-3 border-2 border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-white font-gilroy-medium font-[18px] transition-all"
                           type="submit"
                         >
                           {signupButtonStates(transition.state)}
@@ -243,7 +249,7 @@ export default function Signup() {
                       </div>
 
                     </form>
-                    <Link to="/login" className="hover:underline decoration-white self-start mt-2"><span className="text-white">Already have an account? <span className="font-gilroy-black ">Log In </span></span></Link>
+                    <div className="hover:underline font-gilroy-medium  w-full text-center decoration-white self-start mt-4 pt-4"><span className="text-black">Already have an account?</span> <Link to="/login" className=" text-[#6950ba] hover:underline hover:decoration-[#6950ba]">Log In </Link></div>
 
                     <div className="flex flex-row w-full">
 
@@ -258,7 +264,9 @@ export default function Signup() {
           </div>
 
         </div>
-        <div id="right-panel" className="hidden sm:flex sm:flex-col w-full basis-2/5 bg-[url('/AuthPagesSidePanel.svg')] bg-cover bg-no-repeat ">
+        <div id="right-panel" className="hidden sm:flex sm:flex-col w-full basis-2/5">
+          <img className=" w-full h-full object-cover" alt="Neutron Auth Page Graphic" src={AuthPagesSidePanel}></img>
+
           {/* <img
             src={RightSidePanelIllustration}
             className="h-full m-1 w-full snap-center"
@@ -339,17 +347,7 @@ export default function Signup() {
         </div> */}
 
       </div>
-      <ToastContainer position="bottom-center"
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        theme="dark"
-        limit={1}
-
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover></ToastContainer>
+      <NeutronToastContainer></NeutronToastContainer>
 
     </div>
   );

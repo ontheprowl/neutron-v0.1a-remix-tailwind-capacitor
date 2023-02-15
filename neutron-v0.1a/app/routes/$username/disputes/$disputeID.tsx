@@ -2,14 +2,12 @@ import { useFetcher, useLoaderData, useSubmit } from "@remix-run/react";
 import type { ActionFunction, LoaderFunction } from "@remix-run/server-runtime";
 import { redirect } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
-import { get, query, ref } from "firebase/database";
 import { useState } from "react";
 import DisputesChatComponent from "~/components/disputes/DisputesChatComponent";
 import FormButton from "~/components/inputs/FormButton";
 import NeutronModal from "~/components/layout/NeutronModal";
 import { DisputeSeverityGenerator, DisputeStatusGenerator } from "~/components/layout/Statuses";
 import DisputeViewMobileUI from "~/components/pages/DisputeViewMobileUI";
-import { db } from "~/firebase/neutron-config.server";
 import { deleteFirestoreDoc, getSingleDoc, sendEvent } from "~/firebase/queries.server";
 import type { Dispute } from "~/models/disputes";
 import { DisputeType } from "~/models/disputes";
@@ -36,28 +34,28 @@ export const loader: LoaderFunction = async ({ request, params }) => {
         to = selectedDispute?.client?.id;
     }
 
-    if (from && to) {
-        const messageQuery = query(ref(db, 'messages/' + btoa((from + to + disputeID).split('').sort().join(''))));
+    // if (from && to) {
+    //     const messageQuery = query(ref(db, 'messages/' + btoa((from + to + disputeID).split('').sort().join(''))));
 
 
-        const snapshot = await get(messageQuery);
-        const data = snapshot.val();
-        console.log(data)
-        if (data) {
-            for (const [key, value] of Object.entries(data)) {
-                messagesArray.push(value)
-            }
-            console.log(messagesArray)
-        }
+    //     const snapshot = await get(messageQuery);
+    //     const data = snapshot.val();
+    //     console.log(data)
+    //     if (data) {
+    //         for (const [key, value] of Object.entries(data)) {
+    //             messagesArray.push(value)
+    //         }
+    //         console.log(messagesArray)
+    //     }
 
 
 
 
-        // if (messages.length != messagesArray.length)
-        //     setMessages(messagesArray)
+    //     // if (messages.length != messagesArray.length)
+    //     //     setMessages(messagesArray)
 
 
-    }
+    // }
 
     return json({ selectedDispute: { ...selectedDispute, id: disputeID }, from: from, to: to, messages: messagesArray, metadata: session?.metadata });
 }
@@ -93,7 +91,6 @@ export default function DetailedDisputeView() {
     let submit = useSubmit();
     let fetcher = useFetcher();
     const selectedDispute: Dispute = data.selectedDispute;
-    const messages = data.messages;
     const metadata = data.metadata;
 
     const [resolutionModal, setResolutionModal] = useState(false);
@@ -101,6 +98,15 @@ export default function DetailedDisputeView() {
     const [cancelDisputeModal, setCancelDisputeModal] = useState(false);
     const from = data.from;
     const to = data.to;
+
+
+
+
+    // if (messages.length != messagesArray.length)
+    //     setMessages(messagesArray)
+
+
+
 
 
 
@@ -146,7 +152,7 @@ export default function DetailedDisputeView() {
 
                     </div>
                 </div>
-                <DisputesChatComponent disableMessage={selectedDispute.status == DisputeStatus.Accepted ? `This ${generateTextForDisputeType(selectedDispute.type)} request has been accepted ` : selectedDispute.type === DisputeType.Fraud ? '' : `This ${generateTextForDisputeType(selectedDispute.type)} request has been rejected`} disabled={selectedDispute.type === DisputeType.Fraud || (selectedDispute.status == DisputeStatus.Rejected || selectedDispute.status == DisputeStatus.Accepted)} fullHeight from={from} to={to} customKey={selectedDispute.id} messages={messages}></DisputesChatComponent>
+                <DisputesChatComponent disableMessage={selectedDispute.status == DisputeStatus.Accepted ? `This ${generateTextForDisputeType(selectedDispute.type)} request has been accepted ` : selectedDispute.type === DisputeType.Fraud ? '' : `This ${generateTextForDisputeType(selectedDispute.type)} request has been rejected`} disabled={selectedDispute.type === DisputeType.Fraud || (selectedDispute.status == DisputeStatus.Rejected || selectedDispute.status == DisputeStatus.Accepted)} fullHeight  from={from} to={to} customKey={selectedDispute.id} ></DisputesChatComponent>
                 {resolutionModal && <NeutronModal heading={<h1> You are about to accept this dispute  </h1>} onConfirm={() => {
                     const data = new FormData();
                     const payload = { dispute: selectedDispute, disputeID: selectedDispute.id, disputeData: selectedDispute?.data, contractID: selectedDispute.contractID, milestone: selectedDispute.currentMilestone, nextMilestoneIndex: selectedDispute.nextMilestoneIndex, viewers: selectedDispute.viewers }

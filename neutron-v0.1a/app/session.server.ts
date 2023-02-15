@@ -6,6 +6,7 @@ import {
   getSessionToken,
   sessionTTL,
 } from "./firebase/neutron-config.server";
+import { hasKey, retrieveObject } from "./redis/queries.server";
 
 export const sessionStorage = createCookieSessionStorage({
   cookie: {
@@ -73,8 +74,19 @@ export async function getUserSession(request: Request, autoRedirect?: boolean) {
   const metadataCookie = cookie.get("metadata");
   let metadata = undefined;
   if (metadataCookie) {
-    const path = metadataCookie.path;
-    metadata = await getSingleDoc(path);
+    const path: string = metadataCookie.path;
+    //? Change metadata retrieval logic to first attempt to retrieve the metadata from the cache. Default to firestore only when cache miss occurs.
+    // console.log("REDIS KEY is : " + redisKey)
+    //? Redis build is not stable. Max no. of clients is reached too quickly. Figure out why.
+    
+    if(await hasKey(path)){
+      console.log("Retrieving from redis...")
+      metadata = await retrieveObject(path)
+    } else {
+      metadata = await getSingleDoc(path);
+    }
+    // metadata = await getSingleDoc(path)
+
   }
 
   if (!token) {

@@ -8,7 +8,9 @@ import { useLoaderData } from '@remix-run/react';
 import MobileNavbarPadding from '../layout/MobileNavbarPadding';
 import DisputesChatComponent from '../disputes/DisputesChatComponent';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useList } from 'react-firebase-hooks/database'
 import { formatDateToReadableString } from '~/utils/utils';
+import { clientRef, db } from '~/firebase/neutron-config.client';
 
 
 function generateDeliverables(milestones: { [key: string]: any }) {
@@ -165,26 +167,32 @@ function generateDeliverablesForMobile(milestones: { [key: string]: any }) {
     return deliverablesArray
 }
 
+
+// * 12/12/22 - Component is unstable due to gradual move of Contract Event and Contract Chat Message processing to client side
 export default function ContractOverview({ published }: { published?: boolean }) {
 
     const loaderData = useLoaderData();
     let data = ContractDataStore.useState();
-    let events, messages, from, to;
+    let events, from, to;
 
     const stage = ContractDataStore.useState(s => s.sidePanelStage);
 
     const [expanded, setExpanded] = useState(true);
+
+
+
     if (loaderData) {
         data = loaderData.contract;
         events = loaderData.contractEvents;
-        messages = loaderData.contractMessages;
+
         from = loaderData.from;
         to = loaderData.to;
     }
 
 
+
     const sidePanelStages = [<MilestoneStepper key={0} ></MilestoneStepper>,
-    <DisputesChatComponent disableMessage={'This is a preview of the contract chat'} disabled={!published} key={1} messages={messages} from={from} to={to} customKey={data.id}></DisputesChatComponent>
+    <DisputesChatComponent disableMessage={'This is a preview of the contract chat'} disabled={!published} key={1} id={data.id} from={from} to={to} customKey={data.id}></DisputesChatComponent>
     ]
 
     const milestones = published ? data.milestones : data.milestonesProcessed;

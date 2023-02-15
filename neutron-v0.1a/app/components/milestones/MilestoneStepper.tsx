@@ -1,26 +1,24 @@
 import type { Contract, Milestone } from "~/models/contracts";
-import { DeliverableType, MilestoneStatus } from "~/models/contracts";
-import NeutronIcon from '~/assets/images/icon.svg';
+import { MilestoneStatus } from "~/models/contracts";
 import CompletedMilestoneIcon from '~/assets/images/CompletedMilestoneIcon.svg';
 import CurrentMilestoneIcon from '~/assets/images/CurrentMilestoneIcon.svg';
 import FlagIcon from '~/assets/images/flag.svg'
-import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
 import { formatDateToReadableString, structurePayinPayload } from "~/utils/utils";
 import FormButton from "../inputs/FormButton";
-import Accordion from "../layout/Accordion";
 import NeutronModal from "../layout/NeutronModal";
 import { motion } from "framer-motion";
-import { useFetcher, useLoaderData, useNavigate, useSubmit } from "@remix-run/react";
-import { ContractEvent, NeutronEvent, PaymentEvent } from "~/models/events";
+import { useFetcher, useLoaderData, useNavigate } from "@remix-run/react";
+import type { NeutronEvent } from "~/models/events";
+import { ContractEvent, EventType, PaymentEvent } from "~/models/events";
 import { useEffect, useState } from "react";
-import { stat } from "fs/promises";
-import { ContractDataStore } from "~/stores/ContractStores";
 import DefaultSpinner from "../layout/DefaultSpinner";
 import RequestRevisionForm from "../disputes/RequestRevisionForm";
 import RaiseDisputeForm from "../disputes/RaiseDisputeForm";
 import type { Dispute } from "~/models/disputes";
 import { generateTextForDisputeType } from "~/utils/utils";
 import { DisputeSeverityGenerator } from "../layout/Statuses";
+import { generateEventsQuery } from "~/firebase/queries.client";
+import { client_onValue } from "~/firebase/neutron-config.client";
 
 
 
@@ -28,6 +26,9 @@ import { DisputeSeverityGenerator } from "../layout/Statuses";
 
 
 export default function MilestoneStepper() {
+
+
+
 
     // let ENV;
     // if (window != undefined) {
@@ -41,42 +42,90 @@ export default function MilestoneStepper() {
 
 
     let fetcher = useFetcher();
+    let paymentFetcher = useFetcher();
+    let postPaymentFetcher = useFetcher();
 
     const { contract, metadata, ownerUsername, node_env } = data as { contract: Contract, metadata: { [x: string]: any }, ownerUsername: string, node_env: string };
 
-    
-    const [loading, setLoading] = useState<boolean>(true);
+    const [gatewayRendered, setGatewayRendered] = useState(false)
+
     const [targetMilestoneInfo, setTargetMilestoneInfo] = useState<{ milestone: Milestone, milestoneIndex?: string | undefined, nextMilestoneIndex?: string | undefined }>();
     const [approvalModal, setApprovalModal] = useState<boolean>(false);
     const [requestRevisionModal, setRequestRevisionModal] = useState<boolean>(false);
     const [raiseDisputeModal, setRaiseDisputeModal] = useState<boolean>(false);
     const [payinModal, setPayinModal] = useState<boolean>(false);
 
-    const contractEvents: NeutronEvent[] = data.contractEvents;
+
+    //* Events are being loaded using this ad-hoc strategy to support real-time transformations
+
+    const [contractEvents, setContractEvents] = useState<NeutronEvent[]>();
+
+    // const eventsGet = clientGet(query)
 
     useEffect(() => {
-        if (contractEvents.length > 0) {
-            setLoading(false);
-        }
-    }, [setLoading, contractEvents])
+        const messageQuery = generateEventsQuery(EventType.ContractEvent, contract.id);
+        return client_onValue(messageQuery, (snapshot) => {
+            let result: NeutronEvent[] = []
 
-    const sortedEvents = contractEvents.sort((a, b) => (a?.timestamp - b?.timestamp))
-    
+            const data = snapshot.val();
+            console.log(data)
+            if (data) {
+                for (const [key, value] of Object.entries(data)) {
+                    result.push(value)
+                }
+            }
+            setContractEvents(result)
+        })
+
+
+    }, [contract.id])
+
+
+    useEffect(() => {
+        if (paymentFetcher.type == "done" && !gatewayRendered) {
+            var script = document.createElement('script');
+            script.onload = function (ev) {
+                var options = {
+                    "key": "rzp_test_m6Y4dhTvMurSLS", //"rzp_live_mZzuHi91dzfZ0s", // Enter the Key ID generated from the Dashboard
+                    "amount": paymentFetcher.data.amount_due, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+                    "currency": "INR",
+                    "name": "Neutron",
+                    "description": "Test Transaction",
+                    "order_id": paymentFetcher.data.id,
+                    "handler": function (response: any) {
+                        console.log("IN THE HANDLER FUNCTION")
+                        const form = new FormData();
+                        form.append('response', JSON.stringify(response))
+                        postPaymentFetcher.submit(form, { method: "post", action: `${ownerUsername}/payment/success/${contract.id}` })
+                    },//This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+
+                };
+                console.log("FINAL OPTIONS PASSED TO RAZORPAY CLIENT:")
+                console.dir(options)
+                var rzp1 = new Razorpay(options);
+                rzp1.open();
+                setGatewayRendered(true)
+
+            };
+            script.src = "https://checkout.razorpay.com/v1/checkout.js";
+            document.head.appendChild(script);
+
+        }
+    }, [paymentFetcher, gatewayRendered])
+
+    const sortedEvents = contractEvents?.sort((a, b) => (a?.timestamp - b?.timestamp))
+
 
 
     return (
         <>
-            <motion.div id="paper_trail" variants={{ collapsed: { scale: 0.9, opacity: 0 }, open: { scale: 1, opacity: 1 } }}
-                transition={{ duration: 0.1 }} className="flex flex-col w-auto m-3 max-h-[500px] overflow-y-scroll">
+            <motion.div layout id="paper_trail" className="flex flex-col w-auto m-3 max-h-[500px] overflow-y-scroll">
+
                 {/* {sortedEvents[0].event == ContractEvent.ContractSignedByServiceProvider ? <MilestoneStep name={"Contract has been signed by the service provider!"} status={MilestoneStatus.Completed} /> : <MilestoneStep status={MilestoneStatus.Current} name={"Contract has not been signed by the service provider!"} subline={"Current Status"} />}
 
             {sortedEvents[1].event == ContractEvent.ContractSignedByBoth ? <MilestoneStep name={"Contract has been signed by both parties!"} status={MilestoneStatus.Completed} /> : <><MilestoneStep status={MilestoneStatus.Current} name={"Contract has not been signed by the service provider!"} subline={"Current Status"} /><MilestoneStep status={MilestoneStatus.Current} name={"Contract has not been signed by the client!"} subline={"Current Status"} /></>} */}
 
-                {loading ? <DefaultSpinner></DefaultSpinner> :
-
-                    generateMilestonesFromEvents(sortedEvents)
-
-                }
+                {sortedEvents && sortedEvents?.length > 0 ? generateMilestonesFromEvents(sortedEvents) : <DefaultSpinner></DefaultSpinner>}
 
             </motion.div>
             {approvalModal && <NeutronModal onConfirm={() => {
@@ -86,7 +135,7 @@ export default function MilestoneStepper() {
                     form.append("contract", JSON.stringify(contract))
                     //TODO : Need to set this flag on the last milestone
                     if (targetMilestoneInfo?.milestone.isLastMilestone) {
-                        
+
                         form.append("isLastMilestone", Boolean(true).toString());
                     }
                     else {
@@ -114,10 +163,12 @@ export default function MilestoneStepper() {
                 }></NeutronModal>}
             {
                 payinModal && <NeutronModal onConfirm={() => {
+                    setGatewayRendered(false)
                     const payload = structurePayinPayload(contract, ownerUsername, metadata, node_env);
+                    console.log(payload)
                     const formData = new FormData();
                     formData.append("payload", JSON.stringify(payload))
-                    fetcher.submit(formData, { method: 'post', action: `${ownerUsername}/handlers/payment` })
+                    paymentFetcher.submit(formData, { method: 'post', action: `${ownerUsername}/handlers/payment` })
                 }} toggleModalFunction={setPayinModal} heading={<p> You will be paying in {contract.contractValue} for this contract </p>} body={<p className="text-black">Are you sure you want to proceed? </p>}></NeutronModal>
             }
         </>)
@@ -142,7 +193,7 @@ export default function MilestoneStepper() {
 
         if (dispute) {
             return (
-                <div className="flex flex-col space-x-3 ml-3 items-center border-2 border-dashed border-red-600 rounded-xl">
+                <motion.div className="flex flex-col space-x-3 ml-3  items-center border-2 border-dashed border-red-600 rounded-xl">
                     <div className="flex flex-col self-start m-5 ml-0 w-full space-x-3 space-y-3">
                         <div className="flex flex-row items-center space-x-4 w-full justify-between">
                             <div className="flex flex-row space-x-3 justify-start">
@@ -241,13 +292,13 @@ export default function MilestoneStepper() {
                     </div> : <div className="flex flex-row justify-end">
                         <h2 className="prose prose-sm text-white ml-1"> </h2>
                     </div>} */}
-                </div>)
+                </motion.div>)
         }
 
         return milestone != undefined ?
             <>
 
-                <div className="flex flex-col space-x-3 ml-3 items-center border-2 border-solid border-purple-400 rounded-xl">
+                <motion.div className="flex flex-col space-x-3 ml-3 items-center border-2 border-solid border-purple-400 rounded-xl">
                     <div className="flex flex-col self-start m-5 space-x-3 space-y-3">
                         <div className="flex flex-row items-center space-y-1 space-x-3 justify-start">
                             <img src={iconForMilestoneStatus(milestone.status != undefined ? milestone.status : MilestoneStatus.Upcoming)} alt="Neutron Icon" className="h-6 ml-3" />
@@ -285,7 +336,7 @@ export default function MilestoneStepper() {
                                         form.append("externallyDelivered", 'true');
                                         form.append("milestone", JSON.stringify(milestone));
                                         if (milestone.isLastMilestone) {
-                                            
+
                                             form.append("isLastMilestone", Boolean(true).toString());
                                             form.append("milestoneIndex", contract.milestones.workMilestones.length - 1);
                                         } else {
@@ -308,7 +359,7 @@ export default function MilestoneStepper() {
                                                 form.append("deliverableFile", file);
                                                 form.append("milestone", JSON.stringify(milestone));
                                                 if (milestone.isLastMilestone) {
-                                                    
+
                                                     form.append("isLastMilestone", Boolean(true).toString());
                                                     form.append("milestoneIndex", Object.keys(contract?.milestones?.workMilestones).length - 1);
                                                 } else {
@@ -340,7 +391,7 @@ export default function MilestoneStepper() {
                     </div> : <div className="flex flex-row justify-end">
                         <h2 className="prose prose-sm text-white ml-1"> </h2>
                     </div>}
-                </div>
+                </motion.div>
             </> : <>
 
                 <div className="flex flex-row space-x-5 mb-6
@@ -372,12 +423,12 @@ export default function MilestoneStepper() {
 
         let milestone = event?.payload?.data.queuedMilestone;
         let nextMilestoneIndex = event?.payload?.data.nextMilestoneIndex;
-        
+
 
         switch (event?.event) {
 
             case ContractEvent.ContractDrafted:
-                return <MilestoneStep key={event.timestamp} index={eventIndex} status={variant} name={variant == MilestoneStatus.Completed ? `Contract was drafted and then published by ${contract.creator == contract.clientEmail? contract.clientName : contract.providerName}` : `Contract has been drafted by ${contract.creator == contract.clientEmail? contract.clientName : contract.providerName}`} subline={variant == MilestoneStatus.Completed ? formatDateToReadableString(event.timestamp, false, true) : 'Current Status'} />
+                return <MilestoneStep key={event.timestamp} index={eventIndex} status={variant} name={variant == MilestoneStatus.Completed ? `Contract was drafted and then published by ${contract.creator == contract.clientEmail ? contract.clientName : contract.providerName}` : `Contract has been drafted by ${contract.creator == contract.clientEmail ? contract.clientName : contract.providerName}`} subline={variant == MilestoneStatus.Completed ? formatDateToReadableString(event.timestamp, false, true) : 'Current Status'} />
 
             case ContractEvent.ContractPublished:
 
@@ -421,7 +472,7 @@ export default function MilestoneStepper() {
                     </div>)
 
             case ContractEvent.ContractDisputeRegistered:
-                
+
                 const pausedMilestone = event?.payload?.data?.currentMilestone;
                 const registeredDispute: Dispute = event?.payload?.data?.dispute;
                 return (
@@ -453,14 +504,14 @@ export default function MilestoneStepper() {
                 let milestonePayoutAmount = event.payload?.data.amount;
                 return <MilestoneStep index={eventIndex} key={event.event} status={variant} name={variant == MilestoneStatus.Completed ? `Payout of ₹${milestonePayoutAmount} has been queued ` : `Payout of ₹${milestonePayoutAmount} will be queued shortly `} subline={variant == MilestoneStatus.Completed ? formatDateToReadableString(event.timestamp, false, true) : 'Current Status'} />;
             case ContractEvent.ContractMilestonePayoutCompleted:
-                return <MilestoneStep index={eventIndex} key={event.event} status={variant} name={variant == MilestoneStatus.Completed ? `Payout has been completed ` : `Payout is being processed `} subline={variant == MilestoneStatus.Completed ? formatDateToReadableString(event.timestamp, false, true) : 'Current Status'} />;
+                return <MilestoneStep index={eventIndex} key={event.event} status={variant} name={variant == MilestoneStatus.Completed ? `Payout wil be credited shortly` : `Payout is being processed `} subline={variant == MilestoneStatus.Completed ? formatDateToReadableString(event.timestamp, false, true) : 'Current Status'} />;
             case ContractEvent.ContractPayoutRequested:
                 let payoutAmount = event.payload?.data?.amount;
                 return <MilestoneStep index={eventIndex} key={event.event} status={variant} name={variant == MilestoneStatus.Completed ? `Payout of ₹${payoutAmount} has been queued ` : `Payout of ₹${payoutAmount} will be queued shortly `} subline={variant == MilestoneStatus.Completed ? formatDateToReadableString(event.timestamp, false, true) : 'Current Status'} />;
 
             //TODO: Add contract details to contract payout completed event so that milestone event can be enriched.
             case ContractEvent.ContractPayoutCompleted:
-                return <MilestoneStep index={eventIndex} key={event.event} status={variant} name={variant == MilestoneStatus.Completed ? `Payout has been completed ` : `Payout is being processed `} subline={variant == MilestoneStatus.Completed ? formatDateToReadableString(event.timestamp, false, true) : 'Current Status'} />;
+                return <MilestoneStep index={eventIndex} key={event.event} status={variant} name={variant == MilestoneStatus.Completed ? `Payout wil be credited shortly` : `Payout is being processed `} subline={variant == MilestoneStatus.Completed ? formatDateToReadableString(event.timestamp, false, true) : 'Current Status'} />;
 
             case ContractEvent.ContractCompleted:
                 let completedContract = event?.payload?.data;
@@ -487,10 +538,10 @@ export default function MilestoneStepper() {
         let milestoneArray: JSX.Element[] = [];
         for (let currentIndex = 0; currentIndex < events.length - 1; currentIndex++) {
             const currentEvent = events[currentIndex]
-            
+
             milestoneArray.push(generateStepForEvent(currentEvent, MilestoneStatus.Completed, currentIndex))
         }
-        
+
         milestoneArray.push(generateStepForEvent(events[events.length - 1], MilestoneStatus.Current, events.length - 1))
         // milestoneArray.push(
         //     <div key={key}>

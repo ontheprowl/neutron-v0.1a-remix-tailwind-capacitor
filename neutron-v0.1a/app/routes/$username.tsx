@@ -23,12 +23,12 @@ import SettingsButton from "~/components/SettingsButton";
 import LogoutButton from "~/components/LogoutButton";
 import { useEffect, useMemo, useState } from "react";
 import NeutronModal from "~/components/layout/NeutronModal";
-import { beamsClient, isSafari } from "~/components/notifications/pusher-config.client";
 import { ContractDataStore } from "~/stores/ContractStores";
 import { DEFAULT_CONTRACT_STATE } from "~/models/contracts";
 import { useJune } from "~/utils/use-june";
 import AccentedToggle from "~/components/layout/AccentedToggleV1";
-import { logtail } from "~/logging/logtail-config.client";
+import useAsset from "~/hooks/useAsset";
+import { useBeams } from "~/utils/use-beams";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
 
@@ -63,6 +63,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
 
 export default function CustomUserPage() {
+
 
 
     // const options = {
@@ -100,6 +101,12 @@ export default function CustomUserPage() {
 
     //* Test Mode state either respects the user's default setting, or reverts to default app-wide setting ( true )
 
+    useEffect(()=>{
+        console.log(metadata?.defaultTestMode)
+    },[metadata.defaultTestMode])
+
+
+
     const [testMode, setTestMode] = useState(metadata?.defaultTestMode ? metadata?.defaultTestMode : false);
 
     // ? Need to examine if this is the best way to persist state on the client. Refactor into useLocalStorage hook
@@ -120,6 +127,7 @@ export default function CustomUserPage() {
     }, [metadata?.defaultTestMode, toggleUserModeFetcher]);
 
 
+
     //* June integration 
 
     const analytics = useJune("taPBsHKSJL8IG6BG");
@@ -136,23 +144,12 @@ export default function CustomUserPage() {
 
     }, [analytics, metadata, pathname])
 
-
+ 
     // * This effect ensures that the beamsClient is subscribing to all messages for the currently logged-in user
 
     //* Pusher Beams  doesnt work on Safari.
     // ? Consider repackaging into a useSafariSafeBeams hook
-    useEffect(() => {
-        if (!isSafari) {
-            beamsClient.start().then(() => { beamsClient.addDeviceInterest(metadata.id) });
-        }
-
-
-        return () => {
-            if (!isSafari) {
-                beamsClient.stop();
-            }
-        }
-    }, [metadata])
+    useBeams(metadata.id)
 
     const [rotation, cycleRotation] = useCycle([0, 180, 360]);
 
@@ -167,15 +164,34 @@ export default function CustomUserPage() {
         }, 1000);
     }, [navigate]);
 
-    useEffect(()=>{
-        logtail.info("Test log!")
-    })
-
     const date = useMemo(formatDateToReadableString, []);
 
 
     const currentUserData = data.metadata;
-    logtail.info("Test log 2!")
+
+
+    //* Caching for static assets
+
+    const profileImageData = useAsset(currentUserData.photoURL)
+
+    // // * Using Dexie Hooks for easier flow working with IndexedDB
+    // useEffect(() => {
+    //     db.userImages.get(currentUserData.photoURL).then((result) => {
+    //         if (result) {
+    //             console.log("ASSET FOUND IN CACHE")
+    //             setProfileImageData(result.data)
+    //         } else {
+    //             console.log("ASSET NOT FOUND IN CACHE")
+    //             toDataURL(currentUserData.photoURL, function (data) {
+    //                 db.userImages.add({ url: currentUserData.photoURL, data: data }, currentUserData.photoURL).then((result) => {
+    //                     setProfileImageData(result)
+
+    //                 })
+    //             })
+    //         }
+    //     })
+    // })
+
 
 
     const fundStats: JSX.Element[] = [
@@ -197,7 +213,7 @@ export default function CustomUserPage() {
         </div>];
 
     return (
-        <div className={`flex font-gilroy-bold h-auto w-full flex-col sm:flex-col bg-bg-primary-dark sm:border-4  ${testMode ? ' border-accent-dark' : 'border-transparent'}`}>
+        <div className={`flex font-gilroy-bold h-auto w-full flex-col sm:flex-col bg-primary-base sm:border-4  ${testMode ? ' border-accent-dark' : 'border-transparent'}`}>
             {testMode && <div className={` absolute top-0 transition-all z-40 box-decoration-clone h-auto w-auto bg-accent-dark p-2 font-gilroy-medium self-center text-center whitespace-nowrap rounded-b-xl`}>Sandbox</div>}
             <div className="flex flex-row">
                 <aside className="hidden sm:h-auto sm:min-h-screen sm:flex sm:w-auto" aria-label="Sidebar">
@@ -344,7 +360,7 @@ export default function CustomUserPage() {
 
                             <div id="profile-funds-summary" className={`text-white text-left p-4 w-full self-start  rounded-xl ${primaryGradientDark}`}>
                                 <div className="flex flex-row justify-between space-x-4">
-                                    <button className={`text-white hover:opacity-60 ${statIndex > 0 ? 'visible' : 'invisible'} transition-all flex flex-row justify-center items-center basis-1/5 `} onClick={() => {
+                                    <button className={`text-white hover:opacity-60 ${statIndex > 0 ? 'visible' : 'invisible'}  flex flex-row justify-center items-center basis-1/5 `} onClick={() => {
                                         setStatIndex(statIndex - 1);
                                     }}><img alt="Back Arrow" src={BackArrow} /></button>
                                     <AnimatePresence exitBeforeEnter>
@@ -358,7 +374,7 @@ export default function CustomUserPage() {
                                             onTap={() => {
                                                 statIndex < 3 ? setStatIndex(statIndex + 1) : setStatIndex(0);
                                             }}
-                                            transition={{ duration: 0.5 }} className="flex basis-3/5 flex-col text-center cursor-pointer hover:opacity-50">
+                                            transition={{ duration: 0.2 }} className="flex basis-3/5 flex-col text-center cursor-pointer hover:opacity-50">
                                             {fundStats[statIndex]}
                                         </motion.div>
 
@@ -384,8 +400,8 @@ export default function CustomUserPage() {
                                 <p className="font-gilroy-bold text-[14px] text-center mt-5"> {currentUserData.contracts} Active Contract{currentUserData.contracts != 1 ? 's' : ''}</p>
                             </div>
                             {kycComplete && <div id="toggle-use-mode" className='flex flex-row space-x-4 items-center'>
-                                <AccentedToggle variant='neutron-purple' name="sortOrder" onToggle={() => {
-                                    toggleUserModeFetcher.submit({}, { action: `/${metadata.displayName}/profile/setUserMode`, method: 'post' })
+                                <AccentedToggle variant='neutron-purple' name="setUserMode" onToggle={() => {
+                                    toggleUserModeFetcher.submit({}, { action: `/${metadata.displayName}/profile/setUserMode?source=${pathname}`, method: "put" })
                                 }} ></AccentedToggle>
                                 <div className="flex flex-col text-white">
                                     <h1 className="font-gilroy-bold text-[18px]">Switch Mode</h1>
@@ -394,7 +410,7 @@ export default function CustomUserPage() {
                             </div>}
 
                             <div className="flex flex-row p-5 pb-0 pt-0 items-center border-t-2 border-gray-300 justify-end space-x-2 ">
-                                <img alt="profile" src={currentUserData.photoURL ? currentUserData.photoURL : PlaceholderDP} className="h-10 w-10 mt-16 translate-y-[-30px]  bg-[#e5e5e5]  hover:opacity-50 hover:ring-1 outline-none transition-all hover:ring-[#8364E8] border-solid border-black rounded-full self-start ml-6  object-contain"></img>
+                                <img alt="profile" src={profileImageData ? profileImageData : PlaceholderDP} className="h-10 w-10 mt-16 translate-y-[-30px]  bg-[#e5e5e5]  hover:opacity-50 hover:ring-1 outline-none transition-all hover:ring-[#8364E8] border-solid border-black rounded-full self-start ml-6  object-contain"></img>
                                 <div className="flex flex-col">
                                     <h1 className="font-gilroy-bold text-[14px] text-white">
                                         {currentUserData.displayName}
@@ -491,7 +507,7 @@ export default function CustomUserPage() {
                         <div className="flex flex-row items-center">
                             <img onClick={() => {
                                 navigate(`/${currentUserData.displayName}/profile`)
-                            }} alt="profile" src={currentUserData.photoURL ? currentUserData.photoURL : PlaceholderDP} className="h-10 w-10  bg-[#e5e5e5] object-fill cursor-pointer hover:opacity-50 hover:ring-1 outline-none transition-all hover:ring-[#8364E8] border-solid border-black rounded-full self-center"></img>
+                            }} alt="profile" src={profileImageData ? profileImageData : PlaceholderDP} className="h-10 w-10  bg-[#e5e5e5] object-fill cursor-pointer hover:opacity-50 hover:ring-1 outline-none transition-all hover:ring-[#8364E8] border-solid border-black rounded-full self-center"></img>
                         </div>
 
                     </div>
