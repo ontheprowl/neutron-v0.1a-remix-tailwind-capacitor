@@ -100,7 +100,7 @@ export async function action({ request }: { request: Request }) {
       if (result) {
         console.log("Caching to Redis was successful...")
       }
-      return createUserSession({ request: request, metadata: { path: ref.path }, userId: token, remember: true, redirectTo: profileComplete ? `/${user.displayName}/dashboard` : `/${user.displayName}/profile` })
+      return createUserSession({ request: request, metadata: { path: ref.path }, userId: token, remember: true, redirectTo: profileComplete ? `/${user.displayName}/dashboard` : `/onboarding/industry` })
     } else {
       throw new Error("neutron-auth/email-not-verified");
     }

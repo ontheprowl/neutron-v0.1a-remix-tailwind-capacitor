@@ -37,6 +37,10 @@ module.exports = {
         'neutral-base':'#BDBCBC',
         'primary-text':'#202020',
         'secondary-text':'#7D7D7D',
+        'success-dark':'#1f8c30',
+        'success-base':'#24AB39',
+        'success-light':'#BAF0C3',
+
         'white': '#FFFFFF',
       },
       screens: {
