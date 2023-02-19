@@ -44,7 +44,7 @@ export default function BusinessDetails() {
                 </div>
                 <div className="sm:text-left space-x-2 flex flex-row w-full">
                     <div className="sm:text-left space-y-1  w-full">
-                        <span className=" prose prose-md text-black font-gilroy-bold text-[14px]">Website</span>
+                        <span className=" prose prose-md text-black font-gilroy-bold text-[14px]">City</span>
                         <input  {...register('city')} type="text" placeholder="e.g: Neutron Money Pvt. Ltd." className=" transition-all bg-[#FFFFFF] pt-3 pb-3 pl-4 pr-4 border-2 border-[#DCDCDC] caret-bg-accent-dark focus:outline-none  text-[#BCBDBD] active:caret-yellow-400 text-sm rounded-lg placeholder-[#BCBDBD] block w-full h-12 font-gilroy-medium font-[18px] " />
                     </div>
                     <div className="sm:text-left space-y-1  w-full">
@@ -97,6 +97,7 @@ export default function BusinessDetails() {
                 </div>
                 <button
                     className="w-3/12 rounded-lg  bg-primary-base p-3 border-2 border-transparent active:bg-primary-dark hover:bg-primary-dark outline-none ring-1 ring-transparent focus:ring-white focus:border-white hover:border-white hover:ring-white text-white font-gilroy-medium font-[18px] transition-all"
+                    type="button"
                     onClick={() => {
                         navigate("../integrations")
                     }}

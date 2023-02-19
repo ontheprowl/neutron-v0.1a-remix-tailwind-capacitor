@@ -29,10 +29,10 @@ export default function IndustryDetails() {
                     <span className=" prose prose-md text-black font-gilroy-bold text-[14px]">Industry</span>
                     <div id="industry_options" className="grid grid-cols-2 gap-4">
                         <NeutronRadioGroup>
-                            <NeutronRadioButton name={"industryType"} no={1}></NeutronRadioButton>
-                            <NeutronRadioButton name={"industryType"} no={2}></NeutronRadioButton>
-                            <NeutronRadioButton name={"industryType"} no={3}></NeutronRadioButton>
-                            <NeutronRadioButton name={"industryType"} no={4}></NeutronRadioButton>
+                            <NeutronRadioButton name="industryType" heading="Manufacturing" value="Manufacturing" no={1}></NeutronRadioButton>
+                            <NeutronRadioButton name="industryType" heading="Enterprise" value="Enterprise" no={2}></NeutronRadioButton>
+                            <NeutronRadioButton name="industryType" heading="MSME" value="MSME" no={3}></NeutronRadioButton>
+                            <NeutronRadioButton name="industryType" heading="Startup" value="Startup" no={4}></NeutronRadioButton>
                         </NeutronRadioGroup>
 
                     </div>
@@ -43,6 +43,7 @@ export default function IndustryDetails() {
                 </div>
                 <button
                     className="w-3/12 rounded-lg  bg-primary-base p-3 border-2 border-transparent active:bg-primary-dark hover:bg-primary-dark outline-none ring-1 ring-transparent focus:ring-white focus:border-white hover:border-white hover:ring-white text-white font-gilroy-medium font-[18px] transition-all"
+                    type="button"
                     onClick={()=>{
                         navigate("../business")
                     }}

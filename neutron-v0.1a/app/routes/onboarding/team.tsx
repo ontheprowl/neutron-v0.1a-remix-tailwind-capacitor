@@ -22,16 +22,16 @@ export default function TeamDetails() {
             </div>
             <div id="industry_details" className="mt-8 flex flex-col space-y-6">
                 <div className="h-[400px] overflow-y-scroll flex flex-col space-y-6">
-                    {[...Array(teamSize)].map((value) => {
+                    {[...Array(teamSize)].map((value, index) => {
                         return (
                             <div key={value} className="w-full flex flex-row space-x-4">
                                 <div className="sm:text-left space-y-3  w-1/2">
-                                    <span className=" prose prose-md text-black font-gilroy-bold text-[14px]">Name of the Business</span>
-                                    <input  {...register('business_name')} type="text" placeholder="e.g: Neutron Money Pvt. Ltd." className=" transition-all bg-[#FFFFFF] pt-3 pb-3 pl-4 pr-4 border-2 border-[#DCDCDC] caret-bg-accent-dark focus:outline-none  text-[#BCBDBD] active:caret-yellow-400 text-sm rounded-lg placeholder-[#BCBDBD] block w-full h-12 font-gilroy-medium font-[18px] " />
+                                    <span className=" prose prose-md text-black font-gilroy-bold text-[14px]">Name</span>
+                                    <input  {...register(`team.${index}.memberName`)} type="text" placeholder="e.g: Neutron Money Pvt. Ltd." className=" transition-all bg-[#FFFFFF] pt-3 pb-3 pl-4 pr-4 border-2 border-[#DCDCDC] caret-bg-accent-dark focus:outline-none  text-[#BCBDBD] active:caret-yellow-400 text-sm rounded-lg placeholder-[#BCBDBD] block w-full h-12 font-gilroy-medium font-[18px] " />
                                 </div>
                                 <div className="sm:text-left space-y-3  w-1/2">
-                                    <span className=" prose prose-md text-black font-gilroy-bold text-[14px]">Name of the Business</span>
-                                    <input  {...register('business_name')} type="text" placeholder="e.g: Neutron Money Pvt. Ltd." className=" transition-all bg-[#FFFFFF] pt-3 pb-3 pl-4 pr-4 border-2 border-[#DCDCDC] caret-bg-accent-dark focus:outline-none  text-[#BCBDBD] active:caret-yellow-400 text-sm rounded-lg placeholder-[#BCBDBD] block w-full h-12 font-gilroy-medium font-[18px] " />
+                                    <span className=" prose prose-md text-black font-gilroy-bold text-[14px]">Role</span>
+                                    <input  {...register(`team.${index}.memberRole`)} type="text" placeholder="e.g: Neutron Money Pvt. Ltd." className=" transition-all bg-[#FFFFFF] pt-3 pb-3 pl-4 pr-4 border-2 border-[#DCDCDC] caret-bg-accent-dark focus:outline-none  text-[#BCBDBD] active:caret-yellow-400 text-sm rounded-lg placeholder-[#BCBDBD] block w-full h-12 font-gilroy-medium font-[18px] " />
                                 </div>
                             </div>
                         )
@@ -44,6 +44,7 @@ export default function TeamDetails() {
                 </button>
                 <button
                     className="w-3/12 rounded-lg  bg-primary-base p-3 border-2 border-transparent active:bg-primary-dark hover:bg-primary-dark outline-none ring-1 ring-transparent focus:ring-white focus:border-white hover:border-white hover:ring-white text-white font-gilroy-medium font-[18px] transition-all"
+                    type="button"
                     onClick={() => {
                         navigate("../welcome")
                     }}

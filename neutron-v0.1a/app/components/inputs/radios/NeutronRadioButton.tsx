@@ -4,7 +4,7 @@ import GenericIcon from '~/assets/images/institution_icon.svg'
 import { StateContext } from '~/utils/contexts/StateContext';
 
 
-export default function NeutronRadioButton({ name, heading, description, icon, no }: { name: string, heading: string, description?: string, icon?: string, no: number }) {
+export default function NeutronRadioButton({ name, value, heading, description, icon, no }: { name: string, value: string, heading: string, description?: string, icon?: string, no: number }) {
 
     const { getter, setter } = useContext(StateContext);
 
@@ -17,7 +17,7 @@ export default function NeutronRadioButton({ name, heading, description, icon, n
                     <input {...register(name)} type="radio" onClick={(e) => {
                         console.log(e.currentTarget.checked)
                         if (setter) setter(no)
-                    }} className="bg-primary-dark w-6 h-6 accent-primary-dark outline-primary-light" />
+                    }} value={value} className="bg-primary-dark w-6 h-6 accent-primary-dark outline-primary-light" />
                     <div className="flex flex-col space-y-1">
                         <h1 className="font-gilroy-bold">{heading}</h1>
                         <span className="text-secondary-text">{description}</span>
