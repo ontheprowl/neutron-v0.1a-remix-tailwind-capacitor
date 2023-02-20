@@ -1,7 +1,6 @@
 import { Outlet, useLocation, useSubmit } from "@remix-run/react";
 import { ActionFunction, LoaderFunction, json, redirect } from "@remix-run/server-runtime";
-import { getAuth } from "firebase/auth";
-import { useEffect } from "react";
+import { serverAuth } from "~/firebase/firebase-exports.server";
 import { FormProvider, useForm } from "react-hook-form";
 import OnboardingSidePanel from '~/assets/images/OnboardingSidePanel.svg'
 
@@ -38,7 +37,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
     const session = await requireUser(request);
 
-    if (session && getAuth().currentUser?.emailVerified) {
+    if (session && serverAuth.getAuth().currentUser?.emailVerified) {
 
         return redirect(`/${session?.metadata?.displayName}/dashboard`)
     }

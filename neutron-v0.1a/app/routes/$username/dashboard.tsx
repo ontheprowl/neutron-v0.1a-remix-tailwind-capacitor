@@ -1,368 +1,123 @@
-import { Link, useFetcher, useNavigate, useSubmit } from '@remix-run/react';
-import { primaryGradientDark } from '~/utils/neutron-theme-extensions';
-import { formatDateToReadableString } from '~/utils/utils';
-import type { ActionFunction, LoaderFunction } from '@remix-run/server-runtime';
-import { redirect } from '@remix-run/server-runtime';
-import { json } from '@remix-run/server-runtime';
-import { useLoaderData } from '@remix-run/react';
-import { firestore } from '~/firebase/neutron-config.server';
-import { collection, deleteDoc, doc, getCountFromServer, getDocs, limit, query, where } from 'firebase/firestore';
-import type { Contract } from '~/models/contracts';
-import { ContractCreationStages, ContractStatus } from '~/models/contracts';
-import ViewIcon from '~/components/inputs/ViewIcon';
-import EditIcon from '~/components/inputs/EditIcon';
-import DeleteIcon from '~/components/inputs/DeleteIcon';
-import MobileNavbarPadding from '~/components/layout/MobileNavbarPadding';
-import { setFirestoreDocFromData } from '~/firebase/queries.server';
-import { requireUser } from '~/session.server';
-import ContractZeroState from '~/components/contracts/ContractZeroState';
-import { ContractDraftedStatus, ContractPublishedStatus } from '~/components/layout/Statuses';
-import { ToastContainer } from 'react-toastify';
-import { injectStyle } from 'react-toastify/dist/inject-style';
-import { useEffect, useMemo, useState } from 'react';
-import NeutronModal from '~/components/layout/NeutronModal';
-import { ContractDataStore } from '~/stores/ContractStores';
-import DashboardMobileUI from '~/components/pages/DashboardMobileUI';
-import AccentedToggle from '~/components/layout/AccentedToggleV1';
 
-
-export const loader: LoaderFunction = async ({ request, params }) => {
-
-    // 
-    const session = await requireUser(request, true);
-
-    const ownerUsername = params.username;
-
-    const url = new URL(request.url);
-    const page = url.searchParams.get("page");
-
-
-    const contractsQuery = query(collection(firestore, session?.metadata?.defaultTestMode ? `testContracts` : `contracts`), where("viewers", "array-contains", session?.metadata?.id));
-
-    //TODO : Make metadata fetching dynamic
-    // const disputesQuery = query(collection(firestore, 'disputes'), limit(5));
-    const contractsData = await getDocs(contractsQuery);
-
-    // const disputesData = await getDocs(disputesQuery)
-    const contracts: { [x: string]: any }[] = contractsData.docs.map((document) => {
-        return { id: document.id, ...document.data() };
-    });
-
-    return json({
-        contracts: contracts.filter((contract) => contract?.status != ContractStatus.Draft || contract?.creator == session?.metadata?.email).sort((a, b) => { return b.startDate - a.startDate }).map((contract) => { return { ...contract, role: contract?.creator === session?.metadata?.email ? 'Issuer' : 'Receiver' } }), disputes: [],
-        metadata: session.metadata, ownerUsername: ownerUsername
-    });
-}
-
-
-export const action: ActionFunction = async ({ request }) => {
-
-    const session = await requireUser(request, true);
-    const data = await request.formData();
-    const id = data.get('id');
-
-
-    const docRef = doc(firestore, `contracts/${id}`);
-
-    await deleteDoc(docRef);
-    const numberOfContracts = new Number(session?.metadata?.contracts);
-
-    const metadataRef = await setFirestoreDocFromData({ ...session?.metadata, contracts: numberOfContracts.valueOf() - 1 }, `metadata`, session?.metadata?.id);
-
-    return redirect(`${session?.metadata?.displayName}/dashboard`)
-
-}
-
-
-export default function Dashboard() {
-
-    const fetcher = useFetcher();
+import MessageIcon from '~/assets/images/messageIcon.svg'
 
 
 
+export default function ARDashboard() {
 
-
-    const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
-    const submit = useSubmit();
-    const userData: { contracts: Contract[], disputes: any[], metadata: any, ownerUsername: string } = useLoaderData();
-
-
-    const currentContract: Contract = userData.contracts[0]
-
-    // let protectedFunds = 0;
-    // userData.contracts.forEach((contract) => {
-    //     protectedFunds += Number.parseInt(contract?.contractValue?.replace('₹'));
-    // })
-    const [contractSelectedForDeletion, setContractSelectedForDeletion] = useState(currentContract);
-    const [contractFilter, setContractFilter] = useState();
-    const [contractSortKey, setContractSortKey] = useState('');
-    const [sortAscending, setSortAscending] = useState(false);
-
-    useEffect(() => {
-        injectStyle();
-    }, [contractSortKey]);
-
-    const currentUserData = userData.metadata;
-
-
-
-    const tableContracts = useMemo(() => {
-        return userData?.contracts.filter((contract) => contractFilter ? contract.projectName?.includes(contractFilter) : true).sort((a, b) => {
-            let leftContract, rightContract;
-
-            if (sortAscending) {
-                leftContract = a;
-                rightContract = b;
-            }
-            else {
-                leftContract = b;
-                rightContract = a;
-            }
-            switch (contractSortKey) {
-
-                case 'value':
-                    return parseInt(leftContract?.contractValue.replace("₹", '').replace(',', '')) > parseInt(rightContract?.contractValue.replace("₹", '').replace(',', '')) ? 1 : -1
-                case 'date':
-
-                    return new Date(leftContract.endDate).getTime() - new Date(rightContract.endDate).getTime() > 0 ? 1 : -1;
-                case 'issuer':
-                    return leftContract?.role == "Issuer" ? 1 : -1
-                case 'counterpartyName':
-                    const leftCounterParty = leftContract?.clientEmail == leftContract?.creator ? leftContract?.providerName : leftContract?.clientName;
-                    const rightCounterParty = rightContract?.clientEmail == rightContract?.creator ? rightContract?.providerName : rightContract?.clientName;
-                    return leftCounterParty == rightCounterParty ? 1 : -1
-                default:
-                    return 0;
-            }
-        });
-    }, [contractFilter, contractSortKey, sortAscending, userData?.contracts])
-
-    let navigate = useNavigate();
 
     return (
-        <>
-            <div className="hidden sm:flex sm:flex-row h-full ">
-
-                <div id="activity-details-summary" className="flex flex-col w-full bg-white ">
-                    <div className='hidden sm:flex flex-row m-6 justify-between'>
-                        <div className="flex flex-col">
-                            <article className="">
-                                <h2 className="text-white text-[30px] font-gilroy-black">Contracts </h2>
-                                <p className="text-white text-[20px] font-gilroy-regular">Track and manage your contracts</p>
-
-                            </article>
-
-                        </div>
-                        {/* <div className="flex items-center w-[692px]">
-                        <label htmlFor="simple-search" className="sr-only">Search</label>
-                        <div className="relative w-full ">
-                            <div className="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
-                                <svg className="w-5 h-5 text-white dark:text-black" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd"></path></svg>
-                            </div>
-                            <input type="text" id="simple-search" className=" bg-bg-primary-dark border border-gray-300 text-gray-900 text-sm rounded-lg placeholder-white block w-full pl-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white " placeholder="Search through contracts" required />
-
-                        </div>
-                    </div> */}
-                        <div id="user-action-buttons" >
-                            <div className=' m-2'>
-                                <button
-                                    className={`w-full rounded-lg p-3 border-2 h-14 self-start text-left ${primaryGradientDark} border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-white transition-all`}
-                                    onClick={() => {
-                                        ContractDataStore.update((s) => { s.stage = ContractCreationStages.ClientInformation });
-                                        navigate(`/${currentUserData?.displayName}/contracts/create`)
-                                    }}
-
-                                >
-                                    <div className='flex flex-row space-x-2 justify-center items-center'>
-                                        <svg width="21" height="20" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M10.4993 4.16602V15.8327M4.66602 9.99935H16.3327" stroke="white" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
-                                        </svg>
-                                        <h1 className=''>Create Contract</h1>
-
-                                    </div>
-
-                                </button>
-                            </div>
-                        </div>
+        <div className="flex flex-col space-y-3 h-full">
+            <div className="flex flex-row space-x-3  h-1/5">
+                <div id="primary_metric" className="w-1/3 bg-primary-base flex flex-col text-white p-5 space-y-6 justify-between shadow-lg rounded-xl">
+                    <h1 className=" text-5xl">Rs. 1,20,000</h1>
+                    <div className="flex flex-row justify-between">
+                        <span className=" text-lg">
+                            Total Outstanding
+                        </span>
+                        <span className=" text-2xl text-success-light">
+                            +15%
+                        </span>
                     </div>
-                    {userData.contracts.length > 0 && <div className=' flex flex-row items-center space-x-4 mx-6 pr-2 '>
-                        <div className="flex flex-row bg-[#4d4d4d] border-2 basis-1/2 h-10 space-x-4 p-2 w-1/2 border-gray-500 rounded-lg">
-                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M17.5 17.5L14.5834 14.5833M16.6667 9.58333C16.6667 13.4954 13.4954 16.6667 9.58333 16.6667C5.67132 16.6667 2.5 13.4954 2.5 9.58333C2.5 5.67132 5.67132 2.5 9.58333 2.5C13.4954 2.5 16.6667 5.67132 16.6667 9.58333Z" stroke="#BCBCBC" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-
-                            <input type="text" placeholder="Search through your contracts" onChange={(e) => {
-                                setContractFilter(e?.target?.value);
-                            }} className="w-full bg-[#4d4d4d] border-0 text-white placeholder:text-white focus:border-transparent outline-none " />
-
-                        </div>
-                        <div className=" text-white space-x-4  basis-1/2 w-full items-center flex justify-end flex-row">
-                            <div className='flex flex-row space-x-4 items-center'>
-                                <span>Sort By</span>
-                                <select onChange={(e) => {
-                                    setContractSortKey(e.target.value);
-                                }} defaultValue="none" className='border-2 border-gray-400 w-auto bg-bg-primary-dark p-2 rounded-xl'>
-                                    <option value="none">None (Default)</option>
-                                    <option value="issuer">Issuer / Receiver</option>
-                                    <option value="value">Contract Value</option>
-                                    <option value="date">Due Date</option>
-                                    <option value="counterpartyName">Counterparty Name</option>
-                                </select>
-                                <div className='flex flex-row space-x-4 items-center'>
-                                    <AccentedToggle variant='neutron-purple' name="sortOrder" control={sortAscending} onToggle={() => {
-                                        setSortAscending(!sortAscending);
-                                    }} ></AccentedToggle>
-                                    <div className="flex flex-col text-white">
-                                        <h1 className="font-gilroy-bold text-[18px]">Sort Order</h1>
-                                        <p className="font-gilroy-regular text-[14px] text-gray-300"> Order in ascending?</p>
-                                    </div>
-                                </div>
-                            </div>
-
-
-
-                        </div>
-                    </div>}
-                    {/* {currentContract ?
-                    <div id="current-project-summary" className={`flex font-gilroy-regular flex-col sm:flex-row m-6 mt-2 w-auto rounded-xl h-auto min-h-52 ${primaryGradientDark} justify-between items-center`}>
-                        <div className="flex flex-col m-0.5 rounded-xl p-5 w-full text-left bg-bg-secondary-dark">
-                            <h2 className="prose prose-xl mb-3 text-white font-gilroy-black text-[24px]">
-                                Current Project: {currentContract?.projectName}
-                            </h2>
-                            <p className="prose prose-md text-white break-all sm:text-left font-gilroy-regular text-[18px]">
-                                {currentContract?.description}
-                            </p>
-                             <div className="flex flex-col mt-2 text-left">
-                            <h1 className="prose prose-sm text-white">Next Milestone</h1>
-                            <h1 className="prose prose-md text-white">{currentContract?.hasMilestones ? currentContract?.milestones?.workMilestones[0].description : "Project has no milestones"}</h1>
-                        </div> 
-                            <div className="flex flex-row justify-start space-x-5 items-center prose prose-lg font-gilroy-medium text-white mt-2 whitespace-nowrap max-w-sm mb-5 sm:text-left">
-                                <span className='items-center'>Current Status :</span>
-                                <span className='items-center mb-3'> {currentContract?.status == ContractStatus.Draft ? <ContractDraftedStatus></ContractDraftedStatus> : <ContractPublishedStatus></ContractPublishedStatus>}</span>
-                            </div>
-                            {currentContract?.projectName && currentUserData.email == currentContract.clientEmail && currentContract.isSigned ? <PurpleWhiteButton onClick={() => {
-                                const payload = structurePayinPayload(currentContract, userData.ownerUsername, currentUserData);
-                                const formData = new FormData();
-                                formData.append("payload", JSON.stringify(payload))
-                                fetcher.submit(formData, { method: 'post', action: `${userData.ownerUsername}/handlers/payment` })
-                            }} text="Pay Contract" /> : <></>}
-
-                        </div>
-
-
-                    </div> : <ContractZeroState></ContractZeroState>}
-                <MobileNavbarPadding /> */}
-
-                    {currentContract ? <div className={`bg-[#202020] hidden sm:table p-3 rounded-xl border-2 max-h-[70vh] border-solid border-purple-400 ${userData.contracts.length > 3 ? 'h-[65vh]' : 'h-2/5'} m-6`}>
-                        <table className={`w-full max-h-[70vh] overflow-y-scroll sm:block table-auto ${userData.contracts.length > 3 ? 'h-[65vh]' : 'h-auto'} text-sm text-left text-gray-500 dark:text-gray-400`}>
-
-                            <tbody className='sm:block table-row-group'>
-                                <tr className={` border-b sm:flex sm:flex-row w-full dark:bg-gray-800 dark:border-gray-700 transition-all sticky top-0 pointer-events-none bg-bg-secondary-dark z-20  hover:bg-opacity-50 hover:drop-shadow-md dark:hover:bg-gray-600`}>
-
-                                    <th scope="row" className="px-2 py-4 w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
-                                        #
-                                    </th>
-                                    <th scope="row" className="px-2 py-4 w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
-                                        Project Name
-                                    </th>
-                                    <th scope="row" className="px-2 py-4 w-full font-medium text-center text-white dark:text-white">
-                                        Counter-party Name
-                                    </th>
-                                    <th scope="row" className="px-2 py-4 w-full font-medium text-center text-white dark:text-white ">
-                                        Contract Value & Due Date
-                                    </th>
-                                    <th scope="row" className="px-2 py-4 w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
-                                        Contract Status
-                                    </th>
-                                    <th scope="row" className="px-2 py-4  w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
-                                        Issuer / Receiver
-                                    </th>
-                                    <th scope="row" className="px-2 py-4  w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
-                                        Actions
-                                    </th>
-
-                                </tr>
-                                {tableContracts.map((contract: Contract, index: number) => {
-
-                                    return (
-                                        <tr key={contract.id} className={`border-b sm:flex sm:flex-row sm:justify-evenly sm:items-center w-full border-gray-400 dark:bg-gray-800 dark:border-gray-700 transition-all hover:bg-bg-primary-dark hover:bg-opacity-50 hover:border-accent-dark hover:drop-shadow-md dark:hover:bg-gray-600`}>
-
-                                            <td scope="row" className="px-2 py-4 w-full font-medium text-center text-white dark:text-white whitespace-nowrap">
-                                                {index + 1}
-                                            </td>
-                                            <td className="px-2 py-4 w-full text-center text-white ">
-                                                <Link to={`/${currentUserData?.displayName}/contracts/${contract.id}`} className="hover:underline">
-                                                    {contract.projectName}
-                                                </Link>
-                                            </td>
-                                            <td className="px-2 py-4  w-full text-center text-white">
-                                                {contract?.clientEmail == currentUserData.email ? contract?.providerName : contract?.clientName}
-                                            </td>
-                                            <td className="px-2 py-4 w-full text-center text-white">
-
-                                                <span className="text-[20px]">{contract.contractValue}</span>
-                                                <br></br>
-                                                {contract.isSigned ? formatDateToReadableString(contract.signedDate, false, true) : formatDateToReadableString(contract.startDate, false, true)}
-
-                                            </td>
-                                            <td className="  px-2 py-4 w-full translate-y-[-5px] text-center justify-center items-center flex-row flex ">
-                                                {contract?.status == ContractStatus.Draft ? <ContractDraftedStatus></ContractDraftedStatus> : <ContractPublishedStatus></ContractPublishedStatus>}
-                                            </td>
-                                            <td className="  px-2 py-4 w-full text-center text-white">
-                                                {contract?.role}
-                                            </td>
-                                            <td className=' px-2 py-4 w-full min-w-[160px] flex flex-row justify-center '>
-                                                <div className=" max-w-fit w-full space-x-2 flex flex-row justify-evenly ">
-
-                                                    {contract.status === ContractStatus.Draft && <EditIcon onClick={() => {
-                                                        navigate(`/${currentUserData?.displayName}/contracts/edit/${contract.id}`)
-                                                    }} className={'rounded-full border-2 border-transparent bg-transparent hover:bg-accent-dark transition-all  p-2'}></EditIcon>}
-                                                    <ViewIcon onClick={() => {
-                                                        navigate(`/${currentUserData?.displayName}/contracts/${contract.id}`)
-                                                    }} className={'rounded-full border-2 border-transparent bg-transparent hover:bg-accent-dark transition-all  p-2'}></ViewIcon>
-                                                    {contract.status === ContractStatus.Draft && <DeleteIcon onClick={() => {
-                                                        setContractSelectedForDeletion(contract);
-                                                        setDeleteConfirmationModal(!deleteConfirmationModal);
-                                                    }} className={'rounded-full border-2 border-transparent bg-transparent hover:bg-accent-dark transition-all  p-2'}></DeleteIcon>}
-                                                    {/* <ChatIcon onClick={function (event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
-                                                    throw new Error('Function not implemented.');
-                                                }} className={'rounded-full border-2 border-transparent bg-transparent hover:bg-accent-dark transition-all  p-2'}></ChatIcon> */}
-                                                </div>
-                                            </td>
-
-
-                                        </tr>)
-                                })}
-
-                            </tbody>
-                        </table>
-                    </div> : <ContractZeroState></ContractZeroState>}
-
                 </div>
-                {deleteConfirmationModal && <NeutronModal onConfirm={(e) => {
-
-                    let data = new FormData();
-                    if (contractSelectedForDeletion.id) {
-                        data.append('id', contractSelectedForDeletion.id);
-                        submit(data,
-                            { method: 'post' });
-                    }
-
-                }} body={<p className="text-red-600">You're about to delete a contract</p>} toggleModalFunction={setDeleteConfirmationModal}></NeutronModal>}
-
-                <ToastContainer position="bottom-center"
-                    hideProgressBar={false}
-                    newestOnTop={false}
-                    closeOnClick
-                    rtl={false}
-                    theme="dark"
-                    limit={1}
-
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover></ToastContainer>
-                <MobileNavbarPadding />
+                <div id="secondary_metric" className="w-1/3 bg-white flex flex-col text-black p-5 space-y-6 justify-between shadow-lg rounded-xl">
+                    <h1 className=" text-5xl">80</h1>
+                    <div className="flex flex-row justify-between">
+                        <span className=" text-lg">
+                            Days Sales Outstanding
+                        </span>
+                        <span className=" text-2xl text-warning-dark">
+                            +15%
+                        </span>
+                    </div>
+                </div>
+                <div id="tertiary_metric" className="w-1/3 flex flex-col bg-white p-5 space-y-6 justify-between text-black shadow-lg rounded-xl">
+                    <h1 className=" text-5xl">80</h1>
+                    <div className="flex flex-row justify-between">
+                        <span className=" text-lg">
+                            Days Sales Outstanding
+                        </span>
+                        <span className=" text-2xl">
+                            +15%
+                        </span>
+                    </div>
+                </div>
             </div>
-            <DashboardMobileUI></DashboardMobileUI></>);
+            <div className="flex flex-row space-x-3 h-2/5">
+                <div id="actions" className="w-2/5 h-full flex flex-col bg-primary-light text-black shadow-lg rounded-xl">
+                    <div className="flex flex-row h-auto justify-between p-5 pb-3">
+                        <h2 className="text-black">
+                            Actions
+                        </h2>
+                        <h2 className=" text-error-dark">
+                            4 ACTIONS ARE PENDING
+                        </h2>
+                    </div>
+                    <ul className="h-full grid grid-cols-1 divide-y divide-black m-5 mt-0">
+                        <li className="flex flex-row items-center justify-start space-x-10">
+                            <img src={MessageIcon} alt="messageIcon" className="w-5" />
+                            <span> Action 1 </span>
+                        </li>
+                        <li className="flex flex-row items-center justify-start space-x-10">
+                            <img src={MessageIcon} alt="messageIcon" className="w-5" />
+                            <span> Action 1 </span>
 
+                        </li>
+                        <li className="flex flex-row items-center justify-start space-x-10">
+                            <img src={MessageIcon} alt="messageIcon" className="w-5" />
+                            <span> Action 1 </span>
+
+                        </li>
+                        <li className="flex flex-row items-center justify-start space-x-10">
+                            <img src={MessageIcon} alt="messageIcon" className="w-5" />
+                            <span> Action 1 </span>
+
+                        </li>
+                        <li className="flex flex-row items-center justify-start space-x-10">
+                            <img src={MessageIcon} alt="messageIcon" className="w-5" />
+                            <span> Action 1 </span>
+
+                        </li>
+                    </ul>
+                </div>
+                <div id="visualizations_panel" className="w-3/5 p-5 bg-white text-black shadow-lg rounded-xl">
+                    <h2 className="text-black">
+                        Ageing Balance
+                    </h2>
+                </div>
+
+            </div>
+            <div className="flex flex-row space-x-3 h-2/5">
+                <div id="receivables_queue" className="w-1/2 bg-white flex flex-col text-black shadow-lg rounded-xl">
+                    <div className='flex flex-row justify-between items-center m-5'>
+                        <div className='flex flex-col w-auto'>
+                            <h1>Receivables Queue</h1>
+                            <span className=' text-error-dark'>
+                                From total 5 Clients
+                            </span>
+                        </div>
+                        <button className='bg-primary-base hover:bg-primary-dark transition-all p-2.5 font-gilroy-regular text-white rounded-lg'>
+                            View All
+                        </button>
+                    </div>
+                    <ul className='border-2 border-black m-5 mt-0 h-full'>
+
+                    </ul>
+                </div>
+                <div id="top_debtors" className="w-1/2 bg-white flex flex-col text-black shadow-lg rounded-xl">
+                    <div className='flex flex-row justify-between items-center m-5'>
+                        <div className='flex flex-col w-auto'>
+                            <h1>Top Debtors</h1>
+                        </div>
+                        <button className='bg-primary-base hover:bg-primary-dark transition-all p-2.5 font-gilroy-regular text-white rounded-lg'>
+                            View All
+                        </button>
+                    </div>
+                    <ul className='border-2 border-black m-5 mt-0 h-full'>
+
+                    </ul>
+                </div>
+
+            </div>
+        </div>)
 }

@@ -10,7 +10,7 @@ import ForwardArrow from '~/assets/images/ForwardArrow.svg'
 
 
 
-import Icon from '../assets/images/NeutronLogoFull.svg';
+import Icon from '../assets/images/icon_black.svg';
 import IconWhite from '../assets/images/iconWhite.svg'
 import PlaceholderDP from '~/assets/images/kartik.png'
 import BottomNav from "~/components/layout/BottomNav";
@@ -29,6 +29,10 @@ import { useJune } from "~/utils/use-june";
 import AccentedToggle from "~/components/layout/AccentedToggleV1";
 import useAsset from "~/hooks/useAsset";
 import { useBeams } from "~/utils/use-beams";
+import DashboardIcon from "~/components/inputs/DashboardIcon";
+import WorkflowIcon from "~/components/inputs/WorkflowIcon";
+import InvoicesIcon from "~/components/inputs/InvoicesIcon";
+import CustomersIcon from "~/components/inputs/CustomersIcon";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
 
@@ -101,9 +105,9 @@ export default function CustomUserPage() {
 
     //* Test Mode state either respects the user's default setting, or reverts to default app-wide setting ( true )
 
-    useEffect(()=>{
+    useEffect(() => {
         console.log(metadata?.defaultTestMode)
-    },[metadata.defaultTestMode])
+    }, [metadata.defaultTestMode])
 
 
 
@@ -144,7 +148,7 @@ export default function CustomUserPage() {
 
     }, [analytics, metadata, pathname])
 
- 
+
     // * This effect ensures that the beamsClient is subscribing to all messages for the currently logged-in user
 
     //* Pusher Beams  doesnt work on Safari.
@@ -193,49 +197,35 @@ export default function CustomUserPage() {
     // })
 
 
-
-    const fundStats: JSX.Element[] = [
-        <div key={0}>
-            <motion.h1 className="font-gilroy-bold text-[14px]">Funds In Escrow</motion.h1>
-            <motion.h2 className="font-gilroy-black text-[20px]">₹{currentUserData.funds.escrowedFunds ? currentUserData.funds.escrowedFunds : '0'}</motion.h2>
-        </div>,
-        <div key={1}>
-            <motion.h1 className="font-gilroy-bold text-[14px]">Disbursed Funds</motion.h1>
-            <motion.h2 className="font-gilroy-black text-[20px]">₹{currentUserData.funds.disbursedFunds ? currentUserData.funds.disbursedFunds : '0'}</motion.h2>
-        </div>,
-        <div key={2}>
-            <motion.h1 className="font-gilroy-bold text-[14px]">Disputed Funds </motion.h1>
-            <motion.h2 className="font-gilroy-black text-[20px]">₹{currentUserData.funds.disputedFunds ? currentUserData.funds.disputedFunds : '0'}</motion.h2>
-        </div>,
-        <div key={3}>
-            <motion.h1 className="font-gilroy-bold text-[14px]">Received Funds</motion.h1>
-            <motion.h2 className="font-gilroy-black text-[20px]">₹{currentUserData.funds.receivedFunds ? currentUserData.funds.receivedFunds : '0'}</motion.h2>
-        </div>];
-
+    // ? Is Sandbox UX necessary for AR/AP ? If not, scrap, and clean up the container
     return (
-        <div className={`flex font-gilroy-bold h-auto w-full flex-col sm:flex-col bg-primary-base sm:border-4  ${testMode ? ' border-accent-dark' : 'border-transparent'}`}>
+        <div className={`flex font-gilroy-bold h-auto w-full flex-col bg-white sm:border-0  ${testMode ? ' border-accent-dark' : 'border-transparent'}`}>
             {testMode && <div className={` absolute top-0 transition-all z-40 box-decoration-clone h-auto w-auto bg-accent-dark p-2 font-gilroy-medium self-center text-center whitespace-nowrap rounded-b-xl`}>Sandbox</div>}
-            <div className="flex flex-row">
-                <aside className="hidden sm:h-auto sm:min-h-screen sm:flex sm:w-auto" aria-label="Sidebar">
+
+            <div id="top_nav" className="h-20 flex flex-row space-x-10 items-center justify-between p-3 py-12">
+                <div className="flex flex-row space-x-20 px-5 w-5/12 max-w-2xl">
+                    <img src={Icon} className="w-32" alt="Icon"></img>
+                    <div className="flex flex-row bg-[#f5f5f5]  h-10 space-x-4 p-2 w-full  rounded-lg">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.5 17.5L14.5834 14.5833M16.6667 9.58333C16.6667 13.4954 13.4954 16.6667 9.58333 16.6667C5.67132 16.6667 2.5 13.4954 2.5 9.58333C2.5 5.67132 5.67132 2.5 9.58333 2.5C13.4954 2.5 16.6667 5.67132 16.6667 9.58333Z" stroke="#6F6E6E" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+
+                        <input type="text" placeholder="Search " className="w-full bg-transparent text-neutral-dark placeholder:text-neutral-dark focus:border-transparent outline-none " />
+
+                    </div>
+                </div>
+                <div className="border-2 border-black">
+                    hi
+                </div>
+
+            </div>
+            <div className="flex flex-row space-x-10 shadow-inner bg-[#FBFAFF] px-4 py-6">
+                <aside className=" px-3 hidden shadow-lg rounded-lg sm:h-auto sm:min-h-screen sm:flex sm:w-52" aria-label="Sidebar">
                     <div className=" h-auto flex flex-col items-center justify-between rounded p-3  bg-bg-primary-dark  dark:bg-gray-800">
 
-                        <div className="w-full place-items-center ">
-                            <motion.a
+                        <div className="w-full place-items-center text-black ">
 
-                                onClick={() => {
-                                    navigate('/');
-                                }}
-                                className=" flex flex-row justify-start pl-2 mt-3  cursor-pointer"
-                            >
-                                <motion.img
-
-                                    src={Icon}
-                                    className=" h-auto w-40 self-center hover:opacity-70 transition-all"
-                                    alt="Neutron Logo"
-                                />
-                            </motion.a>
-
-                            <ul className={`${!data?.isOwner ? 'hidden' : ''} mt-10 w-full shrink-0 space-y-2`}>
+                            <ul className={`${!data?.isOwner ? 'hidden' : ''} mt-5 w-full shrink-0 space-y-6`}>
                                 <li className=" transition-all  rounded-lg w-full">
                                     <button
                                         onClick={() => {
@@ -245,11 +235,12 @@ export default function CustomUserPage() {
 
 
                                         }}
-                                        className={`rounded-lg transition-all w-full flex flex-row align-middle p-2 text-gray-100 border-2 border-transparent active:border-accent-dark  hover:bg-bg-secondary-dark  sm:space-x-3 ${pathname.includes('dashboard') ? 'bg-bg-secondary-dark' : ``}
+                                        className={`rounded-lg transition-all w-full flex flex-row align-middle p-2  border-2 border-transparent active:border-primary-base  hover:border-primary-base  sm:space-x-4 ${pathname.includes('dashboard') ? 'bg-primary-base text-white' : `text-black`}
                                 `}
                                     >
-                                        <HomeButton />
-                                        <h1 className="text-[18px]">Home</h1>
+                                        <DashboardIcon selected={pathname.includes('dashboard')} />
+
+                                        <h1 className="text-[18px]">Dashboard</h1>
                                     </button>
                                 </li>
 
@@ -280,11 +271,47 @@ export default function CustomUserPage() {
 
 
                                         }}
-                                        className={`rounded-lg transition-all flex border-2 border-transparent active:border-accent-dark  hover:bg-bg-secondary-dark w-full flex-row align-middle p-2 text-gray-100 sm:space-x-3 ${pathname.includes('disputes') ? 'bg-bg-secondary-dark' : ``}
+                                        className={`rounded-lg transition-all flex border-2 border-transparent active:border-primary-base  hover:border-primary-base w-full flex-row align-middle p-2  sm:space-x-4 ${pathname.includes('disputes') ? 'bg-primary-base text-white' : `text-black`}
                                 `}
                                     >
-                                        <DisputesButton />
-                                        <h1 className="text-[18px]">Disputes</h1>
+                                        <WorkflowIcon selected={pathname.includes('disputes')} />
+                                        <h1 className="text-[18px]">Workflows</h1>
+
+                                    </button>
+                                </li>
+                                <li className=" transition-all rounded-lg">
+                                    <button
+
+                                        onClick={() => {
+
+                                            // TODO: Add logic on disputes parent layout page to redirect to /disputeID of the first active dispute
+                                            navigate('invoices')
+
+
+                                        }}
+                                        className={`rounded-lg transition-all flex border-2 border-transparent active:border-primary-base  hover:border-primary-base w-full flex-row align-middle p-2 sm:space-x-4 ${pathname.includes('invoices') ? 'bg-primary-base text-white' : `text-black`}
+                                `}
+                                    >
+                                        <InvoicesIcon selected={pathname.includes('invoices')} />
+                                        <h1 className="text-[18px]">Invoices</h1>
+
+                                    </button>
+                                </li>
+                                <li className=" transition-all rounded-lg">
+                                    <button
+
+                                        onClick={() => {
+
+                                            // TODO: Add logic on disputes parent layout page to redirect to /disputeID of the first active dispute
+                                            navigate('customers')
+
+
+                                        }}
+                                        className={`rounded-lg transition-all flex border-2 border-transparent active:border-primary-base  hover:border-primary-base w-full flex-row align-middle p-2 sm:space-x-4 ${pathname.includes('customers') ? 'bg-primary-base text-white' : `text-black`}
+                                `}
+                                    >
+                                        <CustomersIcon selected={pathname.includes('customers')} />
+                                        <h1 className="text-[18px]">Customers</h1>
 
                                     </button>
                                 </li>
@@ -293,22 +320,8 @@ export default function CustomUserPage() {
                             </ul>
                         </div>
                         <div className="flex flex-col space-y-6 ">
-                            <div id="misc-buttons" className="w-full">
-                                <ul className={`${!data?.isOwner ? 'hidden' : ''} mt-20 w-full shrink-0 space-y-2`}>
-                                    <li className=" transition-all  rounded-lg w-full">
-                                        <a
-                                            href='https://www.neutron.money/support'
-                                            className={`rounded-lg transition-all flex flex-row align-middle p-2 text-gray-100 w-full border-2 border-transparent active:border-accent-dark  hover:bg-bg-secondary-dark sm:space-x-3 ${tab == "Support" ? 'bg-bg-secondary-dark' : ``}
-                                `}
-                                        >
-
-                                            <SupportButton />
-                                            <h1 className="text-[18px]">Support</h1>
-
-
-                                        </a>
-                                    </li>
-                                    {/* <li className="hover:opacity-80 transition-all rounded-lg">
+                            <ul className={`${!data?.isOwner ? 'hidden' : ''} w-full shrink-0 space-y-2`}>
+                                {/* <li className="hover:opacity-80 transition-all rounded-lg">
                                 <button onClick={() => {
                                     UIStore.update((s) => {
                                         s.selectedTab = "Profile";
@@ -324,107 +337,31 @@ export default function CustomUserPage() {
 
                                 </button>
                             </li> */}
-                                    <li className=" transition-all rounded-lg">
-                                        <button onClick={() => {
-                                            navigate('profile');
+                                <li className=" transition-all rounded-lg">
+                                    <button onClick={() => {
+                                        navigate('settings');
 
-                                        }}
-                                            className={`rounded-lg transition-all flex flex-row align-middle p-2 text-gray-100 w-full border-2 border-transparent active:border-accent-dark  hover:bg-bg-secondary-dark  sm:space-x-3 ${pathname.includes('profile') ? 'bg-bg-secondary-dark' : ``}
-                                 `}
-                                        >
-                                            <SettingsButton />
-                                            <h1 className="text-[18px]">Profile</h1>
-
-                                        </button>
-                                    </li>
-                                    {/* <li className="hover:opacity-80 transition-all  rounded-lg w-full">
-                                <button
-                                    onClick={() => {
-                                        UIStore.update((s) => {
-                                            s.selectedTab = "Logout";
-                                        });
-                                        fetcher.submit(null, { method: 'post', action: "/logout" })
-                                        UIStore.update((s) => {
-                                            s.selectedTab = "Home";
-                                        });
                                     }}
-                                    className={`rounded-lg transition-all flex flex-row align-middle p-2 text-gray-100 w-full hover:ring-1 hover:ring-accent-dark sm:space-x-3 ${tab == "Logout" ? 'bg-bg-secondary-dark' : ``}
-                                `}
-                                >
-                                    <LogoutButton />
-                                    <h1 className="text-[18px]">Logout</h1>
-                                </button>
-                            </li> */}
-                                </ul>
-                            </div>
+                                        className={`rounded-lg transition-all flex flex-row align-middle p-2 w-full border-2 border-transparent active:border-primary-base hover:border-primary-base  sm:space-x-4 ${pathname.includes('settings') ? 'bg-primary-base text-white' : `text-black`}
+                                 `}
+                                    >
+                                        <SettingsButton selected={pathname.includes('settings')} />
+                                        <h1 className="text-[18px]">Settings</h1>
 
-                            <div id="profile-funds-summary" className={`text-white text-left p-4 w-full self-start  rounded-xl ${primaryGradientDark}`}>
-                                <div className="flex flex-row justify-between space-x-4">
-                                    <button className={`text-white hover:opacity-60 ${statIndex > 0 ? 'visible' : 'invisible'}  flex flex-row justify-center items-center basis-1/5 `} onClick={() => {
-                                        setStatIndex(statIndex - 1);
-                                    }}><img alt="Back Arrow" src={BackArrow} /></button>
-                                    <AnimatePresence exitBeforeEnter>
-
-
-                                        <motion.div layout
-                                            key={statIndex}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            initial={{ opacity: 0, x: 20 }}
-                                            exit={{ opacity: 0, x: -20 }}
-                                            onTap={() => {
-                                                statIndex < 3 ? setStatIndex(statIndex + 1) : setStatIndex(0);
-                                            }}
-                                            transition={{ duration: 0.2 }} className="flex basis-3/5 flex-col text-center cursor-pointer hover:opacity-50">
-                                            {fundStats[statIndex]}
-                                        </motion.div>
-
-
-                                    </AnimatePresence>
-                                    <button className={`text-white hover:opacity-60 ${statIndex < 2 ? 'visible' : 'invisible'} basis-1/5 flex flex-row justify-center items-center transition-all`} onClick={() => {
-                                        setStatIndex(statIndex + 1);
-                                    }}><img src={ForwardArrow} alt="Forward Arrow" /></button>
-                                </div>
-
-                                {/* <div className="flex flex-row justify-between mt-3">
-                                    {statIndex > 0 && <button onClick={() => {
-                                        setStatIndex(statIndex - 1);
-                                    }}>&#8249;
-                                    </button>}
-                                    {statIndex < 3 && <button onClick={() => {
-                                        setStatIndex(statIndex + 1);
-                                    }}>&#8250;
-                                    </button>}
-                                </div> */}
-
-
-                                <p className="font-gilroy-bold text-[14px] text-center mt-5"> {currentUserData.contracts} Active Contract{currentUserData.contracts != 1 ? 's' : ''}</p>
-                            </div>
-                            {kycComplete && <div id="toggle-use-mode" className='flex flex-row space-x-4 items-center'>
-                                <AccentedToggle variant='neutron-purple' name="setUserMode" onToggle={() => {
-                                    toggleUserModeFetcher.submit({}, { action: `/${metadata.displayName}/profile/setUserMode?source=${pathname}`, method: "put" })
-                                }} ></AccentedToggle>
-                                <div className="flex flex-col text-white">
-                                    <h1 className="font-gilroy-bold text-[18px]">Switch Mode</h1>
-                                    <p className="font-gilroy-regular text-[14px] text-gray-300">{testMode ? 'Switch to Production' : 'Switch to Sandbox'}</p>
-                                </div>
-                            </div>}
-
-                            <div className="flex flex-row p-5 pb-0 pt-0 items-center border-t-2 border-gray-300 justify-end space-x-2 ">
-                                <img alt="profile" src={profileImageData ? profileImageData : PlaceholderDP} className="h-10 w-10 mt-16 translate-y-[-30px]  bg-[#e5e5e5]  hover:opacity-50 hover:ring-1 outline-none transition-all hover:ring-[#8364E8] border-solid border-black rounded-full self-start ml-6  object-contain"></img>
-                                <div className="flex flex-col">
-                                    <h1 className="font-gilroy-bold text-[14px] text-white">
-                                        {currentUserData.displayName}
-                                    </h1>
-                                    <h2 className="font-gilroy-regular text-[14px] text-white">
-                                        {currentUserData.email}
-                                    </h2>
-                                </div>
-                                <div onClick={() => {
-                                    setLogoutConfirmationModal(!logoutConfirmationModal);
-                                }} className="self-center  rounded-full p-3 cursor-pointer transition-all border-2 border-transparent hover:opacity-50 active:ring-1 active:ring-accent-dark hover:bg-bg-secondary-dark hover:border-accent-dark">
-                                    <LogoutButton></LogoutButton>
-                                </div>
-                            </div>
+                                    </button>
+                                </li>
+                                <li className=" transition-all rounded-lg">
+                                    <button onClick={() => {
+                                        setLogoutConfirmationModal(!logoutConfirmationModal);
+                                    }}
+                                        className={`rounded-lg transition-all flex flex-row align-middle p-2 w-full border-2 border-transparent active:border-primary-base  hover:border-primary-base  sm:space-x-4 ${logoutConfirmationModal ? 'bg-primary-base text-white' : `text-black`}
+                                 `}
+                                    >
+                                        <LogoutButton></LogoutButton>
+                                        <h1 className="text-[18px]">Logout</h1>
+                                    </button>
+                                </li>
+                            </ul>
                         </div>
 
 
@@ -483,7 +420,7 @@ export default function CustomUserPage() {
           </div>
         </div>
       </div> */}
-                <div className={`flex flex-col w-full ${primaryGradientDark} h-full sm:h-auto relative flex-grow`
+                <div className={`flex flex-col w-full  h-full sm:h-auto relative flex-grow`
                 } >
                     <div className={` m-5 mt-8 justify-between items-start hidden`}>
                         <motion.a
@@ -513,7 +450,7 @@ export default function CustomUserPage() {
                     </div>
                     <div
                         id="content-window"
-                        className="h-auto sm:h-full w-auto sm:rounded-sm sm:bg-bg-primary-dark transition-height "
+                        className="h-auto sm:h-full w-auto sm:rounded-sm  transition-height "
                     >
                         <Outlet></Outlet>
                     </div>
@@ -522,17 +459,18 @@ export default function CustomUserPage() {
                     </div>
 
                 </div >
-                {logoutConfirmationModal && <NeutronModal onConfirm={() => {
-                    AppStore.update((s) => {
-                        s.selectedTab = "Logout";
-                    });
-                    fetcher.submit(null, { method: 'post', action: "/logout" })
-                    AppStore.update((s) => {
-                        s.selectedTab = "Home";
-                    });
-                }} heading={<h1> You are about to log out of the Neutron app </h1>} body={<p> Are you sure you want to proceed?</p>} toggleModalFunction={setLogoutConfirmationModal}></NeutronModal>}
+
 
             </div>
+            {logoutConfirmationModal && <NeutronModal onConfirm={() => {
+                AppStore.update((s) => {
+                    s.selectedTab = "Logout";
+                });
+                fetcher.submit(null, { method: 'post', action: "/logout" })
+                AppStore.update((s) => {
+                    s.selectedTab = "Home";
+                });
+            }} heading={<h1> You are about to log out of the Neutron app </h1>} body={<p> Are you sure you want to proceed?</p>} toggleModalFunction={setLogoutConfirmationModal}></NeutronModal>}
         </div >
     );
 }
