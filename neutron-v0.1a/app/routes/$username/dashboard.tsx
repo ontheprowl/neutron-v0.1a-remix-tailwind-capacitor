@@ -100,7 +100,7 @@ export default function ARDashboard() {
                             View All
                         </button>
                     </div>
-                    <ul className='border-2 border-black m-5 mt-0 h-full'>
+                    <ul className=' m-5 mt-0 h-full'>
 
                     </ul>
                 </div>
@@ -113,7 +113,7 @@ export default function ARDashboard() {
                             View All
                         </button>
                     </div>
-                    <ul className='border-2 border-black m-5 mt-0 h-full'>
+                    <ul className=' m-5 mt-0 h-full'>
 
                     </ul>
                 </div>

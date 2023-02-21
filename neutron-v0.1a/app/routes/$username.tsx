@@ -220,7 +220,7 @@ export default function CustomUserPage() {
 
             </div>
             <div className="flex flex-row space-x-10 shadow-inner bg-[#FBFAFF] px-4 py-6">
-                <aside className=" px-3 hidden shadow-lg rounded-lg sm:h-auto sm:min-h-screen sm:flex sm:w-52" aria-label="Sidebar">
+                <aside className=" px-3 hidden shadow-lg bg-white rounded-lg sm:h-auto sm:min-h-screen sm:flex sm:w-52" aria-label="Sidebar">
                     <div className=" h-auto flex flex-col items-center justify-between rounded p-3  bg-bg-primary-dark  dark:bg-gray-800">
 
                         <div className="w-full place-items-center text-black ">

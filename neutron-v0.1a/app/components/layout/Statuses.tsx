@@ -1,5 +1,7 @@
 import { ContractStatus, DeliverableStatus } from "~/models/contracts";
+import { CustomerRating } from "~/models/customers";
 import { DisputeSeverity, DisputeStatus } from "~/models/disputes";
+import { InvoiceStatus } from "~/models/invoices";
 import { primaryGradientDark } from "~/utils/neutron-theme-extensions";
 
 
@@ -38,6 +40,41 @@ export function ContractStatusGenerator({ status }: { status: ContractStatus }) 
             return <h3 className={`font-medium text-white ${primaryGradientDark} text-[16px] w-full max-w-[160px]  text-center rounded-lg p-1`}> Published </h3>
         default:
             return <h3 className="font-medium text-black bg-gray-100 text-center text-[16px] rounded-lg p-1"> Invalid State </h3>
+
+    }
+
+
+}
+
+export function InvoiceStatusGenerator({ status }: { status: InvoiceStatus }) {
+
+    switch (status) {
+        case InvoiceStatus.Pending:
+            return <h3 className="font-gilroy-medium p-2 max-w-fit rounded-xl text-warning-dark bg-warning-light">PENDING</h3>
+        case InvoiceStatus.Paid:
+            return <h3 className="font-gilroy-medium p-2 max-w-fit rounded-xl text-primary-dark  bg-primary-light">PAID</h3>
+        case InvoiceStatus.Cleared:
+            return <h3 className="font-gilroy-medium p-2 max-w-fit rounded-xl text-success-dark bg-success-light">CLEARED</h3>
+        default:
+            return <h3 className="font-gilroy-medium text-black bg-gray-100 text-center text-[16px] rounded-lg p-1"> Invalid State </h3>
+
+    }
+
+
+}
+
+
+export function CompanyRatingGenerator({ status }: { status: CustomerRating }) {
+
+    switch (status) {
+        case CustomerRating.Tardy:
+            return <h3 className="font-gilroy-medium p-2 max-w-fit rounded-xl text-warning-dark bg-warning-light">TARDY</h3>
+        case CustomerRating.Delinquent:
+            return <h3 className="font-gilroy-medium p-2 max-w-fit rounded-xl text-primary-dark  bg-primary-light">DELINQUENT</h3>
+        case CustomerRating.OnTime:
+            return <h3 className="font-gilroy-medium p-2 max-w-fit rounded-xl text-success-dark bg-success-light">ON TIME ALWAYS</h3>
+        default:
+            return <h3 className="font-gilroy-medium text-black bg-gray-100 text-center text-[16px] rounded-lg p-1"> Invalid State </h3>
 
     }
 
@@ -86,6 +123,9 @@ export function DisputeSeverityGenerator({ severity }: { severity: DisputeSeveri
 }
 
 
+
+
+
 export const SubmittedStatus = () => {
 
     return <DeliverableStatusGenerator status={DeliverableStatus.SubmittedForApproval}></DeliverableStatusGenerator>
@@ -114,4 +154,26 @@ export const ContractDraftedStatus = () => {
 export const ContractPublishedStatus = () => {
 
     return <ContractStatusGenerator status={ContractStatus.Published}></ContractStatusGenerator>
+}
+
+
+
+export const InvoiceClearedStatus = () => {
+    return <InvoiceStatusGenerator status={InvoiceStatus.Cleared}
+    ></InvoiceStatusGenerator>
+}
+
+export const InvoicePaidStatus = () => {
+    return <InvoiceStatusGenerator status={InvoiceStatus.Paid}
+    ></InvoiceStatusGenerator>
+}
+
+export const InvoicePendingStatus = () => {
+    return <InvoiceStatusGenerator status={InvoiceStatus.Pending}
+    ></InvoiceStatusGenerator>
+}
+
+
+export const CustomerOnTimeStatus = () => { 
+    return <CompanyRatingGenerator status={CustomerRating.OnTime}></CompanyRatingGenerator>
 }
