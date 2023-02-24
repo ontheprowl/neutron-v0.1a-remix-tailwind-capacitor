@@ -7,7 +7,7 @@ import React from "react";
 
 import { ToastContainer, toast } from 'react-toastify';
 import { injectStyle } from 'react-toastify/dist/inject-style'
-import { useForm } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import Icon from "~/assets/images/iconFull.svg"
 import { getAuth } from "firebase/auth";
 import { signIn } from "~/models/user.server";
@@ -21,6 +21,8 @@ import DefaultSpinner from "~/components/layout/DefaultSpinner";
 import { sendTeamEmail } from "~/components/notifications/sendinblue-config.server";
 import { cacheObject } from "~/redis/queries.server";
 import { NeutronToastContainer, emitToast } from "~/utils/toasts/NeutronToastContainer";
+import NeutronInputField from "~/components/inputs/fields/NucleiTextInput";
+import NucleiTextInput from "~/components/inputs/fields/NucleiTextInput";
 
 export async function loader({ request }: { request: Request }) {
 
@@ -28,7 +30,12 @@ export async function loader({ request }: { request: Request }) {
 
   if (session && getAuth().currentUser?.emailVerified) {
 
-    return redirect(`/${session?.metadata?.displayName}/dashboard`)
+    if (session?.metadata?.displayName) {
+      return redirect(`/${session?.metadata?.displayName}/dashboard`)
+    } else {
+      return redirect('/onboarding/industry')
+    }
+
   }
 
   return null;
@@ -100,6 +107,9 @@ export async function action({ request }: { request: Request }) {
       if (result) {
         console.log("Caching to Redis was successful...")
       }
+
+
+      // ? Can we refactor creating the User Session and defer to after onboarding? Create a branching path here.
       return createUserSession({ request: request, metadata: { path: ref.path }, userId: token, remember: true, redirectTo: profileComplete ? `/${user.displayName}/dashboard` : `/onboarding/industry` })
     } else {
       throw new Error("neutron-auth/email-not-verified");
@@ -135,7 +145,10 @@ export default function Login() {
 
   // const [user, loading, error] = useAuthState(auth);
 
-  const { register, handleSubmit } = useForm();
+  const methods = useForm();
+
+  const register = methods.register;
+  const handleSubmit = methods.handleSubmit;
 
   React.useEffect(() => {
     injectStyle();
@@ -178,34 +191,28 @@ export default function Login() {
 
                 <div className=" flex flex-col sm:flex-row items-start space-y-4 sm:space-y-0 text-black  w-full justify-between">
                   <div className="flex flex-col justify-items-start space-y-4 mt-5 w-full ">
-                    <form
-                      className=" space-y-6"
-                      onSubmit={handleSubmit((data) => {
+                    <FormProvider {...methods}>
+                      <form
+                        className=" space-y-6"
+                        onSubmit={handleSubmit((data) => {
 
-                        const form = new FormData();
-                        form.append('email', data.email);
-                        form.append('password', data.password)
-                        submit(form, { replace: true, method: 'post' })
-                      })}
-                    >
-                      <div className="sm:text-left space-y-3  w-full">
-                        <span className=" prose prose-md text-black font-gilroy-bold text-[14px]">Email</span>
-                        <input  {...register('email')} type="text" placeholder="e.g: name@example.com" className=" transition-all bg-[#FFFFFF] pt-3 pb-3 pl-4 pr-4 border-2 border-[#DCDCDC] caret-bg-accent-dark focus:outline-none  text-[#BCBDBD] active:caret-yellow-400 text-sm rounded-lg placeholder-[#BCBDBD] block w-full h-12 font-gilroy-medium font-[18px] " />
-                      </div>
+                          const form = new FormData();
+                          form.append('email', data.email);
+                          form.append('password', data.password)
+                          submit(form, { replace: true, method: 'post' })
+                        })}
+                      >
+                        <NucleiTextInput name={"email"} label={"Email"} placeholder="e.g : name@example.com" />
+                        <NucleiTextInput name={"password"} label={"Password"} placeholder="Enter Password" />
 
-                      <div className="sm:text-left space-y-3 w-full">
-                        <span className=" prose prose-md text-black font-gilroy-bold text-[14px]">Password</span>
-                        <input {...register('password')} type="password" placeholder="Enter Password" className=" transition-all bg-[#FFFFFF] pt-3 pb-3 pl-4 pr-4 border-2 border-[#DCDCDC] caret-bg-accent-dark focus:outline-none text-[#BCBDBD] active:caret-yellow-400 text-sm rounded-lg placeholder-[#BCBDBD] block w-full h-12 font-gilroy-medium font-[18px] " />
-                      </div>
-
-                      <div className="flex flex-col sm:flex-row  items-center justify-start space-y-4 sm:space-y-0 sm:space-x-4">
-                        <button
-                          className="w-full basis-1/2 rounded-lg  bg-[#6950ba] p-3 border-2 border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-white font-gilroy-medium font-[18px] transition-all"
-                          type="submit"
-                        >
-                          {loginButtonStates(transition.state)}
-                        </button>
-                        {/* <button className="pointer-auto w-full basis-1/2  transition-all outline-none" onClick={async () => {
+                        <div className="flex flex-col sm:flex-row  items-center justify-start space-y-4 sm:space-y-0 sm:space-x-4">
+                          <button
+                            className="w-full basis-1/2 rounded-lg  bg-[#6950ba] p-3 border-2 border-transparent active:bg-primary-dark hover:bg-primary-dark  focus:bg-primary-dark outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-white font-gilroy-medium font-[18px] transition-all"
+                            type="submit"
+                          >
+                            {loginButtonStates(transition.state)}
+                          </button>
+                          {/* <button className="pointer-auto w-full basis-1/2  transition-all outline-none" onClick={async () => {
 
                           // signInWithRedirect(auth, googleProvider);
 
@@ -222,9 +229,11 @@ export default function Login() {
                             <h1>Sign Up With Google</h1>
                           </div>
                         </button> */}
-                      </div>
+                        </div>
 
-                    </form>
+                      </form>
+                    </FormProvider>
+
                     <div className="hover:underline font-gilroy-medium  w-full text-center decoration-white self-start mt-4 pt-4"><span className="text-black">Don't have an account?</span> <Link to="/signup" className=" text-[#6950ba] hover:underline hover:decoration-[#6950ba]">Sign Up </Link></div>
 
                     <div className="flex flex-row w-full">

@@ -21,9 +21,9 @@ export default function IntegrationDetails() {
                 <h1 className="font-gilroy-bold text-[24px]">Select Platforms to Integrate</h1>
                 <span>If you need more info, please check out our <a className="text-primary-base hover:underline hover:decoration-primary-base" href="https://www.neutron.money/support">Help Page</a></span>
             </div>
-            <div id="integration_details" className="mt-8 flex flex-col space-y-6">
+            <div id="integration_details" className="mt-8 flex flex-col space-y-6 ">
                 <div className="sm:text-left space-y-3  w-full">
-                    <div id="industry_options" className=" w-8/12 grid grid-cols-2 gap-4">
+                    <div id="integration_options" className=" w-10/12 max-w-2xl grid grid-cols-2 gap-4 ">
                         <NeutronRadioGroup>
                             <NeutronRadioButton heading="Zoho Books" name={"integration"} value="Zoho Books" icon={ZohoLogo} no={1}></NeutronRadioButton>
                             <NeutronRadioButton heading="Xero" name={"integration"} value="Zoho Books" icon={XeroLogo} no={2}></NeutronRadioButton>
@@ -31,15 +31,26 @@ export default function IntegrationDetails() {
                         </NeutronRadioGroup>
                     </div>
                 </div>
-                <button
-                    className="w-3/12 rounded-lg  bg-primary-base p-3 border-2 border-transparent active:bg-primary-dark hover:bg-primary-dark outline-none ring-1 ring-transparent focus:ring-white focus:border-white hover:border-white hover:ring-white text-white font-gilroy-medium font-[18px] transition-all"
-                    type="button"
-                    onClick={() => {
-                        navigate("../team")
-                    }}
-                >
-                    Continue
-                </button>
+                <div className="flex flex-row space-x-6 max-w-xl">
+                    <button
+                        className="w-3/12 rounded-lg  bg-primary-light p-3 border-2 border-transparent hover:active:focus:opacity-80 outline-none ring-1 ring-transparent focus:ring-white focus:border-white hover:border-white hover:ring-white text-primary-base font-gilroy-medium font-[18px] transition-all"
+                        type="button"
+                        onClick={() => {
+                            navigate("../business")
+                        }}
+                    >
+                        Go Back
+                    </button>
+                    <button
+                        className="w-3/12 rounded-lg  bg-primary-base p-3 border-2 border-transparent active:bg-primary-dark hover:bg-primary-dark outline-none ring-1 ring-transparent focus:ring-white focus:border-white hover:border-white hover:ring-white text-white font-gilroy-medium font-[18px] transition-all"
+                        type="button"
+                        onClick={() => {
+                            navigate("../team")
+                        }}
+                    >
+                        Continue
+                    </button>
+                </div>
             </div>
         </div >)
 }

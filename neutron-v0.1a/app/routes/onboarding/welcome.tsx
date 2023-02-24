@@ -46,16 +46,20 @@ export default function WelcomeToNeutron() {
                 </div>
                 <div className="flex flex-row space-x-6">
                     <button
+                        className="w-3/12 rounded-lg  bg-primary-light p-3 border-2 border-transparent hover:active:focus:opacity-80 outline-none ring-1 ring-transparent focus:ring-white focus:border-white hover:border-white hover:ring-white text-primary-base font-gilroy-medium font-[18px] transition-all"
+                        type="button"
+                        onClick={() => {
+                            navigate("../team")
+                        }}
+                    >
+                        Go Back
+                    </button>
+                    <button
                         className="w-3/12 rounded-lg  bg-primary-base p-3 border-2 border-transparent active:bg-primary-dark hover:bg-primary-dark outline-none ring-1 ring-transparent focus:ring-white focus:border-white hover:border-white hover:ring-white text-white font-gilroy-medium font-[18px] transition-all"
                         type="submit"
                     >
                         Finish Onboarding
                     </button>
-                    {/* <button onClick={() => {
-                        navigate(`../../${session?.metadata?.displayName}/`)
-                    }} className="w-auto rounded-lg self-center hover:underline hover:decoration-primary-base  bg-white  outline-none ring-1 ring-transparent text-primary-base font-gilroy-medium font-[18px] transition-all">
-                        Skip for now
-                    </button> */}
                 </div>
 
             </div>

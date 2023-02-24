@@ -6,17 +6,17 @@ import { ToastContainer, toast } from "react-toastify";
 
 
 const contextClass = {
-    success: "bg-white border-2 border-l-8 text-black font-gilroy-bold border-[#24AB39] rounded-xl",
-    error: "bg-white border-2 border-l-8 text-black font-gilroy-bold border-[#D33030] rounded-xl",
-    warning: "bg-white border-2 border-l-8 text-black font-gilroy-bold border-[#FFB319] rounded-xl",
-    default: "bg-white border-2 border-l-8 text-black font-gilroy-bold border-[#F670C7] rounded-xl",
+    success: "bg-white border-2 border-l-8 w-full text-black text-md font-gilroy-medium border-success-base rounded-xl",
+    error: "bg-white border-2 border-l-8 w-full text-black text-md font-gilroy-medium border-error-base rounded-xl",
+    warning: "bg-white border-2 border-l-8 w-full text-black text-md font-gilroy-medium border-warning-base rounded-xl",
+    default: "bg-white border-2 border-l-8 w-full text-black text-md font-gilroy-medium border-accent-base rounded-xl",
 };
 
 
 export function emitToast(head: React.ReactNode, body: React.ReactNode, type: TypeOptions) {
 
     return toast(
-        <div className="p-3 flex flex-col justify-center max-h-60 max-w-xl mr-8 ">
+        <div className="p-3 flex flex-col justify-center max-h-60 max-w-4xl mr-8 ">
             <div>
                 <h2 className="prose prose-md w-full text-black font-gilroy-bold">
                     {head}

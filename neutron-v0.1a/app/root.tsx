@@ -22,6 +22,7 @@ import {
 import { useEffect } from "react";
 import { env } from 'process';
 import { useJune } from './utils/use-june';
+import { NeutronToastContainer } from './utils/toasts/NeutronToastContainer';
 let isMount = true;
 
 export const links: LinksFunction = () => {
@@ -222,6 +223,8 @@ export default function App() {
       <body className="font-gilroy-regular  bg-bg-primary-dark">
 
         <Outlet />
+        <NeutronToastContainer></NeutronToastContainer>
+
         <script
           dangerouslySetInnerHTML={{
             __html: `window.ENV = ${JSON.stringify(data.ENV)}`,

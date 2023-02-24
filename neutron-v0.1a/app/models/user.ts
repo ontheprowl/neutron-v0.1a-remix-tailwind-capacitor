@@ -2,8 +2,8 @@ import { User } from "firebase/auth";
 
 export type UserState = {
   designation?: string;
-  contracts: number;
-  clients: number;
+  invoices: number;
+  customers: number;
   name?: string;
   id?: string;
   profileUrl?: string;
@@ -22,8 +22,8 @@ export type Funds = {
 };
 
 export const DEFAULT_USER_STATE: UserState = {
-  contracts: 0,
-  clients: 0,
+  invoices: 0,
+  customers: 0,
   name: "",
   profileUrl: "",
   age: 18,

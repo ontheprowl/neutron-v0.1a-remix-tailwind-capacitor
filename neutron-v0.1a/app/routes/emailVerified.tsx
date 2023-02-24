@@ -14,7 +14,7 @@ export default function EmailVerifiedPage() {
     })
 
     return (
-        <div className="  h-screen w-full justify-center p-12 text-white bg-bg-primary-dark align-middle">
+        <div className="  h-screen w-full justify-center p-12 text-white bg-primary-base align-middle">
 
             <div className=" m-2 mt-5  justify-evenly flex flex-col items-center space-y-6 font-gilroy-medium rounded-xl h-5/6 ">
                 <div className="flex flex-col items-center space-y-4">

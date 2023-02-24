@@ -3,7 +3,7 @@ import { Link, useActionData, useLoaderData, useNavigate, useSubmit, useTransiti
 import { json } from "@remix-run/server-runtime";
 import { redirect } from "@remix-run/server-runtime";
 import { useEffect } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 import Icon from "~/assets/images/iconFull.svg"
 import { getAuth, sendEmailVerification, updateProfile } from "firebase/auth";
 import { signUp } from "~/models/user.server";
@@ -22,6 +22,7 @@ import { env } from "process";
 import MandatoryAsterisk from "~/components/layout/MandatoryAsterisk";
 import { juneClient, trackJuneEvent } from "~/analytics/june-config.server";
 import { NeutronToastContainer, emitToast } from "~/utils/toasts/NeutronToastContainer";
+import NucleiTextInput from "~/components/inputs/fields/NucleiTextInput";
 
 export async function loader({ request }: { request: Request }) {
 
@@ -75,17 +76,17 @@ export async function action({ request }: { request: Request }) {
     const password: string = data.get('password') as string;
     const { user } = await signUp(email, password);
     await updateProfile(user, {
-      displayName: displayName,
+      displayName: 'newUser',
       photoURL: '',
     })
 
     await sendEmailVerification(user, { url: `http://${env.NODE_ENV === "development" ? "localhost:3000" : "app.neutron.money"}/auth/verification/google` });
 
 
-    const userUIDRef = await setFirestoreDocFromData({ uid: user.uid, email: user.email, profileComplete: false }, 'userUIDS', `${displayName}`)
+    // const userUIDRef = await setFirestoreDocFromData({ uid: user.uid, email: user.email, profileComplete: false }, 'userUIDS', `${displayName}`)
 
     const ref = await setFirestoreDocFromData({
-      ...DEFAULT_USER_STATE, email: user.email, id: user.uid, displayName: user.displayName, creationTime: user.metadata.creationTime, profileComplete: false
+      ...DEFAULT_USER_STATE, email: user.email, id: user.uid, creationTime: user.metadata.creationTime, profileComplete: false
     }, `metadata`, user.uid);
 
     // const uidMapRef = await setFirestoreDocFromData({ uid: user.uid }, `metadata`, user.email);
@@ -128,10 +129,10 @@ export default function Signup() {
   }
 
 
-  const { handleSubmit, register, trigger, formState: { errors }, control } = useForm();
+  const methods = useForm();
 
-  const displayName = useWatch({ control, name: 'displayName' });
-  const email = useWatch({ control, name: 'email' });
+  const control = methods.control;
+  const trigger = methods.trigger;
   const password = useWatch({ control, name: 'password' });
   const passwordConfirmation = useWatch({ control, name: 'passwordConfirmation' });
 
@@ -139,18 +140,13 @@ export default function Signup() {
     injectStyle();
     trigger();
 
-  }, [displayName, email, password, passwordConfirmation, trigger, transition])
+  }, [password, passwordConfirmation, transition, trigger])
+
 
   useEffect(() => {
     const neutronError = actionData as NeutronError;
     if (neutronError) {
-
-      emitToast(
-        <h1 className="prose prose-xl text-black font-gilroy-bold">
-          {neutronError.message}
-        </h1>, null, "error");
-
-
+      emitToast(neutronError.message, null, "error");
     }
   }, [actionData])
 
@@ -170,85 +166,33 @@ export default function Signup() {
 
 
                 <div className=" flex flex-col sm:flex-row items-start space-y-2 sm:space-y-0  w-full justify-between">
-                  <div className="flex flex-col justify-items-start space-y-2 mt-2 w-full   ">
-                    <form
+                  <div className="flex flex-col justify-items-start space-y-2 mt-2 w-full">
+                    <FormProvider {...methods}>
+                      <form
 
-                      onSubmit={handleSubmit((data) => {
-                        const form = new FormData();
-                        form.append('email', data.email);
-                        form.append('password', data.password)
-                        form.append('displayName', data.displayName)
-                        submit(form, { replace: true, method: 'post' })
-                      })}
-                    >
-                      <div className="text-left space-y-1 w-full">
-                        <span className=" prose prose-md text-black font-gilroy-bold text-[14px]">Username <MandatoryAsterisk></MandatoryAsterisk></span>
-                        <input  {...register('displayName', {
-                          required: true, validate: (v) => {
-                            return IsUsernameAvailable(v) || 'This username is already taken';
-                          }
-                        })} type="text" placeholder="e.g: freelancer3341" defaultValue={''} className=" transition-all bg-[#FFFFFF] pt-3 pb-3 pl-4 pr-4 border-2 border-[#DCDCDC] caret-bg-accent-dark focus:outline-none  text-neutral-base active:caret-yellow-400 text-sm rounded-lg placeholder-[#BCBDBD] block w-full h-12 font-gilroy-medium font-[18px] " />
-                        <div className="w-full h-5 mt-1 text-left">
-                          <ErrorMessage errors={errors} name='displayName' render={(data) => {
-                            return <span className="text-red-700 pl-1 mt-3 z-10 font-gilroy-black text-left">{data.message}</span>
-                          }} />
+                        onSubmit={methods.handleSubmit((data) => {
+                          const form = new FormData();
+                          form.append('email', data.email);
+                          form.append('password', data.password)
+                          form.append('displayName', data.displayName)
+                          submit(form, { replace: true, method: 'post' })
+                        })}
+                      >
+                        <NucleiTextInput name="email" label="Email" placeholder="e.g: name@example.com" options={{ required: true, pattern: { value: ValidationPatterns.emailValidationPattern, message: 'This is not a valid email ID' } }} />
+                        <NucleiTextInput name="password" label="Password" placeholder="Enter Password" options={{ required: true, minLength: { value: 8, message: " Password should at least be 8 characters" } }} />
+                        <NucleiTextInput name="passwordConfirmation" label="Confirm Password" placeholder="Re-enter password" options={{ required: true, validate: (v) => v == password || "Passwords do not match" }} />
+                        <div className="flex flex-col sm:flex-row  items-center justify-start space-y-4 sm:space-y-0 sm:space-x-4 mt-3">
+                          <button
+                            className="w-full basis-1/2 rounded-lg  bg-[#6950ba] p-3 border-2 border-transparent active:bg-primary-dark focus:bg-primary-dark hover:bg-primary-dark  outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-white font-gilroy-medium font-[18px] transition-all"
+                            type="submit"
+                          >
+                            {signupButtonStates(transition.state)}
+                          </button>
                         </div>
-                      </div>
-                      <div className="text-left space-y-1 w-full">
-                        <span className=" prose prose-md text-black font-gilroy-bold text-[14]">Email <MandatoryAsterisk></MandatoryAsterisk></span>
-                        <input defaultValue={''}  {...register('email', { required: true, pattern: { value: ValidationPatterns.emailValidationPattern, message: 'This is not a valid email ID' } })} type="text" placeholder="e.g: name@example.com" className=" transition-all bg-[#FFFFFF] pt-3 pb-3 pl-4 pr-4 border-2 border-[#DCDCDC] caret-bg-accent-dark focus:outline-none  text-[#BCBDBD] active:caret-yellow-400 text-sm rounded-lg placeholder-[#BCBDBD] block w-full h-12 font-gilroy-medium font-[18px] " />
-                        <div className="w-full h-5 mt-1 text-left">
-                          <ErrorMessage errors={errors} name='email' render={(data) => {
-                            return <span className="text-red-700 pl-1 mt-3 z-10 font-gilroy-black text-left">{data.message}</span>
-                          }} />
-                        </div>
-                      </div>
 
-                      <div className="text-left space-y-1 w-full">
-                        <span className=" prose prose-md text-black font-gilroy-bold text-[14px]">Password <MandatoryAsterisk></MandatoryAsterisk></span>
-                        <input  {...register('password', { required: true, minLength: { value: 8, message: " Password should at least be 8 characters" } })} type="password" placeholder="Enter Password" className=" transition-all bg-white pt-3 pb-3 pl-4 pr-4 border-2 border-[#DCDCDC] caret-bg-accent-dark focus:outline-none  text-[#BCBDBD] active:caret-yellow-400 text-sm rounded-lg placeholder-[#BCBDBD] block w-full h-12 font-gilroy-medium font-[18px] " />
-                        <div className="w-full h-5 mt-1 text-left">
-                          <ErrorMessage errors={errors} name='password' render={(data) => {
-                            return <span className="text-red-700 mt-3 z-10 font-gilroy-black text-left">{data.message}</span>
-                          }} />
-                        </div>
-                      </div>
-                      <div className="text-left space-y-1 w-full">
-                        <span className=" prose prose-md  text-black font-gilroy-bold text-[14px]">Confirm Password <MandatoryAsterisk></MandatoryAsterisk></span>
-                        <input  {...register('passwordConfirmation', { required: true, validate: (v) => v == password || "Passwords do not match" })} type="password" placeholder="Confirm Password" className=" transition-all bg-white pt-3 pb-3 pl-4 pr-4 border-2 border-[#DCDCDC] caret-bg-accent-dark focus:outline-none  text-[#BCBDBD] active:caret-yellow-400 text-sm rounded-lg placeholder-[#BCBDBD] block w-full h-12 font-gilroy-medium font-[18px] " />
-                        <div className="w-full h-5 mt-1 text-left">
-                          <ErrorMessage errors={errors} name='passwordConfirmation' render={(data) => {
-                            return <span className="text-red-700 pl-1 mt-3 z-10 font-gilroy-black text-left">{data.message}</span>
-                          }} />
-                        </div>
-                      </div>
-                      <div className="flex flex-col sm:flex-row  items-center justify-start space-y-4 sm:space-y-0 sm:space-x-4 mt-3">
-                        <button
-                          className="w-full basis-1/2 rounded-lg  bg-[#6950ba] p-3 border-2 border-transparent active:bg-amber-300 outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-white font-gilroy-medium font-[18px] transition-all"
-                          type="submit"
-                        >
-                          {signupButtonStates(transition.state)}
-                        </button>
-                        {/* <button className="pointer-auto w-full basis-1/2  transition-all outline-none" onClick={async () => {
+                      </form>
+                    </FormProvider>
 
-                          // signInWithRedirect(auth, googleProvider);
-
-                          // As this API can be used for sign-in, linking and reauthentication,
-                          // check the operationType to determine what triggered this redirect
-                          // operation.
-                          // const operationType = result.operationType;
-
-                        }}>
-
-                          <div className="rounded-xl bg-white hover:ring-2 hover:ring-accent-dark active:ring-2 outine-none p-3.5 flex flex-row space-x-5 w-auto justify-between ">
-                            <img src={GoogleIcon} alt="Google Icon" />
-
-                            <h1>Sign Up With Google</h1>
-                          </div>
-                        </button> */}
-                      </div>
-
-                    </form>
                     <div className="hover:underline font-gilroy-medium  w-full text-center decoration-white self-start mt-4 pt-4"><span className="text-black">Already have an account?</span> <Link to="/login" className=" text-[#6950ba] hover:underline hover:decoration-[#6950ba]">Log In </Link></div>
 
                     <div className="flex flex-row w-full">
@@ -347,8 +291,6 @@ export default function Signup() {
         </div> */}
 
       </div>
-      <NeutronToastContainer></NeutronToastContainer>
-
     </div>
   );
 

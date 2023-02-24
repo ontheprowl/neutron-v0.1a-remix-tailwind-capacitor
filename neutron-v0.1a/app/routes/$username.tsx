@@ -200,7 +200,7 @@ export default function CustomUserPage() {
     // ? Is Sandbox UX necessary for AR/AP ? If not, scrap, and clean up the container
     return (
         <div className={`flex font-gilroy-bold h-auto w-full flex-col bg-white sm:border-0  ${testMode ? ' border-accent-dark' : 'border-transparent'}`}>
-            {testMode && <div className={` absolute top-0 transition-all z-40 box-decoration-clone h-auto w-auto bg-accent-dark p-2 font-gilroy-medium self-center text-center whitespace-nowrap rounded-b-xl`}>Sandbox</div>}
+            {testMode && <div className={` absolute top-0 transition-all z-40 box-decoration-clone h-auto w-auto bg-accent-dark p-2 font-gilroy-medium self-center text-center whitespace-nowrap rounded-b-xl`}>Test Mode</div>}
 
             <div id="top_nav" className="h-20 flex flex-row space-x-10 items-center justify-between p-3 py-12">
                 <div className="flex flex-row space-x-20 px-5 w-5/12 max-w-2xl">
