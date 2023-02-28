@@ -20,14 +20,18 @@ export const validateRazorpaySignature = (key_secret : string | undefined, razor
 
 export const trimNullValues = (obj: { [x: string]: any }) => {
     for (const [key, value] of Object.entries(obj)) {
-        if (value === "" || value === null) {
+        if (value === '' || value === null || value =='0') {
             delete obj[key];
         } else if (Object.prototype.toString.call(value) === '[object Object]') {
             trimNullValues(value);
         } else if (Array.isArray(value)) {
+            if (value.length==1 &&(value[0]==''  || String(value[0]).trim() =='')){
+                delete obj[key]
+            }            
             for (const subvalue of value) {
                 trimNullValues(subvalue);
             }
+            
         }
 
     }
