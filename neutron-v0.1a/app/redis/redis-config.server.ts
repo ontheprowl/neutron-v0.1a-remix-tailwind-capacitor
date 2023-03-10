@@ -18,7 +18,7 @@ const redisProdConfig: RedisClientOptions = {
 
 
 export const redisServerSide = createClient(process.env.NODE_ENV == "development" ? redisDevConfig : redisProdConfig);
-redisServerSide.connect();
+// redisServerSide.connect();
 
 
 

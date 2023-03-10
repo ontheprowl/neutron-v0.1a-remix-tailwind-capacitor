@@ -6,10 +6,10 @@ import { ToastContainer, toast } from "react-toastify";
 
 
 const contextClass = {
-    success: "bg-white border-2 border-l-8 w-full text-black text-md font-gilroy-medium border-success-base rounded-xl",
-    error: "bg-white border-2 border-l-8 w-full text-black text-md font-gilroy-medium border-error-base rounded-xl",
-    warning: "bg-white border-2 border-l-8 w-full text-black text-md font-gilroy-medium border-warning-base rounded-xl",
-    default: "bg-white border-2 border-l-8 w-full text-black text-md font-gilroy-medium border-accent-base rounded-xl",
+    success: "bg-white border-2 border-l-8 w-full max-h-[300px] text-black text-md font-gilroy-medium border-success-base rounded-xl",
+    error: "bg-white border-2 border-l-8 w-full max-h-[300px] text-black text-md font-gilroy-medium border-error-base rounded-xl",
+    warning: "bg-white border-2 border-l-8 w-full max-h-[300px] text-black text-md font-gilroy-medium border-warning-base rounded-xl",
+    default: "bg-white border-2 border-l-8 w-full max-h-[300px] text-black text-md font-gilroy-medium border-accent-base rounded-xl",
 };
 
 

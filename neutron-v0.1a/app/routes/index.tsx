@@ -10,7 +10,12 @@ export async function loader({ request }: { request: Request }) {
 
   const session = await requireUser(request, true);
   if (session) {
-    return redirect(`/${session?.metadata?.displayName}/dashboard`)
+    if(session?.metadata?.businessID){
+      return redirect(`/dashboard`)
+    } else { 
+      return redirect(`/onboarding/integrations`)
+    }
+    
   } 
 }
 

@@ -9,7 +9,8 @@ import OnboardingStepper from "~/components/onboarding/OnboardingStepper";
 import { setFirestoreDocFromData, updateFirestoreDocFromData } from "~/firebase/queries.server";
 import { NeutronError } from "~/logging/NeutronError";
 import { requireUser } from "~/session.server";
-
+import { NeutronToastContainer } from "~/utils/toasts/NeutronToastContainer";
+import  crypto  from "crypto";
 
 
 export const action: ActionFunction = async ({ request, params }) => {
@@ -22,12 +23,17 @@ export const action: ActionFunction = async ({ request, params }) => {
         const dataString = (await request.formData()).get('payload')?.toString();
         const data: { business_name: string } = JSON.parse(dataString);
 
-        const reducedBusinessName = data?.business_name.replace(" ", "").trim().toLowerCase() + "_app"
-        const userUIDRef = await setFirestoreDocFromData({ uid: session?.metadata?.id, email: session?.metadata?.email, profileComplete: true }, 'userUIDS', `${reducedBusinessName}`)
+        console.log("payload")
+        console.log(data)
 
-        const updateUserMetadataRef = await updateFirestoreDocFromData({ firstLogin: true, displayName: reducedBusinessName, ...data }, 'metadata', `${session?.metadata?.id}`);
+        // ** business queries to be identified by business_id
 
-        return redirect(`/${reducedBusinessName}/dashboard`)
+        const businessID = crypto.randomUUID();
+        const businessUIDRef = await setFirestoreDocFromData(data, 'businesses', `${businessID}`)
+
+        const updateUserMetadataRef = await updateFirestoreDocFromData({ firstLogin: true, businessID: businessID, ...data }, 'metadata', `${session?.metadata?.id}`);
+
+        return redirect(`/dashboard`)
 
     } catch (e) {
         console.log(e)
@@ -44,9 +50,14 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
     const session = await requireUser(request);
 
-    if (session && serverAuth.getAuth().currentUser?.emailVerified && session?.metadata?.displayName) {
 
-        return redirect(`/${session?.metadata?.displayName}/dashboard`)
+    if (!session) {
+        return redirect('/login')
+    }
+
+    if (serverAuth.getAuth().currentUser?.emailVerified && session?.metadata?.businessID) {
+
+        return redirect(`/dashboard`)
     }
 
     return null;
@@ -54,7 +65,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
 
 
-const stageURLS: { [x: string]: any } = { "/onboarding/industry": 0, "/onboarding/business": 1, "/onboarding/integrations": 2, "/onboarding/team": 3, "/onboarding/welcome": 4 }
+const stageURLS: { [x: string]: any } = { "/onboarding/industry": 1, "/onboarding/business": 2, "/onboarding/integrations": 0, "/onboarding/team": 3, "/onboarding/welcome": 4 }
 
 
 export default function OnboardingLayout() {
@@ -95,7 +106,6 @@ export default function OnboardingLayout() {
 
 
             </div>
-
         </div>
     )
 

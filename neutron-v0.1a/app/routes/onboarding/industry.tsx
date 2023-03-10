@@ -35,16 +35,27 @@ export default function IndustryDetails() {
 
                     </div>
                 </div>
-                <NucleiTextInput name="others" label="Others" optional placeholder="A company description, a statement of purpose, etc"/>
-                <button
-                    className="w-3/12 rounded-lg  bg-primary-base p-3 border-2 border-transparent active:bg-primary-dark hover:bg-primary-dark outline-none ring-1 ring-transparent focus:ring-white focus:border-white hover:border-white hover:ring-white text-white font-gilroy-medium font-[18px] transition-all"
-                    type="button"
-                    onClick={()=>{
-                        navigate("../business")
-                    }}
-                >
-                    Continue 
-                </button>
+                <NucleiTextInput name="description" label="Description" optional placeholder="A company description, a statement of purpose, etc"/>
+                <div className="flex flex-row space-x-6 max-w-xl">
+                    <button
+                        className="w-3/12 rounded-lg  bg-primary-light p-3 border-2 border-transparent hover:active:focus:opacity-80 outline-none ring-1 ring-transparent focus:ring-white focus:border-white hover:border-white hover:ring-white text-primary-base font-gilroy-medium font-[18px] transition-all"
+                        type="button"
+                        onClick={() => {
+                            navigate("../integrations")
+                        }}
+                    >
+                        Go Back
+                    </button>
+                    <button
+                        className="w-3/12 rounded-lg  bg-primary-base p-3 border-2 border-transparent active:bg-primary-dark hover:bg-primary-dark outline-none ring-1 ring-transparent focus:ring-white focus:border-white hover:border-white hover:ring-white text-white font-gilroy-medium font-[18px] transition-all"
+                        type="button"
+                        onClick={() => {
+                            navigate("../business")
+                        }}
+                    >
+                        Continue
+                    </button>
+                </div>
             </div>
         </div >)
 }

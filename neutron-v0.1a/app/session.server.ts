@@ -79,13 +79,13 @@ export async function getUserSession(request: Request, autoRedirect?: boolean) {
     // console.log("REDIS KEY is : " + redisKey)
     //? Redis build is not stable. Max no. of clients is reached too quickly. Figure out why.
     
-    if(await hasKey(path)){
-      console.log("Retrieving from redis...")
-      metadata = await retrieveObject(path)
-    } else {
-      metadata = await getSingleDoc(path);
-    }
-    // metadata = await getSingleDoc(path)
+    // if(await hasKey(path)){
+    //   console.log("Retrieving from redis...")
+    //   metadata = await retrieveObject(path)
+    // } else {
+    //   metadata = await getSingleDoc(path);
+    // }
+    metadata = await getSingleDoc(path)
 
   }
 

@@ -23,6 +23,7 @@ import { useEffect } from "react";
 import { env } from 'process';
 import { useJune } from './utils/use-june';
 import { NeutronToastContainer } from './utils/toasts/NeutronToastContainer';
+import { injectStyle } from 'react-toastify/dist/inject-style';
 let isMount = true;
 
 export const links: LinksFunction = () => {
@@ -213,6 +214,14 @@ export function ErrorBoundary({ error }: { error: Error }) {
 }
 export default function App() {
   const data = useLoaderData();
+
+
+  // * Root-level style injection for react-toastify
+  useEffect(() => {
+    injectStyle();
+  })
+
+
   return (
     <html lang="en">
 

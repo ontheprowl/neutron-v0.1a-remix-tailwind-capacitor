@@ -30,8 +30,8 @@ export async function loader({ request }: { request: Request }) {
 
   if (session && getAuth().currentUser?.emailVerified) {
 
-    if (session?.metadata?.displayName) {
-      return redirect(`/${session?.metadata?.displayName}/dashboard`)
+    if (session?.metadata?.businessID) {
+      return redirect(`/dashboard`)
     } else {
       return redirect('/onboarding/industry')
     }
@@ -102,15 +102,15 @@ export async function action({ request }: { request: Request }) {
       trackJuneEvent(user.uid, 'User Logged In', { ...user.metadata, ...metadata }, 'userEvents');
 
 
-      // * First test redis caching
-      const result = await cacheObject(`metadata/${user.uid}`, { ...user.metadata, ...metadata })
-      if (result) {
-        console.log("Caching to Redis was successful...")
-      }
+      // // * First test redis caching
+      // const result = await cacheObject(`metadata/${user.uid}`, { ...user.metadata, ...metadata })
+      // if (result) {
+      //   console.log("Caching to Redis was successful...")
+      // }
 
 
       // ? Can we refactor creating the User Session and defer to after onboarding? Create a branching path here.
-      return createUserSession({ request: request, metadata: { path: ref.path }, userId: token, remember: true, redirectTo: profileComplete ? `/${user.displayName}/dashboard` : `/onboarding/industry` })
+      return createUserSession({ request: request, metadata: { path: ref.path }, userId: token, remember: true, redirectTo: profileComplete ? `/dashboard` : `/onboarding/integrations` })
     } else {
       throw new Error("neutron-auth/email-not-verified");
     }
@@ -332,7 +332,6 @@ export default function Login() {
         </div> */}
 
       </div>
-      <NeutronToastContainer />
 
     </div>
   );

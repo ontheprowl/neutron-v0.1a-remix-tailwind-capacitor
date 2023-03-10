@@ -86,7 +86,7 @@ export default function BusinessDetails() {
                         className="w-3/12 rounded-lg  bg-primary-base p-3 border-2 border-transparent active:bg-primary-dark hover:bg-primary-dark outline-none ring-1 ring-transparent focus:ring-white focus:border-white hover:border-white hover:ring-white text-white font-gilroy-medium font-[18px] transition-all"
                         type="button"
                         onClick={() => {
-                            navigate("../integrations")
+                            navigate("../team")
                         }}
                     >
                         Continue

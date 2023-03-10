@@ -18,7 +18,7 @@ export const action: ActionFunction = async ({ request, params }) => {
 
     const connection1 = await odbc.connect('DRIVER=Tally ODBC Driver64;DSN=TallyODBC64_9000;SERVER=(127.0.0.01);PORT=9000');
     // connection1 is now an open Connection
-    const allTableNames = await connection1.query("SELECT * from BillsReceivable");
+    const allTableNames = await connection1.query("SELECT $Name, $EMAIL, $Website, $Address  from Ledger");
 
     // const allTableData: { [x: string]: any } = {}
     // for (const tableEntry of allTableNames) {
@@ -27,10 +27,10 @@ export const action: ActionFunction = async ({ request, params }) => {
     // }
 
 
-    // const allTableDataJSON = JSON.parse(JSON.stringify(allTableData))
+    const allTableDataJSON = JSON.parse(JSON.stringify(allTableNames))
 
 
-    trimNullValues(JSON.parse(JSON.stringify(allTableNames)));
+    // trimNullValues(allTableDataJSON);
 
 
 

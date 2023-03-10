@@ -1,4 +1,5 @@
 import { ActionFunction, LoaderFunction, json, redirect } from "@remix-run/server-runtime"
+import { encodeBase64 } from "bcryptjs"
 
 
 
@@ -30,7 +31,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
     tokenURL.searchParams.set('client_id', ZOHO_CLIENT_ID);
     tokenURL.searchParams.set('client_secret', ZOHO_CLIENT_SECRET);
     tokenURL.searchParams.set('grant_type', 'authorization_code');
-    tokenURL.searchParams.set('redirect_uri', 'http://localhost:3000/zoho/access_granted')
+    tokenURL.searchParams.set('redirect_uri', 'http://localhost:3000/integrations/zoho/access_granted')
 
     console.log("FINAL URL IS ")
     console.log(tokenURL.toString())
@@ -39,11 +40,14 @@ export const loader: LoaderFunction = async ({ request, params }) => {
         method: "POST",
     })
 
+    const data = await response.json();
 
-    return new Response(JSON.stringify(await response.json()), {
-        status: 302,
-        headers: {
-            Location: "/zoho/token_granted",
-        },
-    });
+    console.log(data)
+    return json(data)
+    // return new Response(null, {
+    //     status: 303,
+    //     headers: {
+    //         Location: `/onboarding/integrations?data=${JSON.stringify({timestamp:new Date().getTime(),...data})}`,
+    //     },
+    // });
 }

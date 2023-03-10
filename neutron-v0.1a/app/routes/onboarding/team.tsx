@@ -48,7 +48,7 @@ export default function TeamDetails() {
                         className="w-3/12 rounded-lg  bg-primary-light p-3 border-2 border-transparent hover:active:focus:opacity-80 outline-none ring-1 ring-transparent focus:ring-white focus:border-white hover:border-white hover:ring-white text-primary-base font-gilroy-medium font-[18px] transition-all"
                         type="button"
                         onClick={() => {
-                            navigate("../integrations")
+                            navigate("../business")
                         }}
                     >
                         Go Back

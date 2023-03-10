@@ -47,7 +47,7 @@ export default function AccentedToggle({ name, states, onToggle, variant, contro
     const purpleSpring = {
         type: 'spring',
         ease: 'linear',
-        duration: '0.3'
+        duration: '0.2'
     }
 
     return (
