@@ -1,5 +1,5 @@
 
-import { useOutletContext}  from '@remix-run/react'
+import { useNavigate, useOutletContext } from '@remix-run/react'
 import MessageIcon from '~/assets/images/messageIcon.svg'
 
 
@@ -18,6 +18,7 @@ export default function ARDashboard() {
     const { businessData } = useOutletContext()
     console.dir(businessData)
 
+    let navigate = useNavigate();
 
 
     return (
@@ -110,8 +111,10 @@ export default function ARDashboard() {
                                 From total 5 Clients
                             </span>
                         </div>
-                        <button className='bg-primary-base hover:bg-primary-dark transition-all p-2.5 font-gilroy-regular text-white rounded-lg'>
-                            View All
+                        <button onClick={() => {
+                            navigate('/invoices', { preventScrollReset: true })
+                        }} className='bg-primary-base hover:bg-primary-dark transition-all p-2.5 font-gilroy-regular text-white rounded-lg'>
+                            View All Invoices
                         </button>
                     </div>
                     <ul className=' m-5 mt-0 h-full divide-y-2'>
@@ -137,8 +140,10 @@ export default function ARDashboard() {
                         <div className='flex flex-col w-auto'>
                             <h1>Top Debtors</h1>
                         </div>
-                        <button className='bg-primary-base hover:bg-primary-dark transition-all p-2.5 font-gilroy-regular text-white rounded-lg'>
-                            View All
+                        <button onClick={() => {
+                            navigate('/customers', { preventScrollReset: true })
+                        }} className='bg-primary-base hover:bg-primary-dark transition-all p-2.5 font-gilroy-regular text-white rounded-lg'>
+                            View All Customers
                         </button>
                     </div>
                     <ul className=' m-5 mt-0 h-full'>

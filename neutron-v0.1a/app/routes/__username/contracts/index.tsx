@@ -1,5 +1,6 @@
 import { useNavigate, useLoaderData, Outlet, Link, useSubmit } from '@remix-run/react'
-import { ActionFunction, LoaderFunction, redirect } from '@remix-run/server-runtime';
+import type { ActionFunction, LoaderFunction} from '@remix-run/server-runtime';
+import { redirect } from '@remix-run/server-runtime';
 import { json } from 'remix-utils';
 import { firestore, auth } from '../../../firebase/neutron-config.server';
 import { useCollection, useCollectionData } from 'react-firebase-hooks/firestore'
@@ -12,14 +13,14 @@ import EditIcon from '~/components/inputs/EditIcon';
 import DeleteIcon from '~/components/inputs/DeleteIcon';
 import ChatIcon from '~/components/inputs/ChatIcon';
 import { useEffect, useState } from 'react';
-import { dataflow } from 'googleapis/build/src/apis/dataflow';
 import MobileNavbarPadding from '~/components/layout/MobileNavbarPadding';
 import { getFirebaseDocs, setFirestoreDocFromData } from '~/firebase/queries.server';
 import { requireUser } from '~/session.server';
 import { UserState } from '~/models/user';
-import { Contract, Contract, ContractCreationStages, ContractStatus } from '~/models/contracts';
+import type { Contract} from '~/models/contracts';
+import { ContractCreationStages, ContractStatus } from '~/models/contracts';
 import { ContractDraftedStatus, ContractPublishedStatus } from '~/components/layout/Statuses';
-import { Dispute } from '~/models/disputes';
+import type { Dispute } from '~/models/disputes';
 import { toast, ToastContainer } from 'react-toastify';
 import { injectStyle } from 'react-toastify/dist/inject-style';
 import NeutronModal from '~/components/layout/NeutronModal';

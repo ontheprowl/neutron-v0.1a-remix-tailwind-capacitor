@@ -76,7 +76,7 @@ export default function CustomUserPage() {
 
 
     const data = useLoaderData();
-    const businessData  = data.data;
+    const businessData = data.data;
 
 
     const metadata = data.metadata;
@@ -222,7 +222,7 @@ export default function CustomUserPage() {
                                     <button
                                         onClick={() => {
 
-                                            navigate('dashboard')
+                                            navigate('dashboard', { preventScrollReset: true })
 
 
 
@@ -259,14 +259,14 @@ export default function CustomUserPage() {
                                         onClick={() => {
 
                                             // TODO: Add logic on disputes parent layout page to redirect to /disputeID of the first active dispute
-                                            navigate('disputes')
+                                            navigate('workflows', { preventScrollReset: true })
 
 
                                         }}
-                                        className={`rounded-lg transition-all flex border-2 border-transparent active:border-primary-base  hover:border-primary-base w-full flex-row align-middle p-2  sm:space-x-4 ${pathname.includes('disputes') ? 'bg-primary-base text-white' : `text-black`}
+                                        className={`rounded-lg transition-all flex border-2 border-transparent active:border-primary-base  hover:border-primary-base w-full flex-row align-middle p-2  sm:space-x-4 ${pathname.includes('workflows') ? 'bg-primary-base text-white' : `text-black`}
                                 `}
                                     >
-                                        <WorkflowIcon selected={pathname.includes('disputes')} />
+                                        <WorkflowIcon selected={pathname.includes('workflows')} />
                                         <h1 className="text-[18px]">Workflows</h1>
 
                                     </button>
@@ -277,7 +277,7 @@ export default function CustomUserPage() {
                                         onClick={() => {
 
                                             // TODO: Add logic on disputes parent layout page to redirect to /disputeID of the first active dispute
-                                            navigate('team')
+                                            navigate('team', { preventScrollReset: true })
 
 
                                         }}
@@ -295,7 +295,7 @@ export default function CustomUserPage() {
                                         onClick={() => {
 
                                             // TODO: Add logic on disputes parent layout page to redirect to /disputeID of the first active dispute
-                                            navigate('invoices')
+                                            navigate('invoices', { preventScrollReset: true })
 
 
                                         }}
@@ -313,7 +313,7 @@ export default function CustomUserPage() {
                                         onClick={() => {
 
                                             // TODO: Add logic on disputes parent layout page to redirect to /disputeID of the first active dispute
-                                            navigate('customers')
+                                            navigate('customers', { preventScrollReset: true })
 
 
                                         }}
@@ -349,7 +349,7 @@ export default function CustomUserPage() {
                             </li> */}
                                 <li className=" transition-all rounded-lg">
                                     <button onClick={() => {
-                                        navigate('settings/basic');
+                                        navigate('settings/basic', { preventScrollReset: true });
 
                                     }}
                                         className={`rounded-lg transition-all flex flex-row align-middle p-2 w-full border-2 border-transparent active:border-primary-base hover:border-primary-base  sm:space-x-4 ${pathname.includes('settings') ? 'bg-primary-base text-white' : `text-black`}
@@ -462,7 +462,7 @@ export default function CustomUserPage() {
                         id="content-window"
                         className="h-auto sm:h-full w-auto sm:rounded-sm  transition-height "
                     >
-                        <Outlet context={{metadata: metadata, businessData: businessData}}></Outlet>
+                        <Outlet context={{ metadata: metadata, businessData: businessData }}></Outlet>
                     </div>
                     <div className="bottom-0 sm:hidden left-0 fixed w-full z-50 h-auto">
                         <BottomNav></BottomNav>

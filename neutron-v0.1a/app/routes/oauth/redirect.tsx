@@ -1,6 +1,6 @@
 import { useActionData, useLoaderData } from "@remix-run/react";
 import { json, LoaderFunction, redirect } from "@remix-run/server-runtime";
-import { googlePeople, googlePeople, oAuth2Client } from "~/firebase/gapis-config.server";
+import { googlePeople, oAuth2Client } from "~/firebase/gapis-config.server";
 import fs from 'fs';
 import { createUserSession, requireUser } from "~/session.server";
 import { addFirestoreDocFromData, setFirestoreDocFromData } from "~/firebase/queries.server";
@@ -16,7 +16,7 @@ const TOKEN_PATH = "tokens.json"
 export async function action({ request }: { request: Request }) {
     const session = await requireUser(request, true);
 
-    
+
 
     return redirect(`/${session?.metadata?.displayName}/dashboard`)
 
@@ -34,18 +34,18 @@ export const loader: LoaderFunction = async ({ request }) => {
             if (tokens.access_token && tokens.refresh_token) {
                 oAuth2Client.setCredentials(tokens);
                 const tokenInfoUID: string = (await oAuth2Client.getTokenInfo(tokens.access_token)).sub;
-                
+
                 const buffer = fs.readFileSync('token-uids.json');
                 const tokenUIDMappings = JSON.parse(buffer.toString());
                 const userUID = tokenUIDMappings[tokenInfoUID];
-                
+
                 if (userUID) {
                     return json({ status: 'user already' })
 
                 }
                 else {
                     // USER DOES NOT EXIST
-                    oAuth2Client.credentials=tokens;
+                    oAuth2Client.credentials = tokens;
                     // LIFT DETAILS FROM GOOGLE PROFILE. POPULATE BASIC FIELDS.
                     const result = await googlePeople.people.get({
                         resourceName: 'people/me',
@@ -63,12 +63,12 @@ export const loader: LoaderFunction = async ({ request }) => {
                     // CREATE FIREBASE USER, WITH NEW UID
                     await adminAuth.createUser({ uid: uid, email: email, password: password, displayName: name, photoURL: photoURL });
 
-                    
+
 
                     // MAP TOKEN UID TO FIREBASE UID
                     tokenUIDMappings[tokenInfoUID] = uid;
 
-                    
+
 
                     // WRITE NEW MAPPING TO MAPPING FILE
                     fs.writeFileSync(`token-uids.json`, JSON.stringify(tokenUIDMappings))
@@ -76,12 +76,12 @@ export const loader: LoaderFunction = async ({ request }) => {
                     // UPDATE METADATA
                     const userUIDRef = await setFirestoreDocFromData({ uid: uid }, 'userUIDS', `${name}`);
 
-                    const metadataRef = await setFirestoreDocFromData({ ...DEFAULT_USER_STATE, email: email, id: uid, displayName: name, photoURL:photoURL}, `metadata`, uid);
+                    const metadataRef = await setFirestoreDocFromData({ ...DEFAULT_USER_STATE, email: email, id: uid, displayName: name, photoURL: photoURL }, `metadata`, uid);
                     const customToken = await adminAuth.createCustomToken(uid);
 
                     // STORE TOKENS FOR THIS USER
-                    fs.mkdirSync(`/tokens/${uid}`, {recursive: true});
-                    fs.writeFileSync(`/tokens/${uid}/tokens.json`, JSON.stringify(tokens), {flag:'w'});
+                    fs.mkdirSync(`/tokens/${uid}`, { recursive: true });
+                    fs.writeFileSync(`/tokens/${uid}/tokens.json`, JSON.stringify(tokens), { flag: 'w' });
 
 
                     // LOG-IN AS NEWLY CREATED USER

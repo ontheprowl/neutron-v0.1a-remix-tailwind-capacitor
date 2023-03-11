@@ -16,7 +16,7 @@ import { useFetcher, useOutletContext } from "@remix-run/react";
 export default function IntegrationsScreen() {
 
 
-    const context = useOutletContext();
+    const { metadata, businessData } = useOutletContext();
 
     const integrationsForm = useForm();
 
@@ -33,37 +33,52 @@ export default function IntegrationsScreen() {
                     })} className="flex flex-col p-4">
                         <div className="flex flex-row justify-between items-center">
                             <h1 className="text-lg">Integrations</h1>
-                            <EditButton></EditButton>
                         </div>
                         <ul className="flex flex-col w-full h-full divide-y-2 mt-6 ">
                             <li className="flex flex-row h-auto p-4">
                                 <div className="flex flex-col space-y-4 w-full">
-                                    <div className="max-h-fit w-full flex flex-row items-center justify-between">
+                                    <div className=" w-full flex flex-row items-center justify-between">
                                         <div className={`flex flex-row transition-all items-center justify-between ${settingsOpen == "tally" ? 'border-primary-dark bg-primary-light' : ''} py-10 px-5 w-1/2 max-w-3xl border-2 border-dashed rounded-xl`}>
                                             <div className="flex flex-row items-center space-x-2">
                                                 <img className="h-8" src={TallyLogo} alt="Tally Logo" />
                                                 <span className="text-lg">Tally</span>
                                             </div>
+                                            {
+                                                businessData?.integration && businessData?.integration == "tally" &&
+                                                <div className="flex flex-row space-x-4 justify-between max-w-fit">
+                                                    <div className="text-success-dark font-gilroy-medium items-center flex flex-row bg-success-light rounded-xl p-2 max-h-fit">
+                                                        ACTIVE
+                                                    </div>
+                                                </div>
+                                            }
                                             <NucleiToggle control={settingsOpen == "tally"} onToggle={() => { setSettingsOpen(settingsOpen == 'tally' ? '' : 'tally') }} />
                                         </div>
-                                        <div className="flex flex-row space-x-4 justify-between max-w-fit">
-                                            <button className="p-3 bg-primary-base hover:bg-primary-dark active:bg-primary-dark focus:bg-primary-dark transition-all rounded-xl">
+                                        {businessData?.integration && businessData?.integration == "tally" &&
+                                            <button onClick={() => {
+                                                fetcher.submit(null, { method: 'post', action: '/integrations/tally/sync' })
+                                            }} className="p-3 px-5 text-white font- bg-primary-base hover:bg-primary-dark active:bg-primary-dark focus:bg-primary-dark transition-all rounded-xl">
                                                 Sync
                                             </button>
-                                            <div className="text-success-dark items-center flex flex-row bg-success-light rounded-xl p-2 max-h-fit">
-                                                ACTIVE
-                                            </div>
-                                        </div>
+                                        }
+
 
                                     </div>
 
                                     <AnimatePresence exitBeforeEnter>
-                                        {settingsOpen == "tally" && <motion.div initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            exit={{ opacity: 0 }} id="tally_settings" className=" max-h-fit w-full flex flex-row space-x-10">
-                                            <NucleiTextInput name="tally_port" label="Port" placeholder='By default, Tally uses port 9000 to talk to other applications' type="text"></NucleiTextInput>
-                                            <NucleiTextInput name="tally_host" label="Hostname" placeholder='Please enter your public IP Address here' type="text"></NucleiTextInput>
-                                        </motion.div>}
+                                        {settingsOpen == "tally" &&
+                                            <motion.div initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                exit={{ opacity: 0 }} id="tally_settings" className=" max-h-fit w-full flex flex-row items-center space-x-10">
+                                                <NucleiTextInput name="tally_port" label="Port" placeholder='By default, Tally uses port 9000 to talk to other applications' type="text"></NucleiTextInput>
+                                                <NucleiTextInput name="tally_host" label="Hostname" placeholder='Please enter your public IP Address here' type="text"></NucleiTextInput>
+                                                <button onClick={() => {
+                                                    const formData = new FormData();
+                                                    formData.set('',)
+                                                    fetcher.submit(null, { method: 'post', action: '/integrations/tally/test' })
+                                                }} className="p-3 px-5 text-white font- bg-primary-base hover:bg-primary-dark active:bg-primary-dark focus:bg-primary-dark transition-all rounded-xl">
+                                                    Test
+                                                </button>
+                                            </motion.div>}
                                     </AnimatePresence>
 
                                 </div>
@@ -77,16 +92,22 @@ export default function IntegrationsScreen() {
                                                 <img className="h-8" src={ZohoLogo} alt="Zoho Logo" />
                                                 <span className="text-lg">Zoho Books</span>
                                             </div>
+                                            {
+                                                businessData?.integration && businessData?.integration == "zoho" &&
+                                                <div className="flex flex-row space-x-4 justify-between max-w-fit">
+                                                    <div className="text-success-dark font-gilroy-medium items-center flex flex-row bg-success-light rounded-xl p-2 max-h-fit">
+                                                        ACTIVE
+                                                    </div>
+                                                </div>
+                                            }
                                             <NucleiToggle control={settingsOpen == "zoho"} onToggle={() => { setSettingsOpen(settingsOpen == 'zoho' ? '' : 'zoho') }} />
                                         </div>
-                                        <div className="flex flex-row space-x-4 justify-between max-w-fit">
-                                            <button className="p-3 bg-primary-base hover:bg-primary-dark active:bg-primary-dark focus:bg-primary-dark transition-all rounded-xl">
+                                        {businessData?.integration && businessData?.integration == "zoho" &&
+                                            <button className="p-3 px-5 text-white font- bg-primary-base hover:bg-primary-dark active:bg-primary-dark focus:bg-primary-dark transition-all rounded-xl">
                                                 Sync
                                             </button>
-                                            <div className="text-success-dark font-gilroy-medium items-center flex flex-row bg-success-light rounded-xl p-2 max-h-fit">
-                                                ACTIVE
-                                            </div>
-                                        </div>
+                                        }
+
                                     </div>
                                     <AnimatePresence exitBeforeEnter>
                                         {settingsOpen == "zoho" &&
@@ -117,5 +138,5 @@ export default function IntegrationsScreen() {
 
             </div>
 
-        </div>)
+        </div >)
 }
