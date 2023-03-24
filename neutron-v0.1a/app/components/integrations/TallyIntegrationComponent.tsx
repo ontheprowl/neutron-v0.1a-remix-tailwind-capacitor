@@ -14,7 +14,7 @@ export default function TallyIntegrationComponent() {
 
     const fetcher = useFetcher();
 
-    const { control } = useFormContext();
+    const { control, setValue } = useFormContext();
 
     const tallyPort = useWatch({ control, name: 'tally_port', defaultValue: '9000' });
     const tallyHostname = useWatch({ control, name: 'tally_host', defaultValue: 'localhost' });
@@ -23,8 +23,13 @@ export default function TallyIntegrationComponent() {
     useEffect(() => {
         console.log("DATA:")
         console.dir(fetcher.data)
-        if (fetcher.data && fetcher.state=="loading") {
+        if (fetcher.data && fetcher.state == "loading") {
             if (fetcher.data['status'] == '1') {
+                setValue('creds', {
+                    tally_port: tallyPort,
+                    tally_host: tallyHostname
+                });
+                setValue('integration', 'tally');
                 OnboardingDataStore.update((s) => {
                     s.credsReceived = true
                 })
@@ -45,7 +50,7 @@ export default function TallyIntegrationComponent() {
             const form = new FormData();
             form.append('tally_port', tallyPort)
             form.append('tally_host', tallyHostname)
-            fetcher.submit(form, { method: "post", action: '/integrations/tally/test' })
+            fetcher.submit(form, { method: "post", action: '/integrations/tally/test?upload=false' })
         }}>{fetcher.state != "idle" ? <DefaultSpinner></DefaultSpinner> : 'Test Connection'}</button>
     </div>)
 }

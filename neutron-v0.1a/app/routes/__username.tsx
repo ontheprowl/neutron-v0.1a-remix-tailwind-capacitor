@@ -47,6 +47,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
     if (session?.metadata && session?.metadata?.businessID) {
         const businessData = await getSingleDoc(`businesses/${session?.metadata?.businessID}`);
+        console.dir(businessData, { depth: null })
 
         const receivables30d = await getFirebaseDocs('receivables', false, `${session?.metadata?.businessID}/30d`);
         const receivables60d = await getFirebaseDocs('receivables', false, `${session?.metadata?.businessID}/60d`);
@@ -61,8 +62,8 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
         const customers = await getFirebaseDocs('customers', false, `business/${session?.metadata?.businessID}`);
         const customersData = customers.map((doc) => doc.data);
-
-        return json({ metadata: { ...session?.metadata }, data: { ...businessData, receivables: { '30d': receivables30Data, '60d': receivables60Data, '90d': receivables90Data, 'excess': receivablesExcessData }, cleared: [], customers: customersData } })
+        const finalBusinessData = { ...businessData, receivables: { '30d': receivables30Data, '60d': receivables60Data, '90d': receivables90Data, 'excess': receivablesExcessData }, cleared: [], customers: customersData };
+        return json({ metadata: { ...session?.metadata }, data: finalBusinessData })
     }
 
     return null;

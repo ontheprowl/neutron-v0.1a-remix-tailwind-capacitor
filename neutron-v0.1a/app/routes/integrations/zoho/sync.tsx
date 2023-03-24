@@ -301,7 +301,7 @@ export const action: ActionFunction = async ({ request, params }) => {
                     }
                 }
 
-                
+
 
                 // //     // const customerInvoicesRequest = await fetch(`${apiDomain}/books/v3/invoices?organization_id=${organization_id}&customer_id=${customer?.contact_id}`, {
                 // //     //     method: "GET",
@@ -326,10 +326,10 @@ export const action: ActionFunction = async ({ request, params }) => {
                         '30d': revenue30Days, '60d': revenue60Days, '90d': revenue90Days, 'excess': revenueExcess, 'total': total_revenue
                     },
                     dso: {
-                        '30d': (outstanding30Days / revenue30Days) * 365,
-                        '60d': (outstanding60Days / revenue60Days) * 365,
-                        '90d': (outstanding90Days / revenue90Days) * 365,
-                        'excess': (outstandingExcess / revenueExcess) * 365
+                        '30d': revenue30Days ? (outstanding30Days / revenue30Days) * 365 : 0,
+                        '60d': revenue60Days ? (outstanding60Days / revenue60Days) * 365 : 0,
+                        '90d': revenue90Days ? (outstanding90Days / revenue90Days) * 365 : 0,
+                        'excess': revenueExcess ? (outstandingExcess / revenueExcess) * 365 : 0
                     }
                 };
 

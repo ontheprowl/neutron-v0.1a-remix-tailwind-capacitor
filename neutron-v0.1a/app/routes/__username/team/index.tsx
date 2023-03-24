@@ -24,6 +24,8 @@ export default function TeamPage() {
     let navigate = useNavigate();
     const { metadata, businessData } = useOutletContext();
 
+    console.log(businessData)
+
     const { pathname } = useLocation();
 
 

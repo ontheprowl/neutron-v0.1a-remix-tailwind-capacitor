@@ -1,16 +1,15 @@
 import { Outlet, useLocation, useSubmit } from "@remix-run/react";
-import { ActionFunction, LoaderFunction, json, redirect } from "@remix-run/server-runtime";
-import { serverAuth } from "~/firebase/firebase-exports.server";
+import type { ActionFunction, LoaderFunction } from "@remix-run/server-runtime";
+import { json, redirect } from "@remix-run/server-runtime";
 import { FormProvider, useForm } from "react-hook-form";
-import OnboardingSidePanel from '~/assets/images/OnboardingSidePanel.svg'
 
 import Icon from "~/assets/images/icon_black.svg"
 import OnboardingStepper from "~/components/onboarding/OnboardingStepper";
 import { setFirestoreDocFromData, updateFirestoreDocFromData } from "~/firebase/queries.server";
 import { NeutronError } from "~/logging/NeutronError";
 import { requireUser } from "~/session.server";
-import { NeutronToastContainer } from "~/utils/toasts/NeutronToastContainer";
-import  crypto  from "crypto";
+import crypto from "crypto";
+import { DEFAULT_BUSINESS_DATA_STATE } from "~/models/business";
 
 
 export const action: ActionFunction = async ({ request, params }) => {
@@ -21,7 +20,8 @@ export const action: ActionFunction = async ({ request, params }) => {
         console.dir("ONBOARDING DATA RECEIVED .... ")
 
         const dataString = (await request.formData()).get('payload')?.toString();
-        const data: { business_name: string } = JSON.parse(dataString);
+        const data: { business_name: string, name: string, [x: string]: any } = JSON.parse(dataString);
+
 
         console.log("payload")
         console.log(data)
@@ -29,9 +29,9 @@ export const action: ActionFunction = async ({ request, params }) => {
         // ** business queries to be identified by business_id
 
         const businessID = crypto.randomUUID();
-        const businessUIDRef = await setFirestoreDocFromData(data, 'businesses', `${businessID}`)
+        const businessUIDRef = await setFirestoreDocFromData({ ...DEFAULT_BUSINESS_DATA_STATE, ...data }, 'businesses', `${businessID}`)
 
-        const updateUserMetadataRef = await updateFirestoreDocFromData({ firstLogin: true, businessID: businessID, ...data }, 'metadata', `${session?.metadata?.id}`);
+        const updateUserMetadataRef = await updateFirestoreDocFromData({ firstLogin: true, businessID: businessID, name: data?.name }, 'metadata', `${session?.metadata?.id}`);
 
         return redirect(`/dashboard`)
 
@@ -55,11 +55,9 @@ export const loader: LoaderFunction = async ({ request, params }) => {
         return redirect('/login')
     }
 
-    if (serverAuth.getAuth().currentUser?.emailVerified && session?.metadata?.businessID) {
-
+    if (session && session?.metadata?.businessID) {
         return redirect(`/dashboard`)
     }
-
     return null;
 }
 
@@ -92,11 +90,12 @@ export default function OnboardingLayout() {
             <div className="w-9/12 h-screen overflow-y-scroll flex flex-row justify-center">
                 <FormProvider {...methods}>
                     <form className="w-full" onSubmit={methods.handleSubmit((data) => {
+                        console.dir(data, { depth: null });
+                        delete data['tally_port'];
+                        delete data['tally_host'];
                         const formdata = new FormData();
                         formdata.append('payload', JSON.stringify(data));
-
                         submit(formdata, { method: "post" });
-
                     })
                     }>
                         <Outlet></Outlet>

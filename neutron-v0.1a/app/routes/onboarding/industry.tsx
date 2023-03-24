@@ -22,6 +22,7 @@ export default function IndustryDetails() {
                 <span>If you need more info, please check out our <a className="text-primary-base hover:underline hover:decoration-primary-base" href="https://www.neutron.money/support">Help Page</a></span>
             </div>
             <div id="industry_details" className="mt-8 flex flex-col space-y-6 max-w-xl">
+                <NucleiTextInput name="name" label="Name of the Owner" placeholder="e.g: Kartik Pande" />
                 <NucleiTextInput name="business_name" label="Name of the Business" placeholder="e.g: Neutron Money Pvt. Ltd." />
                 <div className="sm:text-left space-y-3  w-full">
                     <span className=" prose prose-md text-black font-gilroy-bold text-[14px]">Industry</span>

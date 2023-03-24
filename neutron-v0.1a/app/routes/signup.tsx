@@ -4,24 +4,19 @@ import { json } from "@remix-run/server-runtime";
 import { redirect } from "@remix-run/server-runtime";
 import { useEffect } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
-import Icon from "~/assets/images/iconFull.svg"
 import { getAuth, sendEmailVerification, updateProfile } from "firebase/auth";
 import { signUp } from "~/models/user.server";
 import { createUserSession, requireUser } from "~/session.server";
 import { getFirebaseDocs, setFirestoreDocFromData } from "~/firebase/queries.server";
 import { DEFAULT_USER_STATE } from "~/models/user";
-import { ErrorMessage } from "@hookform/error-message";
 import { ValidationPatterns } from "~/utils/utils";
-import { toast, ToastContainer } from "react-toastify";
 import { NeutronError } from "~/logging/NeutronError";
 import { injectStyle } from "react-toastify/dist/inject-style";
 import DefaultSpinner from "~/components/layout/DefaultSpinner";
 import AuthPagesSidePanel from '~/assets/images/AuthPageSidePanel2.svg'
 
-import { env } from "process";
-import MandatoryAsterisk from "~/components/layout/MandatoryAsterisk";
-import { juneClient, trackJuneEvent } from "~/analytics/june-config.server";
-import { NeutronToastContainer, emitToast } from "~/utils/toasts/NeutronToastContainer";
+import { trackJuneEvent } from "~/analytics/june-config.server";
+import { emitToast } from "~/utils/toasts/NeutronToastContainer";
 import NucleiTextInput from "~/components/inputs/fields/NucleiTextInput";
 import { prependBaseURLForEnvironment } from "~/utils/utils.server";
 
@@ -77,7 +72,7 @@ export async function action({ request }: { request: Request }) {
     const password: string = data.get('password') as string;
     const { user } = await signUp(email, password);
     await updateProfile(user, {
-      displayName: 'newUser',
+      displayName: 'New User',
       photoURL: '',
     })
 

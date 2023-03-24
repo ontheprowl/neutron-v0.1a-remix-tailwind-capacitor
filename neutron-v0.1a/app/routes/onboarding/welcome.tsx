@@ -22,7 +22,7 @@ export default function WelcomeToNeutron() {
             </div>
             <div id="industry_details" className="mt-8 flex flex-col space-y-6">
                 <div id="promo_container" className="h-[400px] overflow-y-scroll bg-neutral-light rounded-xl flex flex-col space-y-6">
-
+                <iframe className="w-full h-full" src="https://www.youtube.com/embed/uIUZuIPuXN4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
                 </div>
                 <div className="h-auto font-bold text-secondary-text flex flex-col space-y-4 border-black w-full">
                     <span onClick={() => {

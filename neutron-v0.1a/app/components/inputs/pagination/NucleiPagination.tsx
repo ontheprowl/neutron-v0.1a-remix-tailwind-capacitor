@@ -28,7 +28,7 @@ export default function NucleiPagination({ items, startPage, pageSize, pagesDisp
         nextClassName="justify-self-end"
         previousClassName="justify-self-start"
         renderOnZeroPageCount={(props) => {
-            props.className = "hidden"
+            return null
         }}
         onPageChange={(currPage) => {
             setPage(currPage.selected)

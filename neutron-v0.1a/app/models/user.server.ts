@@ -22,6 +22,12 @@ export async function signUp(email: string, password: string) {
   return createUserWithEmailAndPassword(auth, email, password);
 }
 
+
+export async function getCurrentUser(){
+  const auth = getAuth();
+  return auth.currentUser;
+}
+
 export async function logIn(email: string, password: string) {
   const auth = getAuth();
   return signInWithEmailAndPassword(auth, email, password);

@@ -8,7 +8,7 @@ import NeutronModal from "~/components/layout/NeutronModal";
 import { useEffect, useState } from "react";
 import ZohoIntegrationComponent from "~/components/integrations/ZohoIntegrationComponent";
 import TallyIntegrationComponent from "~/components/integrations/TallyIntegrationComponent";
-import type { ActionFunction, LoaderFunction} from "@remix-run/server-runtime";
+import type { ActionFunction, LoaderFunction } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
 import { OnboardingDataStore } from "~/stores/OnboardingDataStore";
 
@@ -68,7 +68,8 @@ export default function IntegrationDetails() {
 
     useEffect(() => {
         if (zohoCreds != null) {
-            setValue('zoho_creds', zohoCreds)
+            setValue('creds', zohoCreds);
+            setValue('integration', 'zoho');
             OnboardingDataStore.update((s) => {
                 s.credsReceived = true
             })

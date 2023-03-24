@@ -81,11 +81,11 @@ export function ErrorBoundary({ error }: { error: Error }) {
 
 
 
-  useEffect(() => {
-    setTimeout(() => {
-      navigate("/");
-    }, 4000);
-  }, [navigate]);
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     navigate("/");
+  //   }, 4000);
+  // }, [navigate]);
 
   let location = useLocation();
   let matches = useMatches();
@@ -142,7 +142,7 @@ export function ErrorBoundary({ error }: { error: Error }) {
           <div className="flex flex-col-reverse items-center sm:items-stretch sm:flex-row justify-center sm:space-x-10  ">
             <div className="flex flex-col sm:hidden items-center">
               <DefaultSpinner size="large"></DefaultSpinner>
-              <h1 className='mt-5 text-white font-gilroy-medium text-[18px]'> Redirecting you to your dashboard </h1>
+              <h1 className='mt-5 text-black font-gilroy-medium text-[18px]'> Redirecting you to your dashboard </h1>
 
             </div>
             <div
@@ -152,22 +152,22 @@ export function ErrorBoundary({ error }: { error: Error }) {
 
               <div>
 
-                <h1 className="prose prose-lg text-white font-gilroy-black text-[30px] leading-none">
+                <h1 className="prose prose-lg text-black font-gilroy-black text-[30px] leading-none">
 
                   An Error has Occured!
 
                 </h1>
-                <h2 className="prose prose-md text-white font-gilroy-medium text-[20px]">{`${error}`}</h2>
+                <h2 className="prose prose-md text-black font-gilroy-medium text-[20px]">{`${error}`}</h2>
               </div>
               <div className=" hidden sm:flex sm:flex-row justify-center">
                 <DefaultSpinner size="large"></DefaultSpinner>
 
               </div>
-              <span className="font-gilroy-regular prose prose-sm text-[14px] text-gray-300 mt-8">
+              <span className="font-gilroy-regular prose prose-sm text-[14px] text-secondary-text mt-8">
 
                 If you believe you shouldn't be seeing this screen, please get
                 in touch with us at &nbsp;
-                <span className="text-white font-gilroy-bold">
+                <span className="text-neutral-dark font-gilroy-bold">
                   connect@neutron.money
                 </span>
               </span>

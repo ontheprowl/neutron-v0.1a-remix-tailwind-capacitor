@@ -14,6 +14,8 @@ export const action: ActionFunction = async ({ request, params }) => {
 
     const session = await requireUser(request);
 
+    const upload = new URL(request.url).searchParams.get('upload');
+
     console.log("TEST TALLY CONNECTION...")
     const formData = await request.formData();
     const hostname = formData.get('tally_host');
@@ -39,8 +41,9 @@ export const action: ActionFunction = async ({ request, params }) => {
 
         console.log(testTallyDataJSON)
 
-        const businessUIDRef = await updateFirestoreDocFromData({ integration: 'tally', creds: { hostname: hostname, port: port } }, 'businesses', `${session?.metadata?.businessID}`)
-
+        if (upload === "true") {
+            const businessUIDRef = await updateFirestoreDocFromData({ integration: 'tally', creds: { hostname: hostname, port: port } }, 'businesses', `${session?.metadata?.businessID}`)
+        }
 
 
         return json({ status: Number(testTallyDataJSON['RESPONSE'] == "Unknown Request, cannot be processed") })
