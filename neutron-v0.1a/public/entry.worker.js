@@ -42,9 +42,12 @@ async function handleMessage(event) {
     ]);
     if (!existingDocument || !isMount) {
       debug("Caching document for", documentUrl);
-      cachePromises.set(documentUrl, documentCache.add(documentUrl).catch((error) => {
-        debug(`Failed to cache document for ${documentUrl}:`, error);
-      }));
+      cachePromises.set(
+        documentUrl,
+        documentCache.add(documentUrl).catch((error) => {
+          debug(`Failed to cache document for ${documentUrl}:`, error);
+        })
+      );
     }
     if (isMount) {
       for (const match of matches) {
@@ -56,9 +59,12 @@ async function handleMessage(event) {
           const url = location.pathname + search + location.hash;
           if (!cachePromises.has(url)) {
             debug("Caching data for", url);
-            cachePromises.set(url, dataCache.add(url).catch((error) => {
-              debug(`Failed to cache data for ${url}:`, error);
-            }));
+            cachePromises.set(
+              url,
+              dataCache.add(url).catch((error) => {
+                debug(`Failed to cache data for ${url}:`, error);
+              })
+            );
           }
         }
       }
@@ -100,10 +106,13 @@ async function handleFetch(event) {
         response.headers.set("X-Remix-Worker", "yes");
         return response;
       }
-      return json({ message: "Network Error" }, {
-        status: 500,
-        headers: { "X-Remix-Catch": "yes", "X-Remix-Worker": "yes" }
-      });
+      return json(
+        { message: "Network Error" },
+        {
+          status: 500,
+          headers: { "X-Remix-Catch": "yes", "X-Remix-Worker": "yes" }
+        }
+      );
     }
   }
   if (isDocumentGetRequest(event.request)) {
@@ -147,26 +156,18 @@ self.addEventListener("message", (event) => {
   event.waitUntil(handleMessage(event));
 });
 self.addEventListener("fetch", (event) => {
-  event.respondWith((async () => {
-    const result = {};
-    try {
-      result.response = await handleFetch(event);
-    } catch (error) {
-      result.error = error;
-    }
-    return appHandleFetch(event, result);
-  })());
+  event.respondWith(
+    (async () => {
+      const result = {};
+      try {
+        result.response = await handleFetch(event);
+      } catch (error) {
+        result.error = error;
+      }
+      return appHandleFetch(event, result);
+    })()
+  );
 });
 async function appHandleFetch(event, { error, response }) {
   return response;
 }
-/**
- * @remix-run/server-runtime v1.6.5
- *
- * Copyright (c) Remix Software Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE.md file in the root directory of this source tree.
- *
- * @license MIT
- */

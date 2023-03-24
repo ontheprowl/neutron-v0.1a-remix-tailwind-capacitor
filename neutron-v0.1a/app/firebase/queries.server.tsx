@@ -40,12 +40,21 @@ export async function addFirestoreDocFromData(data: any, collectionName: string,
     return docRef
 }
 
+export async function addFirestoreDocsAndReturnIDs(data: any[], collectionName: string, path?: string): Promise<string[]> {
+    let resultIDS = []
+    for (const item of data) {
+        const itemUploadRef = await addFirestoreDocFromData(item, collectionName, path);
+        resultIDS.push(itemUploadRef.id)
+    }
+    return resultIDS;
+}
+
 
 export async function setFirestoreDocFromData(data: any, collectionName: string, path: string): Promise<DocumentReference<any>> {
     const pathString = `${collectionName}/${path}`
-    if (await hasKey(pathString)) {
-        const result = await cacheObject(pathString, data)
-    }
+    // if (await hasKey(pathString)) {
+    //     const result = await cacheObject(pathString, data)
+    // }
     const docRef = serverFirestore.doc(firestore, pathString)
     await serverFirestore.setDoc(docRef, data);
     return docRef;

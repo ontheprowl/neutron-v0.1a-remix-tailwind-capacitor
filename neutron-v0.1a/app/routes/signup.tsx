@@ -23,6 +23,7 @@ import MandatoryAsterisk from "~/components/layout/MandatoryAsterisk";
 import { juneClient, trackJuneEvent } from "~/analytics/june-config.server";
 import { NeutronToastContainer, emitToast } from "~/utils/toasts/NeutronToastContainer";
 import NucleiTextInput from "~/components/inputs/fields/NucleiTextInput";
+import { prependBaseURLForEnvironment } from "~/utils/utils.server";
 
 export async function loader({ request }: { request: Request }) {
 
@@ -80,7 +81,7 @@ export async function action({ request }: { request: Request }) {
       photoURL: '',
     })
 
-    await sendEmailVerification(user, { url: `http://${env.NODE_ENV === "development" ? "localhost:3000" : "app.neutron.money"}/auth/verification/google` });
+    await sendEmailVerification(user, { url: prependBaseURLForEnvironment('/auth/verification/google') });
 
 
     // const userUIDRef = await setFirestoreDocFromData({ uid: user.uid, email: user.email, profileComplete: false }, 'userUIDS', `${displayName}`)
@@ -179,8 +180,8 @@ export default function Signup() {
                         })}
                       >
                         <NucleiTextInput name="email" label="Email" placeholder="e.g: name@example.com" options={{ required: true, pattern: { value: ValidationPatterns.emailValidationPattern, message: 'This is not a valid email ID' } }} />
-                        <NucleiTextInput name="password" label="Password" placeholder="Enter Password" options={{ required: true, minLength: { value: 8, message: " Password should at least be 8 characters" } }} />
-                        <NucleiTextInput name="passwordConfirmation" label="Confirm Password" placeholder="Re-enter password" options={{ required: true, validate: (v) => v == password || "Passwords do not match" }} />
+                        <NucleiTextInput name="password" type="password" label="Password" placeholder="Enter Password" options={{ required: true, minLength: { value: 8, message: " Password should at least be 8 characters" } }} />
+                        <NucleiTextInput name="passwordConfirmation" type="password" label="Confirm Password" placeholder="Re-enter password" options={{ required: true, validate: (v) => v == password || "Passwords do not match" }} />
                         <div className="flex flex-col sm:flex-row  items-center justify-start space-y-4 sm:space-y-0 sm:space-x-4 mt-3">
                           <button
                             className="w-full basis-1/2 rounded-lg  bg-[#6950ba] p-3 border-2 border-transparent active:bg-primary-dark focus:bg-primary-dark hover:bg-primary-dark  outline-none focus:ring-1 focus:ring-white focus:border-white hover:border-white hover:ring-white text-white font-gilroy-medium font-[18px] transition-all"

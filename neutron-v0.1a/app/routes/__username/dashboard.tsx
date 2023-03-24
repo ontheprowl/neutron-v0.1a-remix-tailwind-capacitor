@@ -1,5 +1,7 @@
 
 import { useNavigate, useOutletContext } from '@remix-run/react'
+import { AnimatePresence, motion, useCycle } from 'framer-motion'
+import { useEffect, useMemo, useState } from 'react'
 import MessageIcon from '~/assets/images/messageIcon.svg'
 
 
@@ -16,45 +18,76 @@ export default function ARDashboard() {
     console.log("PROPS AT DASHBOARD LEVEL...")
 
     const { businessData } = useOutletContext()
-    console.dir(businessData)
+
+
+    useEffect(() => {
+        console.log(businessData)
+
+    })
+
+
 
     let navigate = useNavigate();
 
+
+    const [currentPeriod, cycleCurrentPeriod] = useCycle('30d', '60d', '90d', 'excess')
+
+
+    const periodOptions = ['30d', '60d', '90d', 'excess']
+
+    // useEffect(() => {
+    //     setTimeout(() => {
+    //         setCurrentPeriod(periodOptions[Math.floor(Math.random() * periodOptions.length)])
+    //     }, 4000)
+    // }, [currentPeriod])
+
+
+    const outstandingDiff = ((businessData?.outstanding[currentPeriod] - businessData.last_outstanding[currentPeriod]) / businessData?.last_outstanding[currentPeriod]) * 100;
+    const dsoDiff = ((businessData?.dso[currentPeriod] - businessData.last_dso[currentPeriod]) / businessData?.last_dso[currentPeriod]) * 100;
+    const revenueDiff = ((businessData?.revenue[currentPeriod] - businessData.last_revenue[currentPeriod]) / businessData?.last_revenue[currentPeriod]) * 100;
 
     return (
         <div className="flex flex-col space-y-3 h-full">
             <div className="flex flex-row space-x-3  h-1/5">
                 <div id="primary_metric" className="w-1/3 bg-primary-base flex flex-col text-white p-5 space-y-6 justify-between shadow-lg rounded-xl">
-                    <h1 className=" text-5xl">Rs. {businessData?.outstanding}</h1>
+                    <div className="flex flex-row justify-between">
+                        <h1 onClick={() => {
+                            cycleCurrentPeriod()
+                        }} className=" text-5xl transition-all">Rs. {Math.ceil(businessData?.outstanding[currentPeriod]).toLocaleString('en-IN')}</h1>
+                        <span className='font-gilroy-medium text-lg'>Current Period <br></br>
+                            {currentPeriod == "excess" ? 'Beyond 90d' : `Last ${currentPeriod}`}
+                        </span>
+                    </div>
+
                     <div className="flex flex-row justify-between">
                         <span className=" text-lg">
                             Total Outstanding
                         </span>
-                        {businessData?.last_outstanding && <span className=" text-2xl text-success-light">
-                            {((businessData?.outstanding - businessData.last_outstanding) / businessData?.last_outstanding) * 100}%
-                        </span>}
+                        {outstandingDiff && outstandingDiff > 0 ? <span className=" text-2xl text-success-light">
+                            {outstandingDiff}%
+                        </span> : <></>}
                     </div>
                 </div>
                 <div id="secondary_metric" className="w-1/3 bg-white flex flex-col text-black p-5 space-y-6 justify-between shadow-lg rounded-xl">
-                    <h1 className=" text-5xl">{businessData?.dso}</h1>
+                    <h1 className=" text-5xl">{Math.ceil(businessData?.dso[currentPeriod])}</h1>
                     <div className="flex flex-row justify-between">
                         <span className=" text-lg">
                             Days Sales Outstanding
                         </span>
-                        {businessData?.last_dso && <span className=" text-2xl text-warning-dark">
-                            {((businessData?.dso - businessData.last_dso) / businessData?.last_dso) * 100}
-                        </span>}
+                        {dsoDiff && dsoDiff > 0 ? <span className=" text-2xl text-warning-dark">
+                            {dsoDiff}%
+                        </span> : <></>}
                     </div>
                 </div>
                 <div id="tertiary_metric" className="w-1/3 flex flex-col bg-white p-5 space-y-6 justify-between text-black shadow-lg rounded-xl">
-                    <h1 className=" text-5xl">80</h1>
+                    <h1 className=" text-5xl">Rs. {Math.ceil(businessData?.revenue[currentPeriod]).toLocaleString('en-IN')}</h1>
                     <div className="flex flex-row justify-between">
                         <span className=" text-lg">
-                            Days Sales Outstanding
+                            Revenue (Realized)
                         </span>
-                        <span className=" text-2xl">
-                            +15%
-                        </span>
+                        {revenueDiff && revenueDiff > 0 ? <span className=" text-2xl text-warning-dark">
+                            {revenueDiff}%
+                        </span> : <></>}
                     </div>
                 </div>
             </div>
@@ -106,9 +139,9 @@ export default function ARDashboard() {
                 <div id="receivables_queue" className="w-1/2 bg-white flex flex-col text-black shadow-lg rounded-xl">
                     <div className='flex flex-row justify-between items-center m-5'>
                         <div className='flex flex-col w-auto'>
-                            <h1>Receivables Queue</h1>
+                            <h1>Receivables Queue (Ordered by Amount)</h1>
                             <span className=' text-error-dark'>
-                                From total 5 Clients
+                                From total {Object.keys(businessData?.customers).length} clients
                             </span>
                         </div>
                         <button onClick={() => {
@@ -117,19 +150,25 @@ export default function ARDashboard() {
                             View All Invoices
                         </button>
                     </div>
-                    <ul className=' m-5 mt-0 h-full divide-y-2'>
-                        {businessData?.receivables.map((invoice) => {
+                    <ul className=' m-5 mt-0 h-[400px] overflow-y-scroll divide-y-2'>
+                        {businessData?.receivables[currentPeriod].sort((a, b) => {
+                            if (b?.balance < a?.balance) {
+                                return -1
+                            } else {
+                                return 1
+                            }
+                        }).map((invoice) => {
                             return (
-                                <li key={invoice?.invoice_id} className='flex flex-row items-center justify-between'>
+                                <li key={invoice?.invoice_id} className='flex flex-row items-center py-3 justify-between'>
                                     <div className='flex flex-col space-y-2'>
-                                        <span className='font-gilroy-bold text-base'>{invoice?.customer_name}</span>
-                                        <span className='font-gilroy-medium text-sm text-secondary-text'>{invoice?.company_name}</span>
+                                        <span className='font-gilroy-bold text-base'>{String(invoice?.customer_name).toUpperCase()}</span>
+                                        <span className='font-gilroy-medium text-sm text-secondary-text'>{String(invoice?.company_name).toUpperCase()}</span>
                                     </div>
                                     <div className='flex flex-row space-x-4 items-center'>
                                         <span className='text-secondary-text font-gilroy-medium text-base'>
                                             {invoice?.due_days}
                                         </span>
-                                        <span className=' bg-neutral-light p-3 rounded-lg text-lg'>Rs.{invoice?.balance}</span>
+                                        <span className=' bg-neutral-light p-3 max-w-sm min-w-fit rounded-lg text-lg'>Rs. {(invoice?.balance).toLocaleString('en-IN')}</span>
                                     </div>
                                 </li>)
                         })}
@@ -146,8 +185,31 @@ export default function ARDashboard() {
                             View All Customers
                         </button>
                     </div>
-                    <ul className=' m-5 mt-0 h-full'>
-
+                    <ul className='m-5 mt-0 h-[400px] overflow-y-scroll divide-y-2'>
+                        {businessData?.customers.filter((customer) => {
+                            return customer?.outstanding_receivable_amount > 0
+                        }).sort((a, b) => {
+                            if (a?.outstanding_receivable_amount > b?.outstanding_receivable_amount) {
+                                return -1
+                            } else {
+                                return 1
+                            }
+                        }).map((customer) => {
+                            return (
+                                <li key={customer?.contact_id} className='flex flex-row items-center py-3 justify-between'>
+                                    <div className='flex flex-col space-y-2'>
+                                        <span className='font-gilroy-bold text-base'>{String(customer?.first_name + " " + customer?.last_name).toUpperCase()}</span>
+                                        <span className='font-gilroy-medium text-sm text-secondary-text'>{String(customer?.contact_name).toUpperCase()}</span>
+                                    </div>
+                                    <div className='flex flex-row space-x-4 items-center'>
+                                        <span className='text-secondary-text uppercase font-gilroy-medium text-base'>
+                                            {customer?.place_of_contact_formatted}
+                                        </span>
+                                        <span className=' bg-neutral-light p-3 max-w-sm min-w-fit rounded-lg text-lg'>Rs. {Number(customer?.outstanding_receivable_amount).toLocaleString('en-IN')}</span>
+                                    </div>
+                                </li>)
+                        })
+                        }
                     </ul>
                 </div>
 

@@ -23,7 +23,7 @@ export default function TallyIntegrationComponent() {
     useEffect(() => {
         console.log("DATA:")
         console.dir(fetcher.data)
-        if (fetcher.data) {
+        if (fetcher.data && fetcher.state=="loading") {
             if (fetcher.data['status'] == '1') {
                 OnboardingDataStore.update((s) => {
                     s.credsReceived = true

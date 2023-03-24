@@ -92,7 +92,7 @@ export async function action({ request }: { request: Request }) {
     if (user.emailVerified || email == "test@test.com" || email == "demo@neutron-demo.com" || email == "tester@neutronalpha.in") {
       //* Send Welcome Email on First Login (SIB Template #13)
       if (!firstLogin && !(email == "test@test.com" || email == "demo@neutron-demo.com" || email == "tester@neutronalpha.in") && user?.displayName) {
-        const emailResult = await sendTeamEmail(email, user?.displayName, { "FIRSTNAME": user?.displayName }, 13);
+        // const emailResult = await sendTeamEmail(email, user?.displayName, { "FIRSTNAME": user?.displayName }, 13);
         const updateLoginMetadataRef = await updateFirestoreDocFromData({ firstLogin: true }, 'metadata', `${user.uid}`);
 
       }
@@ -203,7 +203,7 @@ export default function Login() {
                         })}
                       >
                         <NucleiTextInput name={"email"} label={"Email"} placeholder="e.g : name@example.com" />
-                        <NucleiTextInput name={"password"} label={"Password"} placeholder="Enter Password" />
+                        <NucleiTextInput name={"password"} type="password" label={"Password"} placeholder="Enter Password" />
 
                         <div className="flex flex-col sm:flex-row  items-center justify-start space-y-4 sm:space-y-0 sm:space-x-4">
                           <button

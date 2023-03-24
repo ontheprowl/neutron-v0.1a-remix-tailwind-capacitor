@@ -33,11 +33,12 @@ import DashboardIcon from "~/components/inputs/DashboardIcon";
 import WorkflowIcon from "~/components/inputs/WorkflowIcon";
 import InvoicesIcon from "~/components/inputs/InvoicesIcon";
 import CustomersIcon from "~/components/inputs/CustomersIcon";
-import { getSingleDoc, setFirestoreDocFromData, updateFirestoreDocFromData } from "~/firebase/queries.server";
+import { getFirebaseDocs, getSingleDoc, setFirestoreDocFromData, updateFirestoreDocFromData } from "~/firebase/queries.server";
 import TeamIcon from "~/components/inputs/TeamIcon";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
 
+    console.log("DATA REFRESH FROM USERNAME ROUTE")
     const session = await requireUser(request);
 
     if (!session) {
@@ -45,8 +46,23 @@ export const loader: LoaderFunction = async ({ request, params }) => {
     }
 
     if (session?.metadata && session?.metadata?.businessID) {
-        const businessData = await getSingleDoc(`businesses/${session?.metadata?.businessID}`)
-        return json({ metadata: { ...session?.metadata }, data: businessData })
+        const businessData = await getSingleDoc(`businesses/${session?.metadata?.businessID}`);
+
+        const receivables30d = await getFirebaseDocs('receivables', false, `${session?.metadata?.businessID}/30d`);
+        const receivables60d = await getFirebaseDocs('receivables', false, `${session?.metadata?.businessID}/60d`);
+        const receivables90d = await getFirebaseDocs('receivables', false, `${session?.metadata?.businessID}/90d`);;
+        const receivablesExcess = await getFirebaseDocs('receivables', false, `${session?.metadata?.businessID}/excess`);
+
+        const receivables30Data = receivables30d.map((doc) => doc.data);
+        const receivables60Data = receivables60d.map((doc) => doc.data);
+        const receivables90Data = receivables90d.map((doc) => doc.data);
+        const receivablesExcessData = receivablesExcess.map((doc) => doc.data);
+
+
+        const customers = await getFirebaseDocs('customers', false, `business/${session?.metadata?.businessID}`);
+        const customersData = customers.map((doc) => doc.data);
+
+        return json({ metadata: { ...session?.metadata }, data: { ...businessData, receivables: { '30d': receivables30Data, '60d': receivables60Data, '90d': receivables90Data, 'excess': receivablesExcessData }, cleared: [], customers: customersData } })
     }
 
     return null;
@@ -191,7 +207,6 @@ export default function CustomUserPage() {
     // ? Is Sandbox UX necessary for AR/AP ? If not, scrap, and clean up the container
     return (
         <div className={`flex font-gilroy-bold h-auto w-full flex-col bg-white sm:border-0  ${testMode ? ' border-accent-dark' : 'border-transparent'}`}>
-            {testMode && <div className={` absolute top-0 transition-all z-40 box-decoration-clone h-auto w-auto bg-accent-dark p-2 font-gilroy-medium self-center text-center whitespace-nowrap rounded-b-xl`}>Test Mode</div>}
 
             <div id="top_nav" className="h-16 flex flex-row space-x-10 items-center justify-between p-3 py-12">
                 <div className="flex flex-row space-x-20 px-5 w-5/12 max-w-2xl">
@@ -201,7 +216,7 @@ export default function CustomUserPage() {
                             <path d="M17.5 17.5L14.5834 14.5833M16.6667 9.58333C16.6667 13.4954 13.4954 16.6667 9.58333 16.6667C5.67132 16.6667 2.5 13.4954 2.5 9.58333C2.5 5.67132 5.67132 2.5 9.58333 2.5C13.4954 2.5 16.6667 5.67132 16.6667 9.58333Z" stroke="#6F6E6E" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
 
-                        <input type="text" placeholder="Search " className="w-full bg-transparent text-neutral-dark placeholder:text-neutral-dark focus:border-transparent outline-none " />
+                        <input type="text" placeholder="Search " className="w-full bg-transparent text-neutral-dark placeholder:text-neutral-dark border-transparent focus:border-transparent outline-none focus:ring-0 ring-0 " />
 
                     </div>
                 </div>
@@ -212,12 +227,12 @@ export default function CustomUserPage() {
 
             </div>
             <div className="flex flex-row space-x-10 shadow-inner bg-[#FBFAFF] px-4 py-6">
-                <aside className=" px-3 hidden shadow-lg bg-white rounded-lg sm:h-auto sm:min-h-screen sm:flex sm:w-52" aria-label="Sidebar">
+                <aside className=" px-3 hidden shadow-lg bg-white rounded-lg sm:h-screen sm:flex sm:w-52" aria-label="Sidebar">
                     <div className=" h-auto flex flex-col items-center justify-between rounded p-3  bg-bg-primary-dark  dark:bg-gray-800">
 
                         <div className="w-full place-items-center text-black ">
 
-                            <ul className={`mt-5 w-full shrink-0 space-y-6`}>
+                            <ul className={`mt-5 w-full  space-y-6`}>
                                 <li className=" transition-all  rounded-lg w-full">
                                     <button
                                         onClick={() => {
@@ -317,10 +332,10 @@ export default function CustomUserPage() {
 
 
                                         }}
-                                        className={`rounded-lg transition-all flex border-2 border-transparent active:border-primary-base  hover:border-primary-base w-full flex-row align-middle p-2 sm:space-x-4 ${pathname.includes('customers') ? 'bg-primary-base text-white' : `text-black`}
+                                        className={`rounded-lg transition-all flex border-2 border-transparent active:border-primary-base  hover:border-primary-base w-full flex-row align-middle p-2 sm:space-x-4 ${pathname.includes('customers') && !pathname.includes('workflows') ? 'bg-primary-base text-white' : `text-black`}
                                 `}
                                     >
-                                        <CustomersIcon selected={pathname.includes('customers')} />
+                                        <CustomersIcon selected={pathname.includes('customers') && !pathname.includes('workflows')} />
                                         <h1 className="text-[18px]">Customers</h1>
 
                                     </button>
@@ -330,7 +345,7 @@ export default function CustomUserPage() {
                             </ul>
                         </div>
                         <div className="flex flex-col space-y-6 ">
-                            <ul className={` w-full shrink-0 space-y-2`}>
+                            <ul className={` w-full  space-y-2`}>
                                 {/* <li className="hover:opacity-80 transition-all rounded-lg">
                                 <button onClick={() => {
                                     UIStore.update((s) => {
@@ -460,7 +475,7 @@ export default function CustomUserPage() {
                     </div>
                     <div
                         id="content-window"
-                        className="h-auto sm:h-full w-auto sm:rounded-sm  transition-height "
+                        className="h-screen overflow-y-scroll  w-auto sm:rounded-sm  transition-height "
                     >
                         <Outlet context={{ metadata: metadata, businessData: businessData }}></Outlet>
                     </div>

@@ -1,12 +1,18 @@
 import type { ActionFunction } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
 import { parseString, parseStringPromise } from 'xml2js';
+import { setFirestoreDocFromData, updateFirestoreDocFromData } from "~/firebase/queries.server";
+import { requireUser } from "~/session.server";
 import { trimNullValues } from "~/utils/utils.server";
 
 
-// * Need to finish this first thing in the morning
 
+/**
+ * Test Tally Connection, and set currently active integration as tally.
+ */
 export const action: ActionFunction = async ({ request, params }) => {
+
+    const session = await requireUser(request);
 
     console.log("TEST TALLY CONNECTION...")
     const formData = await request.formData();
@@ -32,6 +38,10 @@ export const action: ActionFunction = async ({ request, params }) => {
         const testTallyDataJSON = await parseStringPromise(testTallyData, { preserveChildrenOrder: true, normalize: true })
 
         console.log(testTallyDataJSON)
+
+        const businessUIDRef = await updateFirestoreDocFromData({ integration: 'tally', creds: { hostname: hostname, port: port } }, 'businesses', `${session?.metadata?.businessID}`)
+
+
 
         return json({ status: Number(testTallyDataJSON['RESPONSE'] == "Unknown Request, cannot be processed") })
 
