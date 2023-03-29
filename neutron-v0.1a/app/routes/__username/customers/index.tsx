@@ -15,7 +15,7 @@ export default function CustomersList() {
 
     const { metadata, businessData } = useOutletContext();
 
-    const [currTab, setCurrTab] = useState('Outstanding')
+    const [currTab, setCurrTab] = useState('All')
     // const currView = currTab == "Outstanding" ? outstandingCustomers : allCustomers;
     const currView = businessData?.customers;
     const currSort = currTab == "Outstanding" ? (a, b) => {
@@ -25,7 +25,7 @@ export default function CustomersList() {
             return 1
         }
     } : (a, b) => {
-        if (a?.outstanding_receivable_amount > b?.outstanding_receivable_amount) {
+        if (a?.vendor_name < b?.vendor_name) {
             return -1
         } else {
             return 1
@@ -63,12 +63,12 @@ export default function CustomersList() {
                         </div>
                         <div className="flex flex-row space-x-4 w-2/5 p-2  items-center justify-end">
                             <div className="flex flex-row space-x-4">
-                                {/* <button onClick={() => {
+                                <button onClick={() => {
                                 setCurrTab('All')
                             }} className={`underline-offset-4 hover:opacity-75 transition-all ${currTab == "All" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>All</button>
                             <button onClick={() => {
                                 setCurrTab('Outstanding');
-                            }} className={`underline-offset-4 hover:opacity-75  transition-all ${currTab == "Outstanding" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>Outstanding</button> */}
+                            }} className={`underline-offset-4 hover:opacity-75  transition-all ${currTab == "Outstanding" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>Outstanding</button>
                             </div>
                             <div className="flex flex-row space-x-4 items-center">
                                 <FilterButton />
@@ -108,7 +108,7 @@ export default function CustomersList() {
                                     return (customer?.vendor_name?.includes(filter) || customer?.first_name?.includes(filter) || customer?.last_name?.includes(filter));
                                 }).sort(currSort).slice(startOffset, endOffset).map((customer, index) => {
                                     return (
-                                        <tr key={index} className={`border-b border-dashed sm:flex sm:flex-row sm:justify-evenly sm:items-center w-full border-gray-400 dark:bg-gray-800 dark:border-gray-700 transition-all hover:bg-bg-primary-dark hover:bg-opacity-50 hover:border-primary-dark`}>
+                                        <tr key={index} className={`border-b border-dashed sm:flex sm:flex-row sm:justify-evenly h-24 sm:items-center w-full border-gray-400 dark:bg-gray-800 dark:border-gray-700 transition-all hover:bg-bg-primary-dark hover:bg-opacity-50 hover:border-primary-dark`}>
                                             <td scope="row" className="px-2 py-4 w-full font-gilroy-regular text-left">
                                                 <div className="flex flex-row w-auto justify-start items-center space-x-4">
                                                     <input type="checkbox"></input>

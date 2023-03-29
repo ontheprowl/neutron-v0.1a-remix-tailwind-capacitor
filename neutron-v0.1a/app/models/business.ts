@@ -4,8 +4,6 @@ export type BusinessState = {
     address_line_2?: string,
     business_name?: string,
     city?: string,
-    customers: string[],
-    receivables: string[],
     description?: string,
     gst?: string,
     industryType?: string,
@@ -64,8 +62,7 @@ export type BusinessState = {
 
 
 export const DEFAULT_BUSINESS_DATA_STATE: BusinessState = {
-    customers: [],
-    receivables: [],
+    integration: "",
     outstanding: {
         '30d': 0,
         '60d': 0,

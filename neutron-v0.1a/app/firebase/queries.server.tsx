@@ -1,10 +1,10 @@
 
+import { randomUUID } from "crypto";
 import { serverDatabase, serverFirestore } from "./firebase-exports.server";
 
 
-import { db, firestore } from "~/firebase/neutron-config.server";
+import { adminFirestore, db, firestore } from "~/firebase/neutron-config.server";
 import type { EventType, NeutronEvent } from "~/models/events";
-import { cacheObject, hasKey } from "~/redis/queries.server";
 
 
 
@@ -169,5 +169,105 @@ export async function fetchLatestEvent(type: EventType, uid?: string): Promise<N
 export async function updateFirestoreDocFromData(data: any, collectionName: string, path: string): Promise<DocumentReference<any>> {
     const updatedDocRef = serverFirestore.doc(firestore, collectionName, path)
     await serverFirestore.updateDoc(updatedDocRef, data)
+    return updatedDocRef
+}
+
+
+export async function deleteFieldsFromFirestoreDoc(fieldKeys: string[], collectionName: string, path: string): Promise<DocumentReference<any>> {
+    const updatedDocRef = serverFirestore.doc(firestore, collectionName, path)
+    const updateObject: { [x: string]: any } = {}
+    for (const fieldKey of fieldKeys) {
+        updateObject[`${fieldKey}`] = serverFirestore.deleteField();
+    }
+    await serverFirestore.updateDoc(updatedDocRef, updateObject)
+    return updatedDocRef
+}
+
+export async function uploadBulkToCollection(data: any[], collectionPath: string, batchSize: number, idKey: string) {
+
+    const batches = Math.ceil(data.length / batchSize);
+
+
+    return new Promise((resolve, reject) => {
+        uploadBatch(data, batches, 0, collectionPath, resolve, idKey).catch(reject);
+    });
+}
+
+export async function uploadBatch(data: any[], batchesLeft: number, offset: number, collectionPath: string, resolve: (value: unknown) => void, idKey: string) {
+
+    if (batchesLeft === 0) {
+        // When there are no documents left, we are done
+        resolve(batchesLeft);
+        return;
+    }
+
+    let slice = data;
+    if (batchesLeft === 1) {
+        slice = data.slice(offset);
+    } else {
+        slice = data.slice(offset, offset + 500);
+    }
+
+    const batch = adminFirestore.batch();
+
+    for (const elem of slice) {
+        const slug = elem[idKey];
+        const path = `${collectionPath}/${slug ? slug : randomUUID()}`;
+        batch.create(adminFirestore.doc(path), elem);
+    }
+    await batch.commit();
+
+    process.nextTick(() => {
+        uploadBatch(data, batchesLeft - 1, offset + 500, collectionPath, resolve, idKey);
+    });
+
+}
+
+export async function deleteCollection(collectionPath: string, batchSize: number) {
+    const collectionRef = adminFirestore.collection(collectionPath);
+    const query = collectionRef.orderBy('__name__').limit(batchSize);
+
+    return new Promise((resolve, reject) => {
+        deleteQueryBatch(query, resolve).catch(reject);
+    });
+}
+
+async function deleteQueryBatch(query: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>, resolve: (value: unknown) => void) {
+    const snapshot = await query.get();
+
+    const batchSize = snapshot.size;
+    if (batchSize === 0) {
+        // When there are no documents left, we are done
+        resolve(batchSize);
+        return;
+    }
+
+    // Delete documents in a batch
+    const batch = adminFirestore.batch();
+    snapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+    });
+    await batch.commit();
+
+    // Recurse on the next process tick, to avoid
+    // exploding the stack.
+    process.nextTick(() => {
+        deleteQueryBatch(query, resolve);
+    });
+}
+
+export async function updateArrayInFirestoreDoc(data: any, arrayKey: string, collectionName: string, path: string): Promise<DocumentReference<any>> {
+    const updatedDocRef = serverFirestore.doc(firestore, collectionName, path)
+    const updateObject: { [x: string]: any } = {}
+    updateObject[`${arrayKey}`] = serverFirestore.arrayUnion(data)
+    await serverFirestore.updateDoc(updatedDocRef, updateObject)
+    return updatedDocRef
+}
+
+export async function removeFromArrayInFirestoreDoc(data: any, arrayKey: string, collectionName: string, path: string): Promise<DocumentReference<any>> {
+    const updatedDocRef = serverFirestore.doc(firestore, collectionName, path,)
+    const updateObject: { [x: string]: any } = {}
+    updateObject[`${arrayKey}`] = serverFirestore.arrayRemove(data)
+    await serverFirestore.updateDoc(updatedDocRef, updateObject)
     return updatedDocRef
 }

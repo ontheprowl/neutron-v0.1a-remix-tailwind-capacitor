@@ -1,20 +1,44 @@
-import { Link, useLocation, useOutletContext } from "@remix-run/react";
+import { useLocation, useOutletContext } from "@remix-run/react";
+import { LoaderFunction } from "@remix-run/server-runtime";
 import { useState } from "react";
 import DeleteButton from "~/components/inputs/buttons/DeleteButton";
 import ExportButton from "~/components/inputs/buttons/ExportButton";
 import FilterButton from "~/components/inputs/buttons/FilterButton";
-import { InvoiceClearedStatus } from "~/components/layout/Statuses";
+import NucleiPagination from "~/components/inputs/pagination/NucleiPagination";
+import { InvoiceClearedStatus, InvoicePendingStatus } from "~/components/layout/Statuses";
+import { getSingleDoc } from "~/firebase/queries.server";
+import { requireUser } from "~/session.server";
+
+
+// export const loader: LoaderFunction = async ({ request, params }) => {
+//     const session = await requireUser(request);
+
+//     const customerID = params.customerID;
+
+//     const customer = await getSingleDoc(`customers/business/${session?.metadata?.businessID}/${customerID}`);
+
+//     const invoiceIDs: string[] = customer?.invoices;
+
+//     const invoices: Array<{ [x: string]: any }> = []
+//     for (const invoice of invoiceIDs) {
+//         const invoiceData = await getSingleDoc(``)
+//     }
+// }
+
 
 
 
 export default function CustomerOverview() {
 
 
-    const { metadata, businessData } = useOutletContext();
+    const customerData: { [x: string]: any } = useOutletContext();
 
     const { pathname } = useLocation();
 
-    const [page, setPage] = useState(0);
+
+    const [startOffset, setStart] = useState(0);
+    const [endOffset, setEnd] = useState(50)
+    const [filter, setFilter] = useState('');
 
     return (
 
@@ -44,9 +68,8 @@ export default function CustomerOverview() {
 
                 <div className={`hidden sm:table p-3 rounded-xl h-[75vh] max-h-[75vh] mt-1`}>
                     <table className={`w-full max-h-[70vh] overflow-y-scroll sm:block table-auto text-sm text-left text-black`}>
-
                         <tbody className='sm:block table-row-group'>
-                            <tr className={` border-b text-secondary-text sm:flex sm:flex-row w-full transition-all sticky top-0 pointer-events-none bg-bg-secondary-dark z-20  hover:bg-opacity-50  dark:hover:bg-gray-600`}>
+                            <tr className={` bg-white border-b text-secondary-text sm:flex sm:flex-row w-full transition-all sticky top-0 pointer-events-none bg-bg-secondary-dark z-20  hover:bg-opacity-50  dark:hover:bg-gray-600`}>
 
                                 <th scope="row" className="px-2 py-4 w-full font-medium text-center whitespace-nowrap">
                                     <div className="flex flex-row w-auto justify-start space-x-4">
@@ -60,6 +83,9 @@ export default function CustomerOverview() {
                                 <th scope="row" className="px-2 py-4 w-full font-medium text-center ">
                                     TOTAL AMOUNT
                                 </th>
+                                <th scope="row" className="px-2 py-4 w-full font-medium text-center ">
+                                    BALANCE AMOUNT
+                                </th>
                                 <th scope="row" className="px-2 py-4 w-full font-medium text-center  ">
                                     CREATED DATE
                                 </th>
@@ -69,44 +95,54 @@ export default function CustomerOverview() {
                                 <th scope="row" className="px-2 py-4  w-full font-medium text-center  whitespace-nowrap">
                                     STATUS
                                 </th>
-                                <th scope="row" className="px-2 py-4  w-full font-medium text-center  whitespace-nowrap">
-                                    ACTIONS
-                                </th>
                             </tr>
-                            <tr className={`border-b border-dashed sm:flex sm:flex-row sm:justify-evenly sm:items-center w-full border-gray-400 dark:bg-gray-800 dark:border-gray-700 transition-all hover:bg-bg-primary-dark hover:bg-opacity-50 hover:border-primary-dark`}>
-                                <td scope="row" className="px-2 py-4 w-full font-gilroy-regular text-center  whitespace-nowrap">
-                                    <div className="flex flex-row w-auto justify-start space-x-4">
-                                        <input type="checkbox"></input>
-                                        <h1>#90905454</h1>
-                                    </div>
-                                </td>
-                                <td className="px-2 py-4 w-full text-left flex flex-col space-y-2  ">
-                                    Wayne Enterprises
-                                    <span className=" text-secondary-text text-md">Lucius Fox</span>
-                                </td>
-                                <td className="px-2 py-4 font-gilroy-regular  w-full text-center ">
-                                    Rs.20,000
-                                </td>
-                                <td className="px-2 py-4 font-gilroy-regular  w-full text-center ">
-                                    14 Dec 2020
-                                </td>
-                                <td className="  px-2 py-4 w-full font-gilroy-regular  text-center justify-center items-center flex-row flex ">
-                                    14 Dec 2020
-                                </td>
-                                <td className="  px-2 py-4 w-full font-gilroy-regular justify-center flex flex-row  text-center">
-                                    <InvoiceClearedStatus />
+                            {customerData?.invoices?.filter((invoice) => {
+                                return invoice?.customer_name?.includes(filter);
+                            }).sort((a, b) => {
+                                if (a?.balance > b.balance) {
+                                    return -1
+                                } else {
+                                    return 1
+                                }
+                            }).slice(startOffset, endOffset).map((invoice, index) => {
+                                return (
+                                    <tr key={invoice.id} className={`border-b border-dashed sm:flex sm:flex-row  sm:justify-evenly sm:items-center w-full border-gray-400 dark:bg-gray-800 dark:border-gray-700 transition-all hover:bg-bg-primary-dark hover:bg-opacity-50 hover:border-primary-dark`}>
+                                        <td scope="row" className="px-2 py-4 w-full font-gilroy-regular text-center  whitespace-nowrap">
+                                            <div className="flex flex-row w-auto justify-start space-x-4">
+                                                <input type="checkbox"></input>
+                                                <h1>#{startOffset + index}</h1>
+                                            </div>
+                                        </td>
+                                        <td className="px-2 py-4 w-full text-left flex flex-col space-y-2  ">
+                                            {/* {invoice?.company_name} */}
+                                            <span className=" text-secondary-text text-md">{invoice?.customer_name}</span>
+                                        </td>
+                                        <td className="px-2 py-4 font-gilroy-regular  w-full text-center ">
+                                            Rs. {Number(invoice?.total).toLocaleString('en-IN')}
+                                        </td>
+                                        <td className="px-2 py-4 font-gilroy-regular  w-full text-center ">
+                                            Rs. {Number(invoice?.balance).toLocaleString('en-IN')}
+                                        </td>
+                                        <td className="px-2 py-4 font-gilroy-regular  w-full text-center ">
+                                            {new Date(invoice?.date).toLocaleDateString('en-IN', { dateStyle: "long" })}
+                                        </td>
+                                        <td className="  px-2 py-4 w-full font-gilroy-regular  text-center justify-center items-center flex-row flex ">
+                                            {new Date(invoice?.due_date).toLocaleDateString('en-IN', { dateStyle: "long" })}
+                                        </td>
+                                        <td className="  px-2 py-4 w-full font-gilroy-regular justify-center flex flex-row  text-center">
+                                            {invoice?.status == "paid" ? <InvoiceClearedStatus /> : <InvoicePendingStatus />}
 
-                                </td>
-                                <td className='px-2 py-4 w-full min-w-[160px] flex flex-row justify-center '>
-                                    <select className="bg-[#f5f5f5] p-3 rounded-xl text-secondary-text outline-none">
-                                        <option value="" disabled selected className="hidden">Actions</option>
-                                        <option>View</option>
-                                        <option>Delete</option>
-                                    </select>
-                                </td>
+                                        </td>
+                                        {/* <td className='px-2 py-4 w-full min-w-[160px] flex flex-row justify-center '>
+                                            <select className="bg-[#f5f5f5] p-3 rounded-xl text-secondary-text outline-none">
+                                                <option value="" disabled selected className="hidden">Actions</option>
+                                                <option>View</option>
+                                                <option>Delete</option>
+                                            </select>
+                                        </td> */}
+                                    </tr>)
+                            })}
 
-
-                            </tr>
 
 
                         </tbody>
@@ -118,14 +154,7 @@ export default function CustomerOverview() {
                         <option>View</option>
                         <option>Delete</option>
                     </select>
-                    <div className="flex flex-row space-x-4  font-gilroy-medium items-center">
-
-                        <div className={`h-10 w-10 pl-4 pt-2 ${page == 0 ? 'bg-primary-base text-white' : 'bg-neutral-light text-black'} rounded-lg`}>1</div>
-                        <div className={`h-10 w-10 pl-4 pt-2 ${page == 1 ? 'bg-primary-base text-white' : 'bg-neutral-light text-black'} rounded-lg`}>2</div>
-                        <div className={`h-10 w-10 pl-4 pt-2 ${page == 2 ? 'bg-primary-base text-white' : 'bg-neutral-light text-black'} rounded-lg`}>3</div>
-                        <div className={`h-10 w-10 pl-4 pt-2 ${page == 3 ? 'bg-primary-base text-white' : 'bg-neutral-light text-black'} rounded-lg`}>4</div>
-                        <div className={`h-10 w-10 pl-4 pt-2 ${page == 4 ? 'bg-primary-base text-white' : 'bg-neutral-light text-black'} rounded-lg`}>5</div>
-                    </div>
+                    <NucleiPagination items={customerData?.invoices} startPage={0} pageSize={50} pagesDisplayed={2} startState={[startOffset, setStart]} endState={[endOffset, setEnd]} />
                 </div>
             </div>
         </>

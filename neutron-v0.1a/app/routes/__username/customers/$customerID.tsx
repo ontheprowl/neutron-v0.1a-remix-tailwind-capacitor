@@ -14,40 +14,34 @@ export default function CustomerOverview() {
 
     const contactID = params.customerID;
 
+    const receivables = useMemo(() => { return [...new Set([...businessData?.receivables['30d'], ...businessData?.receivables['60d'], ...businessData?.receivables['90d'], ...businessData?.receivables['excess']])] }, [businessData?.receivables])
+    const paid = useMemo(() => { return [...new Set([...businessData?.paid['excess'], ...businessData?.paid['90d'], ...businessData?.paid['60d'], ...businessData?.paid['30d']])] }, [businessData?.paid])
+
+    const invoices = useMemo(() => [...receivables, ...paid], [receivables,paid]);
 
     const { pathname } = useLocation();
 
     const currentCustomer: { [x: string]: any } | null = useMemo(() => {
         for (const key of Object.keys(businessData?.customers)) {
-            if (businessData?.customers[key]?.contact_id == contactID) {
+            const currentCustomer = businessData?.customers[key];
+            if (currentCustomer.contact_id == contactID) {
                 console.log("FOUND THE CUSTOMER");
+                currentCustomer['invoices'] = invoices?.filter((invoice) => invoice?.customer_id == businessData?.customers[key]?.contact_id);
                 return businessData?.customers[key];
             }
         }
         return null
-    }, [businessData?.customers, contactID]);
+    }, [businessData?.customers, contactID, invoices]);
 
-
-    const currentCustomerInvoices = useMemo(() => {
-        for (const key of Object.keys(businessData?.customers)) {
-            if (businessData?.customers[key]?.contact_id == contactID) {
-                console.log("FOUND THE CUSTOMER");
-                return businessData?.customers[key];
-            }
-        }
-        return null
-    }, [businessData?.customers, contactID]);
-
-    console.log(currentCustomer)
-
-    const [page, setPage] = useState(0);
+    console.log("THE CURRENT CUSTOMER IS")
+    console.dir(currentCustomer)
 
     return (
         <div className=" h-full flex flex-col space-y-4">
             <div className="flex flex-row justify-between">
                 <div id="page_title" className="flex flex-col">
                     <h1 className="text-lg">Customer Details</h1>
-                    <span className="text-neutral-base"> Home - Customers - Wayne Enterprises</span>
+                    <span className="text-neutral-base"> Home - Customers - {currentCustomer?.vendor_name}</span>
                 </div>
                 <button className="bg-primary-base text-white hover:bg-primary-dark transition-all rounded-lg p-3">
                     Add Invoices
@@ -90,7 +84,7 @@ export default function CustomerOverview() {
                         </div>
                     </div>
                 </div>
-                <Outlet context={{ metadata: metadata, businessData: businessData }}></Outlet>
+                <Outlet context={currentCustomer}></Outlet>
             </div>
 
 

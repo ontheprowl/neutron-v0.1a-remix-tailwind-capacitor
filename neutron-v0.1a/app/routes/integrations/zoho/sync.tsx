@@ -1,6 +1,6 @@
 import { ActionFunction, json } from "@remix-run/server-runtime";
 import moment from "moment";
-import { addFirestoreDocFromData, addFirestoreDocsAndReturnIDs, getSingleDoc, setFirestoreDocFromData, updateFirestoreDocFromData } from "~/firebase/queries.server";
+import { addFirestoreDocFromData, addFirestoreDocsAndReturnIDs, getSingleDoc, setFirestoreDocFromData, updateFirestoreDocFromData, uploadBulkToCollection } from "~/firebase/queries.server";
 import { requireUser } from "~/session.server";
 import { executePaginatedRequestandAggregate, prependBaseURLForEnvironment, returnNormalizedDateString } from "~/utils/utils.server";
 
@@ -22,14 +22,6 @@ export const action: ActionFunction = async ({ request, params }) => {
     const formData = await request.formData();
     const business_id = formData.get('business_id');
 
-    let contacts: { code: number, message: string, contacts: Array<{ [x: string]: any }>, page_context: { [x: string]: any } } | null;
-    let customers: Array<{ [x: string]: any }> | null | undefined = null;
-
-
-    // // * Generate Business Metadata and Metrics from integration
-    let receivables: { code: number, message: string, invoices: Array<{ [x: string]: any }>, page_context: { [x: string]: any } } | null = null;
-    let total_outstanding = null;
-
     if (business_id) {
         console.log("BUSINESS_ID DETECTED")
         console.log(business_id)
@@ -50,10 +42,8 @@ export const action: ActionFunction = async ({ request, params }) => {
             console.dir(defaultOrganization, { depth: null })
             // const expired = true;
             const expired = ((new Date().getTime() - zohoCreds.timestamp) / (10 ** 3)) > 3600;
-            console.log("TOKEN EXPIRED : " + expired);
             if (expired) {
-                console.log("RENEWING ZOHO CREDS...")
-                const response = await fetch(prependBaseURLForEnvironment(`/integrations/zoho/refresh?refresh_token=${zohoCreds.refresh_token}`), {
+                const response = await fetch(prependBaseURLForEnvironment(`/integrations/zoho/refresh?refresh_token=${zohoCreds.refresh_token}&business_id=${business_id}`), {
                     method: "GET"
                 })
 
@@ -76,71 +66,54 @@ export const action: ActionFunction = async ({ request, params }) => {
                 // ? Is there a better way to implement pagination
 
 
-                const receivables30Days = await executePaginatedRequestandAggregate(async (page: number) => {
-                    const receivablesRequestResponse30Days = await fetch(`${apiDomain}/books/v3/invoices?organization_id=${organization_id}&due_date_after=${returnNormalizedDateString(moment().subtract(31, 'days').toDate())}&status=overdue&page=${page}`, {
+                const receivableInvoices = await executePaginatedRequestandAggregate(async (page: number) => {
+                    const receivablesRequestResponse = await fetch(`${apiDomain}/books/v3/invoices?organization_id=${organization_id}&status=overdue&page=${page}`, {
                         method: "GET",
                         headers: new Headers({
                             'Authorization': `Zoho-oauthtoken ${access_token}`
                         })
                     })
 
-                    const response: { code: number, invoices: [{ [x: string]: any }], page_context: { has_more_page: boolean } } = await receivablesRequestResponse30Days.json();
+                    const response: { code: number, invoices: [{ [x: string]: any }], page_context: { has_more_page: boolean } } = await receivablesRequestResponse.json();
 
+                    const reducedInvoices = response?.invoices?.map((invoice) => {
+                        return {
+                            invoice_id: invoice.invoice_id,
+                            date: invoice.date,
+                            due_date: invoice.due_date,
+                            due_days: invoice.due_days,
+                            status: invoice.status,
+                            invoice_number: invoice.invoice_number,
+                            company_name: invoice.company_name,
+                            customer_name: invoice.customer_name,
+                            customer_id: invoice.customer_id,
+                            total: invoice.total,
+                            balance: invoice.balance
+                        }
 
-                    return { page_result: response?.invoices, has_more_page: response?.page_context?.has_more_page }
-                });
-
-                const receivables60Days = await executePaginatedRequestandAggregate(async (page: number) => {
-                    const receivablesRequestResponse60Days = await fetch(`${apiDomain}/books/v3/invoices?organization_id=${organization_id}&due_date_after=${returnNormalizedDateString(moment().subtract(61, 'days').toDate())}&due_date_before=${returnNormalizedDateString(moment().subtract(30, 'days').toDate())}&status=overdue&page=${page}`, {
-                        method: "GET",
-                        headers: new Headers({
-                            'Authorization': `Zoho-oauthtoken ${access_token}`
-                        })
                     })
 
-                    const response: { code: number, invoices: [{ [x: string]: any }], page_context: { has_more_page: boolean } } = await receivablesRequestResponse60Days.json();
-
-
-                    return { page_result: response?.invoices, has_more_page: response?.page_context?.has_more_page }
-
+                    return { page_result: reducedInvoices, has_more_page: response?.page_context?.has_more_page }
                 });
 
 
-                const receivables90Days = await executePaginatedRequestandAggregate(async (page: number) => {
-                    const receivablesRequestResponse90Days = await fetch(`${apiDomain}/books/v3/invoices?organization_id=${organization_id}&due_date_after=${returnNormalizedDateString(moment().subtract(91, 'days').toDate())}&due_date_before=${returnNormalizedDateString(moment().subtract(60, 'days').toDate())}&status=overdue&page=${page}`, {
-                        method: "GET",
-                        headers: new Headers({
-                            'Authorization': `Zoho-oauthtoken ${access_token}`
-                        })
-                    })
-
-                    const response: { code: number, invoices: [{ [x: string]: any }], page_context: { has_more_page: boolean } } = await receivablesRequestResponse90Days.json();
 
 
-                    return { page_result: response?.invoices, has_more_page: response?.page_context?.has_more_page }
-
+                const receivables30Days = receivableInvoices?.filter((invoice) => {
+                    return invoice?.due_date > returnNormalizedDateString(moment().subtract(31, 'days').toDate())
                 });
 
-                const receivablesExcess = await executePaginatedRequestandAggregate(async (page: number) => {
-                    const receivablesRequestResponseExcess = await fetch(`${apiDomain}/books/v3/invoices?organization_id=${organization_id}&due_date_before=${returnNormalizedDateString(moment().subtract(90, 'days').toDate())}&status=overdue&page=${page}`, {
-                        method: "GET",
-                        headers: new Headers({
-                            'Authorization': `Zoho-oauthtoken ${access_token}`
-                        })
-                    })
-
-                    const response: { code: number, invoices: [{ [x: string]: any }], page_context: { has_more_page: boolean } } = await receivablesRequestResponseExcess.json();
-
-
-                    return { page_result: response?.invoices, has_more_page: response?.page_context?.has_more_page }
-
+                const receivables60Days = receivableInvoices?.filter((invoice) => {
+                    return invoice?.due_date > returnNormalizedDateString(moment().subtract(61, 'days').toDate()) && invoice?.due_date < returnNormalizedDateString(moment().subtract(30, 'days').toDate());
                 });
 
+                const receivables90Days = receivableInvoices?.filter((invoice) => {
+                    return invoice?.due_date > returnNormalizedDateString(moment().subtract(91, 'days').toDate()) && invoice?.due_date < returnNormalizedDateString(moment().subtract(60, 'days').toDate());
+                });
 
-                console.dir('PAGINATED AND AGGREGATED RECEIVABLES...');
-                console.dir(receivables30Days.length)
-
-
+                const receivablesExcess = receivableInvoices?.filter((invoice) => {
+                    return invoice?.due_date < returnNormalizedDateString(moment().subtract(90, 'days').toDate())
+                });
 
                 const outstanding30Days = receivables30Days?.reduce((first, last) => {
                     if (last.balance) return first + last.balance
@@ -163,80 +136,67 @@ export const action: ActionFunction = async ({ request, params }) => {
 
 
 
-                const paidInvoices30Days = await executePaginatedRequestandAggregate(async (page: number) => {
-                    const paidInvoicesRequest30Days = await fetch(`${apiDomain}/books/v3/invoices?organization_id=${organization_id}&due_date_after=${returnNormalizedDateString(moment().subtract(31, 'days').toDate())}&status=paid&page=${page}`, {
+                const paidInvoices = await executePaginatedRequestandAggregate(async (page: number) => {
+                    const paidInvoicesRequest = await fetch(`${apiDomain}/books/v3/invoices?organization_id=${organization_id}&status=paid&page=${page}`, {
                         method: "GET",
                         headers: new Headers({
                             'Authorization': `Zoho-oauthtoken ${access_token}`
                         })
                     })
 
-                    const response: { code: number, invoices: [{ [x: string]: any }], page_context: { has_more_page: boolean } } = await paidInvoicesRequest30Days.json();
+                    const response: { code: number, invoices: [{ [x: string]: any }], page_context: { has_more_page: boolean } } = await paidInvoicesRequest.json();
 
+                    const reducedInvoices = response?.invoices?.map((invoice) => {
+                        return {
+                            invoice_id: invoice.invoice_id,
+                            date: invoice.date,
+                            due_date: invoice.due_date,
+                            due_days: invoice.due_days,
+                            status: invoice.status,
+                            invoice_number: invoice.invoice_number,
+                            company_name: invoice.company_name,
+                            customer_name: invoice.customer_name,
+                            customer_id: invoice.customer_id,
+                            total: invoice.total,
+                            balance: invoice.balance
+                        }
 
-                    return { page_result: response?.invoices, has_more_page: response?.page_context?.has_more_page }
-
-                });
-
-                const paidInvoices60Days = await executePaginatedRequestandAggregate(async (page: number) => {
-                    const paidInvoicesRequest60Days = await fetch(`${apiDomain}/books/v3/invoices?organization_id=${organization_id}&due_date_after=${returnNormalizedDateString(moment().subtract(61, 'days').toDate())}&due_date_before=${returnNormalizedDateString(moment().subtract(30, 'days').toDate())}&status=paid&page=${page}`, {
-                        method: "GET",
-                        headers: new Headers({
-                            'Authorization': `Zoho-oauthtoken ${access_token}`
-                        })
                     })
 
-                    const response: { code: number, invoices: [{ [x: string]: any }], page_context: { has_more_page: boolean } } = await paidInvoicesRequest60Days.json();
-
-
-                    return { page_result: response?.invoices, has_more_page: response?.page_context?.has_more_page }
+                    return { page_result: reducedInvoices, has_more_page: response?.page_context?.has_more_page }
 
                 });
 
-                const paidInvoices90Days = await executePaginatedRequestandAggregate(async (page: number) => {
-                    const paidInvoicesRequest90Days = await fetch(`${apiDomain}/books/v3/invoices?organization_id=${organization_id}&due_date_after=${returnNormalizedDateString(moment().subtract(91, 'days').toDate())}&due_date_before=${returnNormalizedDateString(moment().subtract(60, 'days').toDate())}&status=paid&page=${page}`, {
-                        method: "GET",
-                        headers: new Headers({
-                            'Authorization': `Zoho-oauthtoken ${access_token}`
-                        })
-                    })
-
-                    const response: { code: number, invoices: [{ [x: string]: any }], page_context: { has_more_page: boolean } } = await paidInvoicesRequest90Days.json();
-
-
-                    return { page_result: response?.invoices, has_more_page: response?.page_context?.has_more_page }
-
+                console.dir(paidInvoices);
+                const paidInvoices30Days = paidInvoices?.filter((invoice) => {
+                    return invoice?.due_date > returnNormalizedDateString(moment().subtract(31, 'days').toDate())
                 });
 
-                const paidInvoicesExcess = await executePaginatedRequestandAggregate(async (page: number) => {
-                    const paidInvoicesRequestExcess = await fetch(`${apiDomain}/books/v3/invoices?organization_id=${organization_id}&due_date_before=${returnNormalizedDateString(moment().subtract(90, 'days').toDate())}&status=paid&page=${page}`, {
-                        method: "GET",
-                        headers: new Headers({
-                            'Authorization': `Zoho-oauthtoken ${access_token}`
-                        })
-                    })
-
-                    const response: { code: number, invoices: [{ [x: string]: any }], page_context: { has_more_page: boolean } } = await paidInvoicesRequestExcess.json();
-
-
-                    return { page_result: response?.invoices, has_more_page: response?.page_context?.has_more_page }
+                const paidInvoices60Days = paidInvoices?.filter((invoice) => {
+                    return invoice?.due_date > returnNormalizedDateString(moment().subtract(61, 'days').toDate()) && invoice?.due_date < returnNormalizedDateString(moment().subtract(30, 'days').toDate());
                 });
 
+                const paidInvoices90Days = paidInvoices?.filter((invoice) => {
+                    return invoice?.due_date > returnNormalizedDateString(moment().subtract(91, 'days').toDate()) && invoice?.due_date < returnNormalizedDateString(moment().subtract(60, 'days').toDate());
+                });
 
+                const paidInvoicesExcess = paidInvoices?.filter((invoice) => {
+                    return invoice?.due_date < returnNormalizedDateString(moment().subtract(90, 'days').toDate())
+                });
 
-                const revenue30Days = paidInvoices30Days?.reduce((first, last) => {
+                const revenue30Days = paidInvoices30Days.reduce((first, last) => {
                     if (last.total) return first + last.total
                     return first
                 }, 0)
-                const revenue60Days = paidInvoices60Days?.reduce((first, last) => {
+                const revenue60Days = paidInvoices60Days.reduce((first, last) => {
                     if (last.total) return first + last.total
                     return first
                 }, 0)
-                const revenue90Days = paidInvoices90Days?.reduce((first, last) => {
+                const revenue90Days = paidInvoices90Days.reduce((first, last) => {
                     if (last.total) return first + last.total
                     return first
                 }, 0)
-                const revenueExcess = paidInvoicesExcess?.reduce((first, last) => {
+                const revenueExcess = paidInvoicesExcess.reduce((first, last) => {
                     if (last.total) return first + last.total
                     return first
                 }, 0)
@@ -273,33 +233,35 @@ export const action: ActionFunction = async ({ request, params }) => {
                 // // * Write all records to respective collections, and then add keys to the business_data
                 // ? Is there 
 
+                // * Delete previously synced documents
 
-                const receivables30daysIDS = await addFirestoreDocsAndReturnIDs(receivables30Days, `receivables/${business_id}`, `30d`)
-                const receivables60daysIDS = await addFirestoreDocsAndReturnIDs(receivables60Days, `receivables/${business_id}`, `60d`)
-                const receivables90daysIDS = await addFirestoreDocsAndReturnIDs(receivables90Days, `receivables/${business_id}`, `90d`)
-                const receivablesExcessIDS = await addFirestoreDocsAndReturnIDs(receivablesExcess, `receivables/${business_id}`, `excess`)
 
-                // const paidInvoices30daysIDS = await addFirestoreDocsAndReturnIDs(paidInvoices30Days, `cleared/${business_id}`, `30d`);
-                // const paidInvoices60daysIDS = await addFirestoreDocsAndReturnIDs(paidInvoices60Days, `cleared/${business_id}`, `60d`)
-                // const paidInvoices90daysIDS = await addFirestoreDocsAndReturnIDs(paidInvoices90Days, `cleared/${business_id}`, `90d`)
-                // const paidInvoicesExcessIDS = await addFirestoreDocsAndReturnIDs(paidInvoicesExcess, `cleared/${business_id}`, `excess`)
 
-                const allReceivables = [...new Set([...receivables30Days, ...receivables60Days, ...receivables90Days, ...receivablesExcess])];
-                const allReceivableIDS = [...new Set([...receivables30daysIDS, ...receivables60daysIDS, ...receivables90daysIDS, ...receivablesExcessIDS])];
+                const receivables30daysIDS = await uploadBulkToCollection(receivables30Days, `receivables/${business_id}/30d`, 500,'invoice_id');
+                const receivables60daysIDS = await uploadBulkToCollection(receivables60Days, `receivables/${business_id}/60d`, 500,'invoice_id')
+                const receivables90daysIDS = await uploadBulkToCollection(receivables90Days, `receivables/${business_id}/90d`, 500, 'invoice_id')
+                const receivablesExcessIDS = await uploadBulkToCollection(receivablesExcess, `receivables/${business_id}/excess`, 500, 'invoice_id')
+
+                const paidInvoices30daysIDS = await uploadBulkToCollection(paidInvoices30Days, `paid/${business_id}/30d`, 500, 'invoice_id');
+                const paidInvoices60daysIDS = await uploadBulkToCollection(paidInvoices60Days, `paid/${business_id}/60d`, 500, 'invoice_id')
+                const paidInvoices90daysIDS = await uploadBulkToCollection(paidInvoices90Days, `paid/${business_id}/90d`, 500, 'invoice_id')
+                const paidInvoicesExcessIDS = await uploadBulkToCollection(paidInvoicesExcess, `paid/${business_id}/excess`, 500, 'invoice_id')
+
+                const allInvoices = [...new Set([...receivables30Days, ...receivables60Days, ...receivables90Days, ...receivablesExcess, ...paidInvoices30Days, ...paidInvoices60Days, ...paidInvoices90Days, ...paidInvoicesExcess])];
                 // const allClearedIDS = [...new Set([...paidInvoices30daysIDS, ...paidInvoices60daysIDS, ...paidInvoices90daysIDS, ...paidInvoicesExcessIDS])];
 
                 console.log("FETCHING INVOICES PER CUSTOMER...")
-                let allCustomerIDS = [];
+                let customerIndexes: { [x: string]: any } = {};
                 for (const customer of allCustomers) {
-                    const customerInvoices = allReceivables.filter((invoice) => {
+                    const customerInvoices = allInvoices.filter((invoice) => {
                         return (invoice?.customer_id == customer?.contact_id);
                     })
                     if (customerInvoices.length > 0) {
-                        customer['invoices'] = customerInvoices;
-                        const customerCollectionRef = await addFirestoreDocFromData({ ...customer }, 'customers/business', `${business_id}`);
-                        allCustomerIDS.push(customerCollectionRef.id);
+                        customer['invoices'] = customerInvoices.map((invoice) => invoice?.invoice_id);
+                        customerIndexes[customer?.contact_id] = { id: customer?.contact_id, type: "Customer", index: customer?.vendor_name };
                     }
                 }
+                const customerCollectionRef = await uploadBulkToCollection(allCustomers, `customers/business/${business_id}`, 500,'contact_id');
 
 
 
@@ -317,8 +279,6 @@ export const action: ActionFunction = async ({ request, params }) => {
 
 
                 const dataToBeSynced = {
-                    receivables: allReceivableIDS,
-                    customers: allCustomerIDS,
                     outstanding: {
                         '30d': outstanding30Days, '60d': outstanding60Days, '90d': outstanding90Days, 'excess': outstandingExcess, 'total': total_outstanding
                     },
@@ -342,7 +302,8 @@ export const action: ActionFunction = async ({ request, params }) => {
 
                 }
                 // console.dir(dataToBeSynced, { depth: null })
-                const businessDataUpdateRef = await updateFirestoreDocFromData(dataToBeSynced, 'businesses', `${business_id}`)
+                const businessIndexesSetRef = await setFirestoreDocFromData(customerIndexes, 'indexes', `${business_id}`);
+                const businessDataUpdateRef = await updateFirestoreDocFromData(dataToBeSynced, 'businesses', `${business_id}`);
 
                 return json({ status: 1 })
             }

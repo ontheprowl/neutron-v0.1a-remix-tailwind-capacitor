@@ -1,17 +1,24 @@
-import { useOutletContext, useSubmit } from "@remix-run/react";
-import { ActionFunction } from "@remix-run/server-runtime";
+import { useNavigation, useActionData, useOutletContext, useSubmit } from "@remix-run/react";
+import type { ActionFunction } from "@remix-run/server-runtime";
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import EditButton from "~/components/inputs/buttons/EditButton";
+import EditButton from "~/components/inputs/buttons/EditButtonv2";
+import SaveButtonMotion from "~/components/inputs/buttons/SaveButtonV2";
 import NucleiDropdownInput from "~/components/inputs/fields/NucleiDropdownInput";
 import NucleiTextInput from "~/components/inputs/fields/NucleiTextInput";
+import DefaultSpinner from "~/components/layout/DefaultSpinner";
+import { adminAuth } from "~/firebase/neutron-config.server";
+import { updateFirestoreDocFromData } from "~/firebase/queries.server";
+import { requireUser } from "~/session.server";
+import { emitToast } from "~/utils/toasts/NeutronToastContainer";
 
 
 
 
 export const action: ActionFunction = async ({ request, params }) => {
 
+    const session = await requireUser(request);
     const formData = await request.formData();
     const type = formData.get('type')
     const payload = formData.get('payload');
@@ -20,22 +27,36 @@ export const action: ActionFunction = async ({ request, params }) => {
         console.dir(payloadParsed)
         switch (type) {
             case 'business':
-                console.log("BUSINESS DETAILS UPDATE REGISTERED...")
-                break;
+                const businessDataRef = await updateFirestoreDocFromData(payloadParsed, 'businesses', `${session?.metadata?.businessID}`)
+                return 1;
             case 'user':
-                console.log("USER METADATA DETAILS UPDATE REGISTERED...")
-                break;
+                await adminAuth.updateUser(session?.metadata?.id, {
+                    email: payloadParsed?.email,
+                    displayName: payloadParsed?.name,
+                    emailVerified: true,
+                });
+                const userUpdateRef = await updateFirestoreDocFromData(payloadParsed, 'metadata', `${session?.metadata?.id}`)
+                return 1;
             default:
                 break;
         }
     }
-    return null;
+    return 0;
 
 }
 
 export default function SettingsScreen() {
 
     let submit = useSubmit();
+    let navigation = useNavigation();
+
+    const settingsUpdateResult = useActionData();
+
+    useEffect(() => {
+        if (navigation.state == "loading" && settingsUpdateResult == 1) {
+            emitToast(null, <h1>Update Successful</h1>, "success");
+        }
+    }, [navigation, settingsUpdateResult]);
 
     const { metadata, businessData } = useOutletContext();
 
@@ -63,9 +84,7 @@ export default function SettingsScreen() {
                             <h1 className="text-lg">Business Settings</h1>
                             <div className="flex flex-row space-x-4 ">
                                 <AnimatePresence exitBeforeEnter>
-                                    {!businessEditLocked && <motion.button type="submit" initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }} className="text-white rounded-xl  bg-primary-base p-3 hover:bg-primary-dark">Save</motion.button>}
+                                    {!businessEditLocked && <SaveButtonMotion loading={navigation.formData?.get('type') == "business"} submit />}
                                 </AnimatePresence>
                                 <EditButton active={!businessEditLocked} onClick={() => {
                                     lockBusinessEdit(!businessEditLocked)
@@ -147,9 +166,7 @@ export default function SettingsScreen() {
                             <h1 className="text-lg">Account Settings</h1>
                             <div className="flex flex-row space-x-4 ">
                                 <AnimatePresence exitBeforeEnter>
-                                    {!accountEditLocked && <motion.button type="submit" initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }} className="text-white rounded-xl  bg-primary-base p-3 hover:bg-primary-dark">Save</motion.button>}
+                                    {!accountEditLocked && <SaveButtonMotion loading={navigation.formData?.get('type') == "user"} submit />}
                                 </AnimatePresence>
                                 <EditButton active={!accountEditLocked} onClick={() => {
                                     lockAccountEdit(!accountEditLocked)

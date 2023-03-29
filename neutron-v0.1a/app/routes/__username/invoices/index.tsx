@@ -6,7 +6,7 @@ import ExportButton from "~/components/inputs/buttons/ExportButton";
 import FilterButton from "~/components/inputs/buttons/FilterButton";
 import NucleiPagination from "~/components/inputs/pagination/NucleiPagination";
 import NucleiZeroState from "~/components/layout/NucleiZeroState";
-import { InvoiceClearedStatus, InvoicePendingStatus } from "~/components/layout/Statuses";
+import { InvoiceClearedStatus, InvoicePaidStatus, InvoicePendingStatus } from "~/components/layout/Statuses";
 
 
 
@@ -15,18 +15,24 @@ export default function InvoicesList() {
 
     const { metadata, businessData } = useOutletContext();
 
-    const paidInvoices: Array<{ [x: string]: any }> = [];
     const receivables = useMemo(() => { return [...new Set([...businessData?.receivables['30d'], ...businessData?.receivables['60d'], ...businessData?.receivables['90d'], ...businessData?.receivables['excess']])] }, [businessData?.receivables])
+    const paid = useMemo(() => { return [...new Set([...businessData?.paid['excess'], ...businessData?.paid['90d'], ...businessData?.paid['60d'], ...businessData?.paid['30d']])] }, [businessData?.paid])
 
-
-
-
+    const invoices = [...receivables, ...paid];
 
     const [currTab, setCurrTab] = useState('All')
-    const currView = receivables;
-    // const currView = currTab == "Paid" ? paidInvoices : currTab == "Pending" ? receivables : invoices;
 
-
+    const currView = function (currTab: string) {
+        switch (currTab) {
+            case "All":
+                return invoices;
+            case "Pending":
+                return receivables;
+            case "Paid":
+                return paid;
+        }
+    }(currTab);
+    
     const [startOffset, setStart] = useState(0);
     const [endOffset, setEnd] = useState(50)
     const [filter, setFilter] = useState('')
@@ -43,7 +49,7 @@ export default function InvoicesList() {
                     Add Invoices
                 </button>
             </div>
-            {currView?.length > 0 ?
+            {currView && currView.length > 0 ?
                 <div id="invoices_table" className="bg-white shadow-lg rounded-xl justify-between h-full flex flex-col">
                     <div id="table_functions" className="flex flex-row items-center pl-5 py-1  justify-between h-auto">
                         <div className="flex flex-row bg-[#f5f5f5]  h-10 space-x-4 p-2 w-1/4  rounded-lg">
@@ -57,17 +63,17 @@ export default function InvoicesList() {
 
                         </div>
                         <div className="flex flex-row space-x-4 w-2/5 p-2 items-center justify-end">
-                            {/* <div className="flex flex-row space-x-4">
-                            <button onClick={() => {
-                                setCurrTab('All')
-                            }} className={`underline-offset-4 hover:opacity-75 transition-all ${currTab == "All" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>All</button>
-                            <button onClick={() => {
-                                setCurrTab('Paid');
-                            }} className={`underline-offset-4 hover:opacity-75  transition-all ${currTab == "Paid" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>Paid</button>
-                            <button onClick={() => {
-                                setCurrTab('Pending');
-                            }} className={`underline-offset-4 hover:opacity-75  transition-all ${currTab == "Pending" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>Pending</button>
-                        </div> */}
+                            <div className="flex flex-row space-x-4">
+                                <button onClick={() => {
+                                    setCurrTab('All')
+                                }} className={`underline-offset-4 hover:opacity-75 transition-all ${currTab == "All" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>All</button>
+                                <button onClick={() => {
+                                    setCurrTab('Paid');
+                                }} className={`underline-offset-4 hover:opacity-75  transition-all ${currTab == "Paid" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>Paid</button>
+                                <button onClick={() => {
+                                    setCurrTab('Pending');
+                                }} className={`underline-offset-4 hover:opacity-75  transition-all ${currTab == "Pending" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>Pending</button>
+                            </div>
                             <div className="flex flex-row space-x-4 items-center">
                                 <FilterButton />
                                 <ExportButton />
@@ -116,7 +122,7 @@ export default function InvoicesList() {
                                     }
                                 }).slice(startOffset, endOffset).map((invoice, index) => {
                                     return (
-                                        <tr key={invoice.id} className={`border-b border-dashed sm:flex sm:flex-row  sm:justify-evenly sm:items-center w-full border-gray-400 dark:bg-gray-800 dark:border-gray-700 transition-all hover:bg-bg-primary-dark hover:bg-opacity-50 hover:border-primary-dark`}>
+                                        <tr key={invoice.id} className={`border-b border-dashed sm:flex sm:flex-row h-24  sm:justify-evenly sm:items-center w-full border-gray-400 dark:bg-gray-800 dark:border-gray-700 transition-all hover:bg-opacity-50 hover:border-primary-dark`}>
                                             <td scope="row" className="px-2 py-4 w-full font-gilroy-regular text-center  whitespace-nowrap">
                                                 <div className="flex flex-row w-auto justify-start space-x-4">
                                                     <input type="checkbox"></input>
@@ -140,7 +146,7 @@ export default function InvoicesList() {
                                                 {new Date(invoice?.due_date).toLocaleDateString('en-IN', { dateStyle: "long" })}
                                             </td>
                                             <td className="  px-2 py-4 w-full font-gilroy-regular justify-center flex flex-row  text-center">
-                                                {invoice?.status == "paid" ? <InvoiceClearedStatus /> : <InvoicePendingStatus />}
+                                                {invoice?.status == "paid" ? <InvoicePaidStatus /> : <InvoicePendingStatus />}
 
                                             </td>
                                             {/* <td className='px-2 py-4 w-full min-w-[160px] flex flex-row justify-center '>

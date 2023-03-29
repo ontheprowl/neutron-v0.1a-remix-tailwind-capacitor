@@ -1,14 +1,26 @@
-import { Link, Outlet, useLocation, useOutletContext } from "@remix-run/react";
+import { Link, Outlet, useLoaderData, useLocation, useOutletContext, useParams } from "@remix-run/react";
+import type { LoaderFunction } from "@remix-run/server-runtime";
+import { json } from "@remix-run/server-runtime";
+import { getSingleDoc } from "~/firebase/queries.server";
+import { requireUser } from "~/session.server";
 
 
 
+export const loader: LoaderFunction = async ({ request, params }) => {
+    const session = await requireUser(request);
+    const workflowID = params.workflowID;
+    const workflow = await getSingleDoc(`workflows/business/${session?.metadata?.businessID}/${workflowID}`);
 
+    return json(workflow);
+}
 
 
 export default function WorkflowsDetailsScreen() {
 
+    const params = useParams();
 
-    const context = useOutletContext();
+    const workflowID = params.workflowID;
+    const workflowData = useLoaderData();
 
     const { pathname } = useLocation();
 
@@ -23,11 +35,11 @@ export default function WorkflowsDetailsScreen() {
 
         <div id="settings_tabs" className=" flex flex-row font-gilroy-medium text-base space-x-6">
             <Link to="overview" preventScrollReset className={`transition-all text-neutral-dark py-3 border-b-2 hover:opacity-70 ${pathname.includes('overview') ? 'text-primary-base border-primary-base font-bold' : 'border-transparent '}`}>Overview</Link>
-            <Link to="customers" className={`transition-all text-neutral-dark py-3 border-b-2 hover:opacity-70 ${pathname.includes('customers') ? 'text-primary-base border-primary-base font-bold' : 'border-transparent '}`}>Customers</Link>
+            <Link to="customers" preventScrollReset className={`transition-all text-neutral-dark py-3 border-b-2 hover:opacity-70 ${pathname.includes('customers') ? 'text-primary-base border-primary-base font-bold' : 'border-transparent '}`}>Customers</Link>
         </div>
 
         <div id="settings_panel" className="h-full overflow-y-scroll">
-            <Outlet context={context}></Outlet>
+            <Outlet context={{ ...workflowData, id: workflowID }}></Outlet>
         </div>
 
 

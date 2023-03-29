@@ -52,7 +52,7 @@ export function InvoiceStatusGenerator({ status }: { status: InvoiceStatus }) {
         case InvoiceStatus.Pending:
             return <h3 className="font-gilroy-medium p-2 max-w-fit rounded-xl text-warning-dark bg-warning-light">PENDING</h3>
         case InvoiceStatus.Paid:
-            return <h3 className="font-gilroy-medium p-2 max-w-fit rounded-xl text-primary-dark  bg-primary-light">PAID</h3>
+            return <h3 className="font-gilroy-medium p-2 max-w-fit rounded-xl text-success-dark bg-success-light">PAID</h3>
         case InvoiceStatus.Cleared:
             return <h3 className="font-gilroy-medium p-2 max-w-fit rounded-xl text-success-dark bg-success-light">CLEARED</h3>
         default:

@@ -75,7 +75,6 @@ export async function action({ request }: { request: Request }) {
       displayName: 'New User',
       photoURL: '',
     })
-
     await sendEmailVerification(user, { url: prependBaseURLForEnvironment('/auth/verification/google') });
 
 
@@ -91,6 +90,7 @@ export async function action({ request }: { request: Request }) {
     trackJuneEvent(user.uid, 'User Sign Up', { ...data }, 'userEvents');
     return createUserSession({ request: request, metadata: { 'path': ref.path }, userId: token, remember: true, redirectTo: `/checkEmail` })
   } catch (e) {
+    console.dir(e)
     const neutronError = new NeutronError(e);
     return json({ type: neutronError.type, message: neutronError.message });
   }

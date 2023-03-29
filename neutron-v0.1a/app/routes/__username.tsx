@@ -1,39 +1,27 @@
 import { AppStore } from "../stores/UIStore";
-import { primaryGradientDark } from "../utils/neutron-theme-extensions";
-import HomeButton from "../components/HomeButton";
-import { Outlet, useFetcher, useLoaderData, useLocation, useNavigate } from "@remix-run/react";
+import { Link, Outlet, useFetcher, useLoaderData, useLocation, useNavigate } from "@remix-run/react";
 import type { LoaderFunction } from "@remix-run/server-runtime";
 import { json, redirect } from "@remix-run/server-runtime";
 import { formatDateToReadableString } from "~/utils/utils";
-import BackArrow from '~/assets/images/BackArrow.svg'
-import ForwardArrow from '~/assets/images/ForwardArrow.svg'
 
 
 
 import Icon from '../assets/images/icon_black.svg';
 import IconWhite from '../assets/images/iconWhite.svg'
-import PlaceholderDP from '~/assets/images/kartik.png'
 import BottomNav from "~/components/layout/BottomNav";
 import { requireUser } from "~/session.server";
-import { isViewerOwner } from "~/models/user.server";
-import { AnimatePresence, motion, useCycle } from "framer-motion";
-import DisputesButton from "~/components/DisputesButton";
-import SupportButton from "~/components/SupportButton";
+import { motion, useCycle } from "framer-motion";
 import SettingsButton from "~/components/SettingsButton";
 import LogoutButton from "~/components/LogoutButton";
 import { useEffect, useMemo, useState } from "react";
 import NeutronModal from "~/components/layout/NeutronModal";
-import { ContractDataStore } from "~/stores/ContractStores";
-import { DEFAULT_CONTRACT_STATE } from "~/models/contracts";
 import { useJune } from "~/utils/use-june";
-import AccentedToggle from "~/components/layout/AccentedToggleV1";
-import useAsset from "~/hooks/useAsset";
 import { useBeams } from "~/utils/use-beams";
 import DashboardIcon from "~/components/inputs/DashboardIcon";
 import WorkflowIcon from "~/components/inputs/WorkflowIcon";
 import InvoicesIcon from "~/components/inputs/InvoicesIcon";
 import CustomersIcon from "~/components/inputs/CustomersIcon";
-import { getFirebaseDocs, getSingleDoc, setFirestoreDocFromData, updateFirestoreDocFromData } from "~/firebase/queries.server";
+import { getFirebaseDocs, getSingleDoc } from "~/firebase/queries.server";
 import TeamIcon from "~/components/inputs/TeamIcon";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
@@ -47,8 +35,12 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
     if (session?.metadata && session?.metadata?.businessID) {
         const businessData = await getSingleDoc(`businesses/${session?.metadata?.businessID}`);
-        console.dir(businessData, { depth: null })
 
+        const indexes: { [id: string]: { indexes: { id: string, index: string, type: string } } } = await getSingleDoc(`indexes/${session?.metadata?.businessID}`);
+        let indexesArray = []
+        if (indexes) {
+            indexesArray = [...Object.values(indexes)];
+        }
         const receivables30d = await getFirebaseDocs('receivables', false, `${session?.metadata?.businessID}/30d`);
         const receivables60d = await getFirebaseDocs('receivables', false, `${session?.metadata?.businessID}/60d`);
         const receivables90d = await getFirebaseDocs('receivables', false, `${session?.metadata?.businessID}/90d`);;
@@ -59,11 +51,21 @@ export const loader: LoaderFunction = async ({ request, params }) => {
         const receivables90Data = receivables90d.map((doc) => doc.data);
         const receivablesExcessData = receivablesExcess.map((doc) => doc.data);
 
+        const paid30d = await getFirebaseDocs('paid', false, `${session?.metadata?.businessID}/30d`);
+        const paid60d = await getFirebaseDocs('paid', false, `${session?.metadata?.businessID}/60d`);
+        const paid90d = await getFirebaseDocs('paid', false, `${session?.metadata?.businessID}/90d`);;
+        const paidExcess = await getFirebaseDocs('paid', false, `${session?.metadata?.businessID}/excess`);
+
+        const paid30dData = paid30d.map((doc) => doc.data);
+        const paid60dData = paid60d.map((doc) => doc.data);
+        const paid90dData = paid90d.map((doc) => doc.data);
+        const paidExcessData = paidExcess.map((doc) => doc.data);
+
 
         const customers = await getFirebaseDocs('customers', false, `business/${session?.metadata?.businessID}`);
         const customersData = customers.map((doc) => doc.data);
-        const finalBusinessData = { ...businessData, receivables: { '30d': receivables30Data, '60d': receivables60Data, '90d': receivables90Data, 'excess': receivablesExcessData }, cleared: [], customers: customersData };
-        return json({ metadata: { ...session?.metadata }, data: finalBusinessData })
+        const finalBusinessData = { ...businessData, receivables: { '30d': receivables30Data, '60d': receivables60Data, '90d': receivables90Data, 'excess': receivablesExcessData }, paid: { '30d': paid30dData, '60d': paid60dData, '90d': paid90dData, 'excess': paidExcessData }, customers: customersData };
+        return json({ metadata: { ...session?.metadata }, data: finalBusinessData, indexes: indexesArray })
     }
 
     return null;
@@ -92,53 +94,27 @@ export default function CustomUserPage() {
     // })
 
 
+    const [filter, setFilter] = useState('');
+
+
     const data = useLoaderData();
     const businessData = data.data;
+    const indexes: Array<{ id: string, index: string, type: string }> = data.indexes;
+
+
+
+    const currView = useMemo(() => { return indexes?.filter((indexedItem) => indexedItem.index.includes(filter)) }, [indexes, filter]);
 
 
     const metadata = data.metadata;
     let fetcher = useFetcher();
-    const toggleUserModeFetcher = useFetcher();
 
 
     const [logoutConfirmationModal, setLogoutConfirmationModal] = useState(false);
 
     const { pathname } = useLocation();
-    const [statIndex, setStatIndex] = useState(0);
-
-    const kycComplete = useMemo(() => {
-        return metadata?.panVerified && metadata?.bankVerified && metadata?.aadhaarVerified;
-    }, [metadata]);
-
-
-    //* Test Mode state either respects the user's default setting, or reverts to default app-wide setting ( true )
-
-    useEffect(() => {
-        console.log(metadata?.defaultTestMode)
-    }, [metadata.defaultTestMode])
-
-
-
-    const [testMode, setTestMode] = useState(metadata?.defaultTestMode ? metadata?.defaultTestMode : false);
 
     // ? Need to examine if this is the best way to persist state on the client. Refactor into useLocalStorage hook
-
-    useEffect(() => {
-        window.localStorage.setItem('testMode', testMode);
-    }, [testMode]);
-
-    useEffect(() => {
-        setTestMode(window.localStorage.getItem('testMode') === 'true');
-    }, []);
-
-
-    useEffect(() => {
-        if (toggleUserModeFetcher.type == "done") {
-            setTestMode(metadata?.defaultTestMode);
-        }
-    }, [metadata?.defaultTestMode, toggleUserModeFetcher]);
-
-
 
     //* June integration 
 
@@ -171,20 +147,14 @@ export default function CustomUserPage() {
 
     // * Artifically stagger the rest of contract state with a timeout 
     useEffect(() => {
-        setTimeout(() => {
-            ContractDataStore.replace(DEFAULT_CONTRACT_STATE);
-        }, 1000);
-    }, [navigate]);
+        setFilter('');
+    }, [navigate])
 
     const date = useMemo(formatDateToReadableString, []);
 
 
     const currentUserData = data.metadata;
 
-
-    //* Caching for static assets
-
-    const profileImageData = useAsset(currentUserData.photoURL)
 
     // // * Using Dexie Hooks for easier flow working with IndexedDB
     // useEffect(() => {
@@ -207,18 +177,36 @@ export default function CustomUserPage() {
 
     // ? Is Sandbox UX necessary for AR/AP ? If not, scrap, and clean up the container
     return (
-        <div className={`flex font-gilroy-bold h-auto w-full flex-col bg-white sm:border-0  ${testMode ? ' border-accent-dark' : 'border-transparent'}`}>
+        <div className={`flex font-gilroy-bold h-auto w-full flex-col bg-white sm:border-0 border-transparent`}>
 
             <div id="top_nav" className="h-16 flex flex-row space-x-10 items-center justify-between p-3 py-12">
-                <div className="flex flex-row space-x-20 px-5 w-5/12 max-w-2xl">
+                <div className="flex flex-row space-x-20 px-5 w-6/12 max-w-3xl">
                     <img src={Icon} className="w-32" alt="Icon"></img>
                     <div className="flex flex-row bg-[#f5f5f5]  h-10 space-x-4 p-2 w-full  rounded-lg">
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M17.5 17.5L14.5834 14.5833M16.6667 9.58333C16.6667 13.4954 13.4954 16.6667 9.58333 16.6667C5.67132 16.6667 2.5 13.4954 2.5 9.58333C2.5 5.67132 5.67132 2.5 9.58333 2.5C13.4954 2.5 16.6667 5.67132 16.6667 9.58333Z" stroke="#6F6E6E" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
 
-                        <input type="text" placeholder="Search " className="w-full bg-transparent text-neutral-dark placeholder:text-neutral-dark border-transparent focus:border-transparent outline-none focus:ring-0 ring-0 " />
-
+                        <input type="text" onChange={(e) => {
+                            setFilter(e.currentTarget.value);
+                        }} placeholder="Search across all your data" className="w-full bg-transparent text-neutral-dark placeholder:text-neutral-dark border-transparent focus:border-transparent outline-none focus:ring-0 ring-0 " />
+                        {filter != '' && currView?.length > 0 &&
+                            <ul className="bg-white z-40 shadow-md snap-y snap-mandatory transition-all absolute top-20 left-56 w-full max-w-md max-h-72 h-auto overflow-y-scroll rounded-lg">
+                                {currView?.map((indexedItem) => {
+                                    return (
+                                        <li className="h-1/12 transition-all border-b snap-start border-neutral-light hover:border-primary-dark rounded-b-lg overflow-y-scroll p-3" key={indexedItem.id}>
+                                            <Link onClick={() => {
+                                                setFilter('');
+                                            }} to={`/${indexedItem.type == "Workflow" ? 'workflows' : 'customers'}/${indexedItem.id}/overview`}>
+                                                <div className="flex flex-col space-y-4">
+                                                    <span className="font-gilroy-medium text-lg">{indexedItem.index}</span>
+                                                    <span className="font-gilroy-regular text-sm text-primary-base ">{indexedItem.type}</span>
+                                                </div>
+                                            </Link>
+                                        </li>)
+                                })}
+                            </ul>
+                        }
                     </div>
                 </div>
                 <div className="flex flex-col space-y-2 text-right">
@@ -468,9 +456,6 @@ export default function CustomUserPage() {
                         <h2 className="text-white text-[14px] font-gilroy-medium">{formatDateToReadableString(new Date().getTime(), false, true)}</h2>
                     </div> */}
                         <div className="flex flex-row items-center">
-                            <img onClick={() => {
-                                navigate(`/${currentUserData.displayName}/profile`)
-                            }} alt="profile" src={profileImageData ? profileImageData : PlaceholderDP} className="h-10 w-10  bg-[#e5e5e5] object-fill cursor-pointer hover:opacity-50 hover:ring-1 outline-none transition-all hover:ring-[#8364E8] border-solid border-black rounded-full self-center"></img>
                         </div>
 
                     </div>

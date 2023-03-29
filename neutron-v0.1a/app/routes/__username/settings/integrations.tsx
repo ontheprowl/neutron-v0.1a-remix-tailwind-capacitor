@@ -15,6 +15,8 @@ import { emitToast } from "~/utils/toasts/NeutronToastContainer";
 import { LoaderFunction } from "@remix-run/server-runtime";
 import { requireUser } from "~/session.server";
 import { updateFirestoreDocFromData } from "~/firebase/queries.server";
+import DisconnectButton from "~/components/inputs/buttons/DisconnectButton";
+import ConnectButton from "~/components/inputs/buttons/ConnectButton";
 
 
 
@@ -90,27 +92,40 @@ export default function IntegrationsScreen() {
                             <li className="flex flex-row h-auto p-4">
                                 <div className="flex flex-col space-y-4 w-full">
                                     <div className=" w-full flex flex-row items-center justify-between">
-                                        <div className={`flex flex-row transition-all items-center justify-between ${settingsOpen == "tally" ? 'border-primary-dark bg-primary-light' : ''} py-10 px-5 w-1/2 max-w-3xl border-2 border-dashed rounded-xl`}>
+                                        <div className={`flex flex-row transition-all items-center justify-between ${businessData?.integration && businessData?.integration == "tally" ? 'border-primary-dark bg-primary-light' : ''} py-10 px-5 w-1/2 max-w-3xl border-2 border-dashed rounded-xl`}>
                                             <div className="flex flex-row items-center space-x-2">
-                                                <img className="h-8" src={TallyLogo} alt="Tally Logo" />
-                                                <span className="text-lg">Tally</span>
+                                                <img className="h-14" src={TallyLogo} alt="Tally Logo" />
+                                                <div className="text-warning-dark align-super font-gilroy-medium self-start text-sm items-center flex flex-row bg-warning-light rounded-xl p-2 max-h-fit">
+                                                    BETA
+                                                </div>
                                             </div>
-                                            {
-                                                businessData?.integration && businessData?.integration == "tally" &&
+                                            {businessData?.integration && businessData?.integration == "tally" &&
                                                 <div className="flex flex-row space-x-4 justify-between max-w-fit">
                                                     <div className="text-success-dark font-gilroy-medium items-center flex flex-row bg-success-light rounded-xl p-2 max-h-fit">
-                                                        ACTIVE
+                                                        CONNECTED
                                                     </div>
                                                 </div>
                                             }
-                                            <NucleiToggle control={settingsOpen == "tally"} onToggle={() => { setSettingsOpen(settingsOpen == 'tally' ? '' : 'tally') }} />
+                                            {
+                                                businessData?.integration && businessData?.integration == "tally" ?
+                                                    <div className="flex flex-row space-x-4 justify-between max-w-fit">
+                                                        <DisconnectButton onClick={() => {
+                                                            tallyFetcher.submit(null, { method: 'post', action: '/integrations/tally/revoke' });
+                                                        }} />
+                                                    </div> :
+                                                    <button className="bg-primary-light font-gilroy-medium rounded-xl hover:opacity-80 text-primary-base p-3" onClick={() => { setSettingsOpen(settingsOpen == 'tally' ? '' : 'tally') }}>Configure</button>
+                                            }
                                         </div>
                                         {businessData?.integration && businessData?.integration == "tally" &&
-                                            <button onClick={() => {
-                                                tallyFetcher.submit(null, { method: 'post', action: '/integrations/tally/sync' })
-                                            }} className="p-3 px-5 text-white font- bg-primary-base hover:bg-primary-dark active:bg-primary-dark focus:bg-primary-dark transition-all rounded-xl">
-                                                {tallyFetcher.state != "idle" ? <DefaultSpinner></DefaultSpinner> : 'Sync'}
-                                            </button>
+                                            <div className="flex flex-row space-x-4 justify-between max-w-fit">
+                                                <button onClick={() => {
+                                                    tallyFetcher.submit(null, { method: 'post', action: '/integrations/tally/sync' })
+                                                }} className="p-3 px-5 text-white font-gilroy-medium bg-primary-base hover:bg-primary-dark active:bg-primary-dark focus:bg-primary-dark transition-all rounded-xl">
+                                                    {tallyFetcher.state != "idle" ? <DefaultSpinner></DefaultSpinner> : 'Sync Data'}
+                                                </button>
+                                                <button className="bg-primary-light font-gilroy-medium rounded-xl hover:opacity-80 text-primary-base p-3" onClick={() => { setSettingsOpen(settingsOpen == 'tally' ? '' : 'tally') }}>Edit Configuration</button>
+                                            </div>
+
                                         }
 
 
@@ -123,14 +138,12 @@ export default function IntegrationsScreen() {
                                                 exit={{ opacity: 0 }} id="tally_settings" className=" max-h-fit w-full flex flex-row items-center space-x-10">
                                                 <NucleiTextInput name="tally_port" defaultValue={businessData?.creds?.port ? businessData?.creds?.port : ''} label="Port" placeholder='By default, Tally uses port 9000 to talk to other applications' type="text"></NucleiTextInput>
                                                 <NucleiTextInput name="tally_host" defaultValue={businessData?.creds?.hostname ? businessData?.creds?.hostname : ''} label="Hostname" placeholder='Please enter your public IP Address here' type="text"></NucleiTextInput>
-                                                <button onClick={() => {
+                                                <ConnectButton onClick={() => {
                                                     const formData = new FormData();
                                                     formData.set('tally_port', tallyPort);
                                                     formData.set('tally_host', tallyHostname);
-                                                    tallyFetcher.submit(formData, { method: 'post', action: '/integrations/tally/test' })
-                                                }} className="p-3 px-5 text-white font- bg-primary-base hover:bg-primary-dark active:bg-primary-dark focus:bg-primary-dark transition-all rounded-xl">
-                                                    {tallyFetcher.state != "idle" ? <DefaultSpinner></DefaultSpinner> : 'Test'}
-                                                </button>
+                                                    tallyFetcher.submit(formData, { method: 'post', action: '/integrations/tally/test?upload=true' })
+                                                }} />
                                             </motion.div>}
                                     </AnimatePresence>
 
@@ -140,29 +153,40 @@ export default function IntegrationsScreen() {
                             <li className="flex flex-row h-auto p-4">
                                 <div className="flex flex-col space-y-4 w-full">
                                     <div className="max-h-fit w-full flex flex-row items-center justify-between">
-                                        <div className={`flex flex-row transition-all items-center justify-between ${settingsOpen == "zoho" ? 'border-primary-dark bg-primary-light' : ''} py-10 px-5 w-1/2 max-w-3xl border-2 border-dashed rounded-xl`}>
+                                        <div className={`flex flex-row transition-all items-center justify-between ${businessData?.integration && businessData?.integration == "zoho" ? 'border-primary-dark bg-primary-light' : ''} py-10 px-5 w-1/2 max-w-3xl border-2 border-dashed rounded-xl`}>
                                             <div className="flex flex-row items-center space-x-4">
-                                                <img className="h-8" src={ZohoLogo} alt="Zoho Logo" />
-                                                <span className="text-lg">Zoho Books</span>
+                                                <img className="h-14" src={ZohoLogo} alt="Zoho Logo" />
                                             </div>
-                                            {
-                                                businessData?.integration && businessData?.integration == "zoho" &&
+
+                                            {businessData?.integration && businessData?.integration == "zoho" &&
                                                 <div className="flex flex-row space-x-4 justify-between max-w-fit">
                                                     <div className="text-success-dark font-gilroy-medium items-center flex flex-row bg-success-light rounded-xl p-2 max-h-fit">
-                                                        ACTIVE
+                                                        CONNECTED
                                                     </div>
                                                 </div>
                                             }
-                                            <NucleiToggle control={settingsOpen == "zoho"} onToggle={() => { setSettingsOpen(settingsOpen == 'zoho' ? '' : 'zoho') }} />
+                                            {
+                                                businessData?.integration && businessData?.integration == "zoho" ?
+                                                    <div className="flex flex-row space-x-4 justify-between max-w-fit">
+                                                        <DisconnectButton onClick={() => {
+                                                            zohoFetcher.submit(null, { method: 'post', action: `/integrations/zoho/revoke?business_id=${metadata?.businessID}` });
+                                                        }} />
+                                                    </div> :
+                                                    <button className="bg-primary-light font-gilroy-medium rounded-xl hover:opacity-80 text-primary-base p-3" onClick={() => { setSettingsOpen(settingsOpen == 'zoho' ? '' : 'zoho') }}>Configure</button>
+                                            }
                                         </div>
                                         {businessData?.integration && businessData?.integration == "zoho" &&
-                                            <button onClick={() => {
-                                                const formData = new FormData();
-                                                formData.set('business_id', metadata?.businessID)
-                                                zohoFetcher.submit(formData, { method: 'post', action: '/integrations/zoho/sync' })
-                                            }} className="p-3 px-5 text-white font- bg-primary-base hover:bg-primary-dark active:bg-primary-dark focus:bg-primary-dark transition-all rounded-xl">
-                                                {zohoFetcher.state != "idle" ? <DefaultSpinner></DefaultSpinner> : 'Sync'}
-                                            </button>
+                                            <div className="flex flex-row space-x-4 justify-between max-w-fit">
+                                                <button onClick={() => {
+                                                    const formData = new FormData();
+                                                    formData.set('business_id', metadata?.businessID)
+                                                    zohoFetcher.submit(formData, { method: 'post', action: '/integrations/zoho/sync' })
+                                                }} className="p-3 px-5 text-white font-gilroy-medium bg-primary-base hover:bg-primary-dark active:bg-primary-dark focus:bg-primary-dark transition-all rounded-xl">
+                                                    {zohoFetcher.state != "idle" ? <DefaultSpinner></DefaultSpinner> : 'Sync Data'}
+                                                </button>
+                                                <button onClick={() => { setSettingsOpen(settingsOpen == 'zoho' ? '' : 'zoho') }} className="bg-primary-light font-gilroy-medium rounded-xl hover:opacity-80 text-primary-base p-3">Edit Configuration</button>
+
+                                            </div>
                                         }
 
                                     </div>
@@ -173,16 +197,11 @@ export default function IntegrationsScreen() {
                                                 exit={{ opacity: 0 }} id="zoho_settings" className=" max-h-fit w-full">
                                                 <div className="flex flex-col items-center space-y-4 m-5">
                                                     <h1 className="font-gilroy-bold text-lg">The Zoho Integration requires you to log-in to your Zoho account and grant permissions to Neutron to access your data</h1>
-                                                    <button type="button" className="w-auto max-w-fit bg-primary-base hover:bg-primary-dark transition-all p-2 rounded-xl" onClick={() => {
+                                                    <ConnectButton text="Authorize Zoho" onClick={() => {
                                                         const form = new FormData();
                                                         form.append('redirect_uri', '/settings/integrations')
                                                         zohoFetcher.submit(form, { method: 'post', action: '/integrations/zoho/consent' })
-                                                    }}>
-                                                        <div className="flex flex-row items-center space-x-5 ">
-                                                            <img src={ZohoLogo} className="h-5" alt="Zoho Logo" />
-                                                            <h1 className="text-white">Authorize Zoho</h1>
-                                                        </div>
-                                                    </button>
+                                                    }} />
                                                 </div>
                                             </motion.div>}
                                     </AnimatePresence>

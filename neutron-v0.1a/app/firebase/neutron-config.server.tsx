@@ -30,6 +30,8 @@ if (!admin.apps.length) {
     credential: applicationDefault(),
     databaseURL: "https://neutron-expo-default-rtdb.asia-southeast1.firebasedatabase.app"
   });
+  admin.firestore().settings({ ignoreUndefinedProperties: true });
+
 }
 
 export const adminAuth = admin.auth();
@@ -40,6 +42,8 @@ export const auth = serverAuth.getAuth(app);
 export const firestore = serverFirestore.getFirestore(app);
 export const storage = serverStorage.getStorage(app);
 export const db = serverDatabase.getDatabase(app);
+
+
 
 
 export async function getSessionToken(idToken: string) {
@@ -68,7 +72,7 @@ export async function getUserMetadata(path: string) {
 //   // Store the token to disk for later program executions
 //   fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
 //       if (err) return console.error(err);
-//       
+//
 //   });
 //   callback(oAuth2Client);
 // });

@@ -1,34 +1,59 @@
-import { Link, useLoaderData, useNavigate, useOutletContext } from "@remix-run/react";
-import { LoaderFunction, json } from "@remix-run/server-runtime";
+import { Link, useLoaderData, useNavigate, useOutletContext, useSubmit } from "@remix-run/react";
+import { ActionFunction, LoaderFunction, json } from "@remix-run/server-runtime";
 import { useState } from "react";
 import DeleteButton from "~/components/inputs/buttons/DeleteButton";
 import EditButton from "~/components/inputs/buttons/EditButton";
 import ExportButton from "~/components/inputs/buttons/ExportButton";
 import FilterButton from "~/components/inputs/buttons/FilterButton";
+import NucleiPagination from "~/components/inputs/pagination/NucleiPagination";
 import NucleiZeroState from "~/components/layout/NucleiZeroState";
 import { InvoiceClearedStatus } from "~/components/layout/Statuses";
-import { getFirebaseDocs } from "~/firebase/queries.server";
+import { deleteFieldsFromFirestoreDoc, deleteFirestoreDoc, getFirebaseDocs } from "~/firebase/queries.server";
 import { requireUser } from "~/session.server";
 
 
 export const loader: LoaderFunction = async ({ request, params }) => {
     const session = await requireUser(request);
+
     const workflows = await getFirebaseDocs('workflows/business', false, `${session?.metadata?.businessID}`);
 
     return json(workflows);
 }
 
 
+export const action: ActionFunction = async ({ request, params }) => {
+    const session = await requireUser(request);
+    const formData = await request.formData();
+
+    const action = formData.get('action');
+
+    switch (action) {
+        case "delete":
+            const ids: string[] = JSON.parse(formData.get('ids'));
+            for (const id of ids) {
+                const deleteDocRef = await deleteFirestoreDoc('workflows', `business/${session?.metadata?.businessID}/${id}`);
+            }
+            const indexUpdateRef = await deleteFieldsFromFirestoreDoc(ids, 'indexes', session?.metadata?.businessID);
+            break;
+        default:
+            break;
+    }
+
+    return null;
+}
+
+
 export default function WorkflowsList() {
-
-
-    const context = useOutletContext();
 
     const workflows: Array<{ id: string, data: { [x: string]: any } }> = useLoaderData();
 
     console.log(workflows)
 
-    const [page, setPage] = useState(0);
+    const [startOffset, setStart] = useState(0);
+    const [endOffset, setEnd] = useState(50);
+    const [filter, setFilter] = useState('');
+
+    let submit = useSubmit();
 
     let navigate = useNavigate();
 
@@ -62,8 +87,13 @@ export default function WorkflowsList() {
                             <button>Paid</button>
                         </div> */}
                             <div className="flex flex-row space-x-4 items-center">
-                                <EditButton />
-                                <DeleteButton />
+                                <DeleteButton onClick={() => {
+                                    const form = new FormData();
+                                    form.append('action', 'delete');
+                                    const values: HTMLInputElement[] = [...document.querySelectorAll('input[name="check_for_deletion"]')]
+                                    form.append('ids', JSON.stringify(values.filter((element) => element.checked).map((element) => element.value)))
+                                    submit(form, { method: "post" })
+                                }} />
                             </div>
                         </div>
                     </div>
@@ -74,48 +104,48 @@ export default function WorkflowsList() {
                             <tbody className='sm:block table-row-group'>
                                 <tr className={` border-b text-secondary-text sm:flex sm:flex-row w-full transition-all sticky top-0 pointer-events-none bg-bg-secondary-dark z-20  hover:bg-opacity-50  dark:hover:bg-gray-600`}>
 
-                                    <th scope="row" className="px-2 py-4 w-full font-medium text-center whitespace-nowrap">
+                                    <th scope="row" className="px-2 py-4 w-full font-medium text-left whitespace-nowrap">
                                         <div className="flex flex-row w-auto justify-start space-x-4">
                                             <input type="checkbox"></input>
-                                            <h1>CUSTOMER CATEGORY</h1>
+                                            <h1>NAME OF THE WORKFLOW</h1>
                                         </div>
                                     </th>
-                                    <th scope="row" className="px-2 text-center py-4 w-full font-medium  whitespace-nowrap">
+                                    <th scope="row" className="px-2 text-left py-4 w-full font-medium  whitespace-nowrap">
                                         No. OF CUSTOMERS
                                     </th>
-                                    <th scope="row" className="px-2 py-4 w-full font-medium text-center ">
+                                    <th scope="row" className="px-2 py-4 w-full font-medium text-left ">
                                         WORKFLOW TYPE
                                     </th>
-                                    <th scope="row" className="px-2 py-4 w-full font-medium text-center  ">
+                                    <th scope="row" className="px-2 py-4 w-full font-medium text-left  ">
                                         PERSON IN CHARGE
                                     </th>
-                                    <th scope="row" className="px-2 py-4  w-full font-medium text-center  whitespace-nowrap">
+                                    <th scope="row" className="px-2 py-4  w-full font-medium text-left  whitespace-nowrap">
                                         TAGS
                                     </th>
                                 </tr>
                                 {workflows.map((workflow) => {
                                     const assigned_to: [name: string, email: string] = workflow?.data?.assigned_to?.split(",")
                                     return (<tr key={workflow.id} className={`border-b border-dashed sm:flex sm:flex-row sm:justify-evenly sm:items-center w-full border-gray-400 dark:bg-gray-800 dark:border-gray-700 transition-all hover:bg-bg-primary-dark hover:bg-opacity-50 hover:border-primary-dark`}>
-                                        <td scope="row" className="px-2 py-4 w-full font-gilroy-regular text-center  whitespace-nowrap">
+                                        <td scope="row" className="px-2 py-4 w-full font-gilroy-regular text-left  whitespace-nowrap">
                                             <div className="flex flex-row w-auto justify-start space-x-4">
-                                                <input type="checkbox"></input>
-                                                <Link to="" className="decoration-black hover:underline cursor-pointer">{workflow?.data?.name}</Link>
+                                                <input name='check_for_deletion' value={workflow.id} type="checkbox"></input>
+                                                <Link to={`${workflow.id}/overview`} className="decoration-black break-all  font-gilroy-bold hover:underline cursor-pointer">{workflow?.data?.name}</Link>
                                             </div>
                                         </td>
 
-                                        <td className="px-2 py-4 font-gilroy-regular  w-full text-center ">
+                                        <td className="px-2 py-4 font-gilroy-regular  w-full text-left ">
                                             {workflow?.data?.customers?.length}
                                         </td>
-                                        <td className="  px-2 py-4 w-full font-gilroy-regular justify-center flex flex-row  text-center">
+                                        <td className="  px-2 py-4 w-full font-gilroy-regular justify-start flex flex-row  text-left">
                                             <div className="p-3 rounded-xl uppercase bg-success-light text-success-dark">
                                                 {workflow?.data?.actions.find((action) => action?.action_type == "manual") ? "hybrid" : "fully automatic"}
                                             </div>
                                         </td>
-                                        <td className="px-2 py-4 w-full text-center flex flex-col space-y-2  ">
+                                        <td className="px-2 py-4 w-full text-left flex flex-col space-y-2  ">
                                             {assigned_to[0]}
                                             <span className=" text-secondary-text text-md">{assigned_to[1]}</span>
                                         </td>
-                                        <td className="px-2 py-4 font-gilroy-regular flex flex-col space-y-4  w-full text-center ">
+                                        <td className="px-2 py-4 font-gilroy-regular flex flex-col space-y-4  w-full text-left ">
                                             <div className="grid grid-cols-auto grid-flow-dense gap-4 w-full">
                                                 {workflow?.data?.tags?.split(",")?.map((tag) => {
                                                     return <span className="text-secondary-text border-2 border-secondary-text p-2  flex flex-col justify-center items-center rounded-xl" key={tag}>{tag}</span>
@@ -130,24 +160,13 @@ export default function WorkflowsList() {
                             </tbody>
                         </table>
                     </div>
-                    <div className="flex flex-row justify-between items-center px-3 mb-2 h-12 w-full self-end" id="invoices_pagination">
-                        <select className="bg-[#f5f5f5] p-2 rounded-xl text-secondary-text outline-none">
-                            <option value="" disabled selected className="hidden">Actions</option>
-                            <option>View</option>
-                            <option>Delete</option>
-                        </select>
-                        <div className="flex flex-row space-x-4 items-center">
-
-                            <div className={`h-10 w-10 pl-4 pt-2 ${page == 0 ? 'bg-primary-base' : 'bg-neutral-light'} rounded-xl`}>1</div>
-                            <div className={`h-10 w-10 pl-4 pt-2 ${page == 1 ? 'bg-primary-base' : 'bg-neutral-light'} rounded-xl`}>2</div>
-                            <div className={`h-10 w-10 pl-4 pt-2 ${page == 2 ? 'bg-primary-base' : 'bg-neutral-light'} rounded-xl`}>3</div>
-                            <div className={`h-10 w-10 pl-4 pt-2 ${page == 3 ? 'bg-primary-base' : 'bg-neutral-light'} rounded-xl`}>4</div>
-                            <div className={`h-10 w-10 pl-4 pt-2 ${page == 4 ? 'bg-primary-base' : 'bg-neutral-light'} rounded-xl`}>5</div>
-                        </div>
+                    <div className="flex flex-row justify-end px-3 mb-2">
+                        <NucleiPagination items={workflows} startState={[startOffset, setStart]} endState={[endOffset, setEnd]} />
                     </div>
-                </div> : <NucleiZeroState entity={"workflows"}/>}
 
-
+                </div> : <NucleiZeroState onClick={() => {
+                    navigate('create');
+                }} cta={"Create Workflows"} entity={"workflows"} />}
         </div >
     )
 }

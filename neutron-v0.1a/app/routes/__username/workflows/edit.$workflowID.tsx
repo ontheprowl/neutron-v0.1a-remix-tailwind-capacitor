@@ -1,5 +1,5 @@
-import { useLocation, useOutletContext, useSubmit } from "@remix-run/react";
-import { useEffect, useMemo, useMemo, useState } from "react";
+import { useLoaderData, useLocation, useOutletContext, useSubmit } from "@remix-run/react";
+import { useEffect, useState } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import DeleteButton from "~/components/inputs/buttons/DeleteButton";
 import SaveButton from "~/components/inputs/buttons/SaveButton";
@@ -10,13 +10,12 @@ import NeutronRadioGroup from "~/components/inputs/radios/NeutronRadioGroup";
 import WorkflowMessageIcon from "~/assets/images/workflowMessageIcon.svg";
 import EditButton from "~/components/inputs/buttons/EditButton";
 import PlusCircleIcon from "~/assets/images/plusCircleIcon.svg"
-import { ActionFunction, redirect } from "@remix-run/server-runtime";
+import { ActionFunction, LoaderFunction, json, redirect } from "@remix-run/server-runtime";
 import { requireUser } from "~/session.server";
 
-import { addFirestoreDocFromData, getSingleDoc, updateArrayInFirestoreDoc, updateFirestoreDocFromData } from "~/firebase/queries.server";
+import { addFirestoreDocFromData, getSingleDoc, updateFirestoreDocFromData } from "~/firebase/queries.server";
 import { executeDunningPayloads, getScheduleForActionAndInvoice } from "~/utils/utils.server";
 import type { EmailPayloadStructure, WhatsappPayloadStructure } from "~/models/dunning";
-import ActionType from "~/components/layout/ActionTypes";
 
 
 
@@ -24,11 +23,11 @@ import ActionType from "~/components/layout/ActionTypes";
 export const action: ActionFunction = async ({ request, params }) => {
 
     const session = await requireUser(request);
-
+    const workflowID = params.workflowID;
 
     console.log("REQUEST RECEIVED");
     const formData = await request.formData();
-    const payload: { [x: string]: any } = JSON.parse(formData.get("payload"));
+    const payload = JSON.parse(formData.get("payload"));
 
     // // **  For invoices that exist already, calculate all trigger conditions ( cron schedules ), filter cron schedules that are after today, then procedurally queue messages right now. 
 
@@ -40,17 +39,13 @@ export const action: ActionFunction = async ({ request, params }) => {
 
     let dunningPayloads: Array<WhatsappPayloadStructure | EmailPayloadStructure> = [];
     for (const customer of customers) {
-        // ? only the invoice IDs are being sent, not the invoices themselves
         const customersReceivables = customer?.data?.invoices;
         if (customersReceivables) {
             for (const receivable of customersReceivables) {
-                console.log("THE RECEIVABLE IS BEING LOGGED HERE")
-                console.dir(receivable, { depth: null });
                 for (const action of actions) {
                     if (action?.action_type == "automatic") {
-                        const { dunningPayload, targetDate } = getScheduleForActionAndInvoice(receivable, { caller_id: session?.metadata?.businessID, company_name: businessData?.business_name, assigned_to: assigned_to[0], assigned_to_contact: assigned_to[1] }, customer?.data, action);
+                        const dunningPayload = getScheduleForActionAndInvoice(receivable, { caller_id: session?.metadata?.businessID, company_name: businessData?.business_name, assigned_to: assigned_to[0], assigned_to_contact: assigned_to[1] }, customer?.data, action);
                         dunningPayloads.push(dunningPayload);
-                        customer['data']['dunning_starts_on'] = targetDate.toLocaleDateString('en-IN');
                     }
                 }
             }
@@ -61,14 +56,17 @@ export const action: ActionFunction = async ({ request, params }) => {
 
     const dunningCallsResult = await executeDunningPayloads(dunningPayloads);
 
-
-    const workflowCreationRef = await addFirestoreDocFromData(payload, 'workflows/business', session?.metadata?.businessID);
-    const updateObject: { [x: string]: any } = {};
-    updateObject[`${workflowCreationRef.id}`] = { id: workflowCreationRef.id, type: 'Workflow', index: payload?.name };
-    const indexUpdateRef = await updateFirestoreDocFromData(updateObject, 'indexes', session?.metadata?.businessID);
+    const workflowCreationRef = await updateFirestoreDocFromData(payload, 'workflows/business', `${session?.metadata?.businessID}/${workflowID}`);
 
     return redirect('/workflows');
 
+}
+
+export const loader: LoaderFunction = async ({ request, params }) => {
+    const workflowID = params.workflowID;
+    const session = await requireUser(request);
+    const workflowData = await getSingleDoc(`workflows/business/${session?.metadata?.businessID}/${workflowID}`);
+    return json(workflowData);
 }
 
 
@@ -78,19 +76,17 @@ export default function CreateWorkflowScreen() {
 
     const { metadata, businessData } = useOutletContext();
 
-    const receivables = useMemo(() => { return [...new Set([...businessData?.receivables['30d'], ...businessData?.receivables['60d'], ...businessData?.receivables['90d'], ...businessData?.receivables['excess']])] }, [businessData?.receivables])
-    const paid = useMemo(() => { return [...new Set([...businessData?.paid['excess'], ...businessData?.paid['90d'], ...businessData?.paid['60d'], ...businessData?.paid['30d']])] }, [businessData?.paid])
 
-    const invoices = useMemo(() => [...receivables, ...paid], [receivables, paid]);
-
+    const workflowData = useLoaderData();
+    console.log(workflowData)
     const { pathname } = useLocation();
     const submit = useSubmit();
 
-    const workflowCreationForm = useForm();
+    const workflowCreationForm = useForm({ defaultValues: workflowData });
 
 
     const [currentAction, setCurrentAction] = useState(0)
-    const [localActions, setCurrentActions] = useState<Array<{ [x: string]: any }>>([]);
+    const [localActions, setCurrentActions] = useState<Array<{ [x: string]: any }>>();
     const [editIndex, setEditIndex] = useState<number | null>(null);
     const [customersFilter, setCustomersFilter] = useState('');
 
@@ -108,6 +104,10 @@ export default function CreateWorkflowScreen() {
         }
     }, [actionType])
 
+    useEffect(()=>{
+        setCurrentActions(actions);
+    },[actions])
+
     return (
         <FormProvider {...workflowCreationForm}>
             <form onSubmit={workflowCreationForm.handleSubmit((data) => {
@@ -120,12 +120,8 @@ export default function CreateWorkflowScreen() {
                 // ? Is there a better solution than sending invoices to be dunned from client to server?
 
                 for (const customer of data['customers']) {
-
                     const customerDetails = businessData?.customers?.find((customerData) => { return (customerData?.contact_id == customer?.id) });
                     customer['data'] = customerDetails;
-
-                    // * Retrieve invoices for this customer
-                    customer['data']['invoices'] = invoices.filter((invoice) => invoice?.customer_id == customerDetails?.contact_id);
                 }
 
                 formData.append('payload', JSON.stringify(data))
@@ -134,8 +130,8 @@ export default function CreateWorkflowScreen() {
             })} className=" h-full flex flex-col space-y-4">
                 <div className="flex flex-row justify-between">
                     <div id="page_title" className="flex flex-col">
-                        <h1 className="text-lg">Create Workflow</h1>
-                        <span className="text-neutral-base text-sm font-gilroy-medium"> Home - Workflows - Create Workflow</span>
+                        <h1 className="text-lg">Edit Workflow</h1>
+                        <span className="text-neutral-base text-sm font-gilroy-medium"> Home - Workflows - Edit Workflow</span>
                     </div>
                     <div className="flex flex-row space-x-4">
                         <SaveButton submit />
@@ -226,7 +222,7 @@ export default function CreateWorkflowScreen() {
                                             </div>
                                         </div>
                                         <div className="flex flex-row w-1/4 items-center space-x-4">
-                                            <ActionType actionType={action?.action_type} />
+                                            <span className="p-3 rounded-xl bg-success-light uppercase text-success-dark">{action?.action_type}</span>
                                         </div>
                                         <div className="flex flex-row w-1/4 items-center space-x-4">
                                             <div className="flex flex-col space-y-4">

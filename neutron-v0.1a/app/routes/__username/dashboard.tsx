@@ -1,10 +1,11 @@
 
 import { useNavigate, useOutletContext } from '@remix-run/react'
 import { useCycle } from 'framer-motion'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import MessageIcon from '~/assets/images/messageIcon.svg'
-import { intializeNeutronChart } from '~/visualizations/neutron-charts.client';
+import { NeutronDefaultChart } from '~/components/visualizations/NeutronCharts'
 import NucleiZeroState from '~/components/layout/NucleiZeroState';
+import moment from 'moment';
 
 
 
@@ -23,17 +24,15 @@ export default function ARDashboard() {
     const { businessData } = useOutletContext()
 
 
-    useEffect(() => {
-        console.log(businessData)
-
-    })
-
-
 
     let navigate = useNavigate();
 
 
     const [currentPeriod, cycleCurrentPeriod] = useCycle('30d', '60d', '90d', 'excess')
+
+    const chartData = useMemo(()=>{
+        return { outstanding: { '30d': businessData?.outstanding['30d'], '60d': businessData?.outstanding['60d'], '90d': businessData?.outstanding['90d'], 'excess': businessData?.outstanding['excess'] }, revenue: { '30d': businessData?.revenue['30d'], '60d': businessData?.revenue['60d'], '90d': businessData?.revenue['90d'], 'excess': businessData?.revenue['excess'] }, sales: { '30d': 0, '60d': 0, '90d': 0, 'excess': 0 } }
+    },[businessData])
 
 
     const periodOptions = ['30d', '60d', '90d', 'excess']
@@ -46,18 +45,33 @@ export default function ARDashboard() {
 
 
 
-    useEffect(() => {
-        const chart_container = document.getElementById('visualizations_panel');
+    // useEffect(() => {
+    //     const chart_container = document.getElementById('visualizations_panel');
 
-        if (chart_container) {
-            intializeNeutronChart(chart_container, 'Outstanding Amounts categorized', []);
-        }
-    }, [businessData?.outstanding])
+    //     // if (chart_container) {
+    //     //     intializeNeutronChart(chart_container, 'Outstanding Amounts (From Specified Date)', [
+    //     //         {
+    //     //             time: moment().subtract('30', 'days').format("YYYY-MM-DD"), value: businessData?.outstanding['30d']
+    //     //         },
+    //     //         {
+    //     //             time: moment().subtract('60', 'days').format("YYYY-MM-DD"), value: businessData?.outstanding['60d']
+    //     //         },
+    //     //         {
+    //     //             time: moment().subtract('90', 'days').format("YYYY-MM-DD"), value: businessData?.outstanding['90d']
+    //     //         },
+    //     //         {
+    //     //             time: moment().subtract('200', 'days').format("YYYY-MM-DD"), value: businessData?.outstanding['excess']
+    //     //         },
+    //     //     ]
+    //     //     )
+    //     // }
+
+    // }, [businessData, currentPeriod])
 
 
-    const outstandingDiff = ((businessData?.outstanding[currentPeriod] - businessData.last_outstanding[currentPeriod]) / businessData?.last_outstanding[currentPeriod]) * 100;
-    const dsoDiff = ((businessData?.dso[currentPeriod] - businessData.last_dso[currentPeriod]) / businessData?.last_dso[currentPeriod]) * 100;
-    const revenueDiff = ((businessData?.revenue[currentPeriod] - businessData.last_revenue[currentPeriod]) / businessData?.last_revenue[currentPeriod]) * 100;
+    const outstandingDiff = businessData.last_outstanding[currentPeriod] > 0 ? ((businessData?.outstanding[currentPeriod] - businessData.last_outstanding[currentPeriod]) / businessData?.last_outstanding[currentPeriod]) * 100 : 0;
+    const dsoDiff = businessData.last_dso[currentPeriod] > 0 ? ((businessData?.dso[currentPeriod] - businessData.last_dso[currentPeriod]) / businessData?.last_dso[currentPeriod]) * 100 : 0;
+    const revenueDiff = businessData.last_revenue[currentPeriod] > 0 ? ((businessData?.revenue[currentPeriod] - businessData.last_revenue[currentPeriod]) / businessData?.last_revenue[currentPeriod]) * 100 : 0;
 
     return (
         <div className="flex flex-col space-y-3 h-full">
@@ -115,9 +129,9 @@ export default function ARDashboard() {
                                 <img src={MessageIcon} alt="messageIcon" className="w-5" />
                                 <span>{action?.name}</span>
                             </li>);
-                        }) : <NucleiZeroState entity='actions' onClick={()=>{
+                        }) : <NucleiZeroState entity='actions' onClick={() => {
                             navigate('/workflows/create')
-                        }} cta='Create Workflows'/>}
+                        }} cta='Create Workflows' />}
                     </ul>
                 </div>
                 <div className="w-3/5 h-full p-6 bg-white text-black shadow-lg rounded-xl">
@@ -127,11 +141,11 @@ export default function ARDashboard() {
                         </h2>
                         <button onClick={() => {
                             cycleCurrentPeriod()
-                        }} className='font-gilroy-medium px-3 transition-all active:opacity-80 hover:bg-primary-dark text-base text-white bg-primary-base rounded-xl whitespace-nowrap'>Current Period: {currentPeriod == "excess" ? 'Beyond 90d' : `Last ${currentPeriod}`}
+                        }} className='font-gilroy-medium px-3 transition-all active:opacity-80 hover:bg-primary-dark text-base text-white bg-primary-base rounded-xl whitespace-nowrap'>Current Period: {currentPeriod == "excess" ? 'Beyond 90d' : `${currentPeriod}`}
                         </button>
                     </div>
                     <div id="visualizations_panel" className='h-full w-full p-2'>
-
+                        <NeutronDefaultChart data={chartData} />
                     </div>
                 </div>
 
@@ -158,9 +172,9 @@ export default function ARDashboard() {
                             } else {
                                 return 1
                             }
-                        }).map((invoice) => {
+                        }).map((invoice, index) => {
                             return (
-                                <li key={invoice?.invoice_id} className='flex flex-row items-center py-3 justify-between'>
+                                <li key={index} className='flex flex-row items-center py-3 justify-between'>
                                     <div className='flex flex-col space-y-2'>
                                         <span className='font-gilroy-bold text-base'>{String(invoice?.customer_name).toUpperCase()}</span>
                                         <span className='font-gilroy-medium text-sm text-secondary-text'>{String(invoice?.company_name).toUpperCase()}</span>
@@ -172,7 +186,7 @@ export default function ARDashboard() {
                                         <span className=' bg-neutral-light p-3 max-w-sm min-w-fit rounded-lg text-lg'>Rs. {(invoice?.balance).toLocaleString('en-IN')}</span>
                                     </div>
                                 </li>)
-                        }) : <NucleiZeroState entity={'invoices'} onClick={() => { }} cta={'Sync Data'} ></NucleiZeroState>}
+                        }) : <NucleiZeroState entity={'invoices'} cta={'Sync Data'} ></NucleiZeroState>}
                     </ul>
                 </div>
                 <div id="top_debtors" className="w-1/2 bg-white flex flex-col text-black shadow-lg rounded-xl">
@@ -195,9 +209,9 @@ export default function ARDashboard() {
                             } else {
                                 return 1
                             }
-                        }).map((customer) => {
+                        }).map((customer, index) => {
                             return (
-                                <li key={customer?.contact_id} className='flex flex-row items-center py-3 justify-between'>
+                                <li key={index} className='flex flex-row items-center py-3 justify-between'>
                                     <div className='flex flex-col space-y-2'>
                                         <span className='font-gilroy-bold text-base'>{String(customer?.first_name + " " + customer?.last_name).toUpperCase()}</span>
                                         <span className='font-gilroy-medium text-sm text-secondary-text'>{String(customer?.contact_name).toUpperCase()}</span>
@@ -209,9 +223,7 @@ export default function ARDashboard() {
                                         <span className=' bg-neutral-light p-3 max-w-sm min-w-fit rounded-lg text-lg'>Rs. {Number(customer?.outstanding_receivable_amount).toLocaleString('en-IN')}</span>
                                     </div>
                                 </li>)
-                        }) : <NucleiZeroState entity={"customers"} cta='Sync Data' onClick={() => {
-
-                        }}></NucleiZeroState>
+                        }) : <NucleiZeroState entity={"customers"} cta='Sync Data'></NucleiZeroState>
                         }
                     </ul>
                 </div>
