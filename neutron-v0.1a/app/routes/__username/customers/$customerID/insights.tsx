@@ -1,8 +1,10 @@
 
+import PageUnderConstructionComponent from '~/components/layout/PageUnderConstruction';
 
 
 
-export default function CustomerInsights(){
+export default function CustomerInsights() {
 
-    return <h1>Work in Progress</h1>
+    return (
+        <PageUnderConstructionComponent />);
 }

@@ -30,9 +30,9 @@ export const action: ActionFunction = async ({ request, params }) => {
         // * Refresh Zoho creds if required
         let zohoCreds = businessDataRef?.creds;
         if (zohoCreds) {
-
+            const organizations = zohoCreds?.organizations
             // ? Right now, pull data only from default organization. Will this need to be expanded in the future? 
-            const defaultOrganization = zohoCreds?.organizations?.filter((organization) => {
+            const defaultOrganization = organizations?.filter((organization) => {
                 return organization?.is_default_org === true
             })[0]
             console.log(defaultOrganization)
@@ -50,7 +50,7 @@ export const action: ActionFunction = async ({ request, params }) => {
                 const newCreds = await response.json();
                 console.log(newCreds)
                 if (newCreds) {
-                    zohoCreds = { ...newCreds, refresh_token: zohoCreds.refresh_token, timestamp: new Date().getTime() };
+                    zohoCreds = { ...newCreds, refresh_token: zohoCreds.refresh_token, timestamp: new Date().getTime(), organizations: organizations };
                     const newZohoCredsUpdateRef = await updateFirestoreDocFromData({ creds: zohoCreds }, 'businesses', business_id)
                 }
             }
@@ -237,8 +237,8 @@ export const action: ActionFunction = async ({ request, params }) => {
 
 
 
-                const receivables30daysIDS = await uploadBulkToCollection(receivables30Days, `receivables/${business_id}/30d`, 500,'invoice_id');
-                const receivables60daysIDS = await uploadBulkToCollection(receivables60Days, `receivables/${business_id}/60d`, 500,'invoice_id')
+                const receivables30daysIDS = await uploadBulkToCollection(receivables30Days, `receivables/${business_id}/30d`, 500, 'invoice_id');
+                const receivables60daysIDS = await uploadBulkToCollection(receivables60Days, `receivables/${business_id}/60d`, 500, 'invoice_id')
                 const receivables90daysIDS = await uploadBulkToCollection(receivables90Days, `receivables/${business_id}/90d`, 500, 'invoice_id')
                 const receivablesExcessIDS = await uploadBulkToCollection(receivablesExcess, `receivables/${business_id}/excess`, 500, 'invoice_id')
 
@@ -258,10 +258,19 @@ export const action: ActionFunction = async ({ request, params }) => {
                     })
                     if (customerInvoices.length > 0) {
                         customer['invoices'] = customerInvoices.map((invoice) => invoice?.invoice_id);
+                        customer['outstanding'] = customerInvoices.filter((invoice) => invoice?.status == "overdue").reduce((first, last) => {
+                            if (first?.total) return first.total + last.total
+                            return first + last.total
+                        }, 0);
+                        customer['revenue'] = customerInvoices.filter((invoice) => invoice?.status == "paid").reduce((first, last) => {
+                            if (first?.total) return first.total + last.total
+                            return first + last.total
+                        }, 0);
+                        customer['dso'] = customer['revenue'] > 0 ? (customer['outstanding'] / customer['revenue']) * 365 : 'No revenue data'
                         customerIndexes[customer?.contact_id] = { id: customer?.contact_id, type: "Customer", index: customer?.vendor_name };
                     }
                 }
-                const customerCollectionRef = await uploadBulkToCollection(allCustomers, `customers/business/${business_id}`, 500,'contact_id');
+                const customerCollectionRef = await uploadBulkToCollection(allCustomers, `customers/business/${business_id}`, 500, 'contact_id');
 
 
 

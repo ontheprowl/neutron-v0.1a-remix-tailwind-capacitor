@@ -2,6 +2,7 @@ import { Link, useNavigate, useOutletContext } from "@remix-run/react";
 import EditButton from "~/components/inputs/buttons/EditButton";
 import EmailIcon from "~/assets/images/emailIcon.svg";
 import WorkflowMessageIcon from "~/assets/images/workflowMessageIcon.svg";
+import SectionUnderConstructionComponent from "~/components/layout/SectionUnderConstructionComponent";
 
 
 export default function WorkflowOverview() {
@@ -21,7 +22,7 @@ export default function WorkflowOverview() {
                     <div className="flex flex-col space-y-1">
                         <div className="flex flex-row items-center justify-between  border-secondary-text p-3">
                             <h1 className="text-lg">{workflow?.name}</h1>
-                            <EditButton onClick={()=>{
+                            <EditButton onClick={() => {
                                 navigate(`/workflows/edit/${workflow?.id}`)
                             }}></EditButton>
                         </div>
@@ -51,12 +52,12 @@ export default function WorkflowOverview() {
                     </div>
 
                 </div>
-                <div className="h-auto bg-white rounded-xl shadow-lg p-6">
-                    <div className="flex flex-col space-y-4">
+                <div className="h-full bg-white rounded-xl shadow-lg p-6">
+                    <div className="flex flex-col h-full space-y-4">
                         <div className="flex flex-row items-center justify-between">
                             <h1>Workflow Constraints</h1>
-                            <EditButton />
                         </div>
+                        <SectionUnderConstructionComponent />
 
                     </div>
 

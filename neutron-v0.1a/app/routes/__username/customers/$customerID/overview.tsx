@@ -1,6 +1,6 @@
 import { useLocation, useOutletContext } from "@remix-run/react";
 import { LoaderFunction } from "@remix-run/server-runtime";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import DeleteButton from "~/components/inputs/buttons/DeleteButton";
 import ExportButton from "~/components/inputs/buttons/ExportButton";
 import FilterButton from "~/components/inputs/buttons/FilterButton";
@@ -40,6 +40,25 @@ export default function CustomerOverview() {
     const [endOffset, setEnd] = useState(50)
     const [filter, setFilter] = useState('');
 
+
+    const receivables = useMemo(() => customerData?.invoices?.filter((invoice) => invoice?.status == "overdue"), [customerData?.invoices])
+    const paid = useMemo(() => customerData?.invoices?.filter((invoice) => invoice?.status == "paid"), [customerData?.invoices])
+
+    const [currTab, setCurrTab] = useState('All')
+
+    const currView = function (currTab: string) {
+        switch (currTab) {
+            case "All":
+                return customerData?.invoices;
+            case "Pending":
+                return receivables;
+
+            case "Paid":
+                return paid;
+
+        }
+    }(currTab);
+
     return (
 
         <>
@@ -50,19 +69,30 @@ export default function CustomerOverview() {
                             <path d="M17.5 17.5L14.5834 14.5833M16.6667 9.58333C16.6667 13.4954 13.4954 16.6667 9.58333 16.6667C5.67132 16.6667 2.5 13.4954 2.5 9.58333C2.5 5.67132 5.67132 2.5 9.58333 2.5C13.4954 2.5 16.6667 5.67132 16.6667 9.58333Z" stroke="#6F6E6E" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
 
-                        <input type="text" placeholder="Search for an invoice" className="w-full bg-transparent text-neutral-dark placeholder:text-neutral-dark focus:border-transparent outline-none " />
+                        <input type="text" onChange={(e) => {
+                            setFilter(e.currentTarget.value)
+                        }} placeholder="Search for an invoice by the date it was created" className="w-full bg-transparent text-neutral-dark placeholder:text-neutral-dark focus:border-transparent outline-none " />
 
                     </div>
                     <div className="flex flex-row space-x-4 w-1/3 items-center justify-center">
-                        <div className="flex flex-row space-x-4">
-                            <button className="text-primary-dark underline underline-offset-2 decoration-primary-dark">All</button>
-                            <button>Paid</button>
+                        <div className="flex flex-row space-x-4 self-end my-4">
+                            <div className="flex flex-row space-x-4">
+                                <button onClick={() => {
+                                    setCurrTab('All')
+                                }} className={`underline-offset-4 hover:opacity-75 transition-all ${currTab == "All" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>All</button>
+                                <button onClick={() => {
+                                    setCurrTab('Paid');
+                                }} className={`underline-offset-4 hover:opacity-75  transition-all ${currTab == "Paid" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>Paid</button>
+                                <button onClick={() => {
+                                    setCurrTab('Pending');
+                                }} className={`underline-offset-4 hover:opacity-75  transition-all ${currTab == "Pending" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>Pending</button>
+                            </div>
                         </div>
-                        <div className="flex flex-row space-x-4 items-center">
+                        {/* <div className="flex flex-row space-x-4 items-center">
                             <FilterButton />
                             <ExportButton />
                             <DeleteButton />
-                        </div>
+                        </div> */}
                     </div>
                 </div>
 
@@ -96,17 +126,17 @@ export default function CustomerOverview() {
                                     STATUS
                                 </th>
                             </tr>
-                            {customerData?.invoices?.filter((invoice) => {
-                                return invoice?.customer_name?.includes(filter);
+                            {currView?.filter((invoice) => {
+                                return new Date(invoice?.date).toLocaleDateString('en-IN', { dateStyle: "long" }).includes(filter);
                             }).sort((a, b) => {
-                                if (a?.balance > b.balance) {
+                                if (a?.date > b.date) {
                                     return -1
                                 } else {
                                     return 1
                                 }
                             }).slice(startOffset, endOffset).map((invoice, index) => {
                                 return (
-                                    <tr key={invoice.id} className={`border-b border-dashed sm:flex sm:flex-row  sm:justify-evenly sm:items-center w-full border-gray-400 dark:bg-gray-800 dark:border-gray-700 transition-all hover:bg-bg-primary-dark hover:bg-opacity-50 hover:border-primary-dark`}>
+                                    <tr key={invoice.invoice_id} className={`border-b border-dashed sm:flex sm:flex-row  sm:justify-evenly sm:items-center w-full border-gray-400 dark:bg-gray-800 dark:border-gray-700 transition-all hover:bg-bg-primary-dark hover:bg-opacity-50 hover:border-primary-dark`}>
                                         <td scope="row" className="px-2 py-4 w-full font-gilroy-regular text-center  whitespace-nowrap">
                                             <div className="flex flex-row w-auto justify-start space-x-4">
                                                 <input type="checkbox"></input>

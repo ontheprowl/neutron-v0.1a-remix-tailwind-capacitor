@@ -17,7 +17,7 @@ export default function CustomerOverview() {
     const receivables = useMemo(() => { return [...new Set([...businessData?.receivables['30d'], ...businessData?.receivables['60d'], ...businessData?.receivables['90d'], ...businessData?.receivables['excess']])] }, [businessData?.receivables])
     const paid = useMemo(() => { return [...new Set([...businessData?.paid['excess'], ...businessData?.paid['90d'], ...businessData?.paid['60d'], ...businessData?.paid['30d']])] }, [businessData?.paid])
 
-    const invoices = useMemo(() => [...receivables, ...paid], [receivables,paid]);
+    const invoices = useMemo(() => [...receivables, ...paid], [receivables, paid]);
 
     const { pathname } = useLocation();
 
@@ -54,29 +54,31 @@ export default function CustomerOverview() {
 
             </div>
             <div id="customer_details_content" className="h-full flex flex-col space-y-6  overflow-y-scroll">
-                <div className="flex flex-row space-x-3 w-2/3  h-1/5">
-                    <div id="primary_metric" className="w-1/3 bg-primary-base flex flex-col text-white p-5 space-y-6 justify-between shadow-lg rounded-xl">
-                        <h1 className=" text-5xl">Rs. {Number(currentCustomer?.outstanding_receivable_amount
+                <div className="flex flex-row space-x-3 w-2/3 h-1/5 min-h-[160px]">
+                    <div id="primary_metric" className="w-1/3 bg-primary-base flex h-full min-h-fit flex-col text-white p-5 space-y-6 justify-between shadow-lg rounded-xl">
+                        <h1 className=" text-4xl">Rs. {Number(currentCustomer?.outstanding
                         ).toLocaleString('en-IN')}</h1>
-                        <div className="flex flex-row justify-between">
+                        <div className="flex flex-row h-fit justify-between">
                             <span className=" text-lg">
                                 Total Outstanding
                             </span>
                         </div>
+
                     </div>
                     <div id="secondary_metric" className="w-1/3 bg-white flex flex-col text-black p-5 space-y-6 justify-between shadow-lg rounded-xl">
-                        <h1 className=" text-5xl">Random</h1>
+                        <h1 className=" text-4xl">{currentCustomer?.dso} days</h1>
                         <div className="flex flex-row justify-between">
                             <span className=" text-lg">
-                                [Need a secondary metric here]
+                                Day Sales Outstanding
                             </span>
                         </div>
                     </div>
                     <div id="tertiary_metric" className="w-1/3 flex flex-col bg-white p-5 space-y-6 justify-between text-black shadow-lg rounded-xl">
-                        <h1 className=" text-5xl">80</h1>
+                        <h1 className=" text-4xl">Rs. {Number(currentCustomer?.revenue
+                        ).toLocaleString('en-IN')}</h1>
                         <div className="flex flex-row justify-between">
                             <span className=" text-lg">
-                                Average Days Delinquent
+                                Revenue (Realized)
                             </span>
                             <span className=" text-2xl">
                                 +15%

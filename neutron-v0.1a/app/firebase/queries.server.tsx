@@ -213,7 +213,14 @@ export async function uploadBatch(data: any[], batchesLeft: number, offset: numb
     for (const elem of slice) {
         const slug = elem[idKey];
         const path = `${collectionPath}/${slug ? slug : randomUUID()}`;
-        batch.create(adminFirestore.doc(path), elem);
+        const docRef = adminFirestore.doc(path);
+        const doc = await docRef.get();
+        if (doc.exists) {
+            console.log("DOCUMENT ALREADY EXISTS... SKIPPED");
+            continue;
+        } else {
+            batch.create(docRef, elem);
+        }
     }
     await batch.commit();
 

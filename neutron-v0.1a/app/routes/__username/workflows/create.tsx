@@ -1,5 +1,5 @@
-import { useLocation, useOutletContext, useSubmit } from "@remix-run/react";
-import { useEffect, useMemo, useMemo, useState } from "react";
+import { useFetcher, useLocation, useOutletContext, useSubmit } from "@remix-run/react";
+import { useEffect, useMemo, useState } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import DeleteButton from "~/components/inputs/buttons/DeleteButton";
 import SaveButton from "~/components/inputs/buttons/SaveButton";
@@ -17,6 +17,8 @@ import { addFirestoreDocFromData, getSingleDoc, updateArrayInFirestoreDoc, updat
 import { executeDunningPayloads, getScheduleForActionAndInvoice } from "~/utils/utils.server";
 import type { EmailPayloadStructure, WhatsappPayloadStructure } from "~/models/dunning";
 import ActionType from "~/components/layout/ActionTypes";
+import NeutronModal from "~/components/layout/NeutronModal";
+import DunningTemplates from "~/components/layout/DunningTemplates";
 
 
 
@@ -29,7 +31,6 @@ export const action: ActionFunction = async ({ request, params }) => {
     console.log("REQUEST RECEIVED");
     const formData = await request.formData();
     const payload: { [x: string]: any } = JSON.parse(formData.get("payload"));
-
     // // **  For invoices that exist already, calculate all trigger conditions ( cron schedules ), filter cron schedules that are after today, then procedurally queue messages right now. 
 
     const businessData = await getSingleDoc(`businesses/${session?.metadata?.businessID}`);
@@ -78,6 +79,8 @@ export default function CreateWorkflowScreen() {
 
     const { metadata, businessData } = useOutletContext();
 
+    const fetcher = useFetcher();
+
     const receivables = useMemo(() => { return [...new Set([...businessData?.receivables['30d'], ...businessData?.receivables['60d'], ...businessData?.receivables['90d'], ...businessData?.receivables['excess']])] }, [businessData?.receivables])
     const paid = useMemo(() => { return [...new Set([...businessData?.paid['excess'], ...businessData?.paid['90d'], ...businessData?.paid['60d'], ...businessData?.paid['30d']])] }, [businessData?.paid])
 
@@ -93,11 +96,12 @@ export default function CreateWorkflowScreen() {
     const [localActions, setCurrentActions] = useState<Array<{ [x: string]: any }>>([]);
     const [editIndex, setEditIndex] = useState<number | null>(null);
     const [customersFilter, setCustomersFilter] = useState('');
-
+    const [templatePreviewModal, setTemplatePreviewModal] = useState(false);
     const [tags, setTags] = useState<string[]>([])
 
     const actions: Array<{ [x: string]: any }> = useWatch({ control: workflowCreationForm.control, name: 'actions' })
-    const actionType = useWatch({ control: workflowCreationForm.control, name: `actions.${currentAction}.action_type` })
+    const actionType: string = useWatch({ control: workflowCreationForm.control, name: `actions.${currentAction}.action_type` })
+    const template: string = useWatch({ control: workflowCreationForm.control, name: `actions.${currentAction}.template` })
 
 
     useEffect(() => {
@@ -108,7 +112,8 @@ export default function CreateWorkflowScreen() {
         }
     }, [actionType])
 
-    return (
+
+    return (<>
         <FormProvider {...workflowCreationForm}>
             <form onSubmit={workflowCreationForm.handleSubmit((data) => {
                 data['customers'] = data['customers'].filter((customer: { id: string | boolean }) => {
@@ -156,8 +161,8 @@ export default function CreateWorkflowScreen() {
 
                     <NucleiTextInput name={"tags"} label={"Tags"} placeholder={"E.g: Pune Customers, High Priority"} />
                     {/* <div className="flex flex-row space-x-4 mt-4">
-                        <NucleiTagsInput name={"tags"} label={"Tags"} placeholder={"E.g: High Priority, Pune Customers, etc"} tagsState={[tags,setTags]}/>
-                    </div> */}
+                    <NucleiTagsInput name={"tags"} label={"Tags"} placeholder={"E.g: High Priority, Pune Customers, etc"} tagsState={[tags,setTags]}/>
+                </div> */}
 
                 </div>
 
@@ -188,11 +193,15 @@ export default function CreateWorkflowScreen() {
                                 </>}
                         </NucleiDropdownInput>
                         {actionType == "automatic" &&
-                            <NucleiDropdownInput name={`actions.${currentAction}.template`} label={"Template"} placeholder={"Which template do you wish to send out in your reminder?"} >
-                                <option value={"Early Reminder"}>Early Reminder</option>
-                                <option value={"On Due Date"}>On Due Date</option>
-                                <option value={"Overdue Reminder"}>Overdue Reminder</option>
-                            </NucleiDropdownInput>}
+                            <div>
+                                <NucleiDropdownInput name={`actions.${currentAction}.template`} label={"Template"} placeholder={"Which template do you wish to send out in your reminder?"} >
+                                    <option value={"Early Reminder"}>Early Reminder</option>
+                                    <option value={"On Due Date"}>On Due Date</option>
+                                    <option value={"Overdue Reminder"}>Overdue Reminder</option>
+                                </NucleiDropdownInput>
+                                <button type="button" onClick={() => { setTemplatePreviewModal(!templatePreviewModal) }}>Preview</button>
+                            </div>
+                        }
                         {actionType == "manual" && <NucleiDropdownInput name={`actions.${currentAction}.assigned_to`} label={"Person In Charge"} placeholder={"Who are you assigning this task to?"} >
                             {businessData?.team?.map((member) => {
                                 return (<option key={member?.email} value={member?.email}>{member?.name}</option>)
@@ -284,7 +293,12 @@ export default function CreateWorkflowScreen() {
 
 
             </form>
-        </FormProvider >)
+
+        </FormProvider>
+
+        {templatePreviewModal && <NeutronModal type="email" heading={<h1> Template Name </h1>} body={<DunningTemplates templateName={template} actionType={actionType} />} toggleModalFunction={setTemplatePreviewModal} />}
+    </>
+    )
 
 }
 
