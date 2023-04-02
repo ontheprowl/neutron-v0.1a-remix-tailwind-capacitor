@@ -44,9 +44,9 @@ export default function CustomersList() {
                     <h1 className="text-lg">Customers List</h1>
                     <span className="text-neutral-base"> Home - Customers</span>
                 </div>
-                <button className="bg-primary-base text-white hover:bg-primary-dark transition-all rounded-lg p-3">
+                {/* <button className="bg-primary-base text-white hover:bg-primary-dark transition-all rounded-lg p-3">
                     Add Customers
-                </button>
+                </button> */}
             </div>
             {currView?.length > 0 ?
                 <div id="invoices_table" className="bg-white shadow-lg rounded-xl justify-between h-full flex flex-col">
@@ -70,11 +70,11 @@ export default function CustomersList() {
                                 setCurrTab('Outstanding');
                             }} className={`underline-offset-4 hover:opacity-75  transition-all ${currTab == "Outstanding" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>Outstanding</button>
                             </div>
-                            <div className="flex flex-row space-x-4 items-center">
+                            {/* <div className="flex flex-row space-x-4 items-center">
                                 <FilterButton />
                                 <ExportButton />
                                 <DeleteButton />
-                            </div>
+                            </div> */}
                         </div>
                     </div>
 
@@ -136,12 +136,12 @@ export default function CustomersList() {
                             </tbody>
                         </table>
                     </div>
-                    <div className="flex flex-row justify-between items-center px-3 mb-2 h-12 w-full self-end" id="invoices_pagination">
-                        <select className="bg-[#f5f5f5] p-2 rounded-xl text-secondary-text outline-none">
+                    <div className="flex flex-row justify-end items-center px-3 mb-2 h-12 w-full self-end" id="invoices_pagination">
+                        {/* <select className="bg-[#f5f5f5] p-2 rounded-xl text-secondary-text outline-none">
                             <option value="" disabled selected className="hidden">Actions</option>
                             <option>View</option>
                             <option>Delete</option>
-                        </select>
+                        </select> */}
                         <NucleiPagination items={currView} startPage={0} pageSize={50} pagesDisplayed={2} startState={[startOffset, setStart]} endState={[endOffset, setEnd]} />
                     </div>
                 </div> :

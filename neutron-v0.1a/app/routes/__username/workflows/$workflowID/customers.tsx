@@ -36,7 +36,9 @@ export default function CustomerDetails() {
                     <path d="M17.5 17.5L14.5834 14.5833M16.6667 9.58333C16.6667 13.4954 13.4954 16.6667 9.58333 16.6667C5.67132 16.6667 2.5 13.4954 2.5 9.58333C2.5 5.67132 5.67132 2.5 9.58333 2.5C13.4954 2.5 16.6667 5.67132 16.6667 9.58333Z" stroke="#6F6E6E" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
 
-                <input type="text" placeholder="Search for a customer" className="w-full bg-transparent text-neutral-dark placeholder:text-neutral-dark focus:border-transparent outline-none " />
+                <input type="text" onChange={(e) => {
+                    setFilter(e.currentTarget.value);
+                }} placeholder="Search for a customer" className="w-full bg-transparent text-neutral-dark placeholder:text-neutral-dark focus:border-transparent outline-none " />
 
             </div>
             <div className="flex flex-row  space-x-4 w-1/3 items-center justify-start">
@@ -72,7 +74,7 @@ export default function CustomerDetails() {
                         </th>
                     </tr>
                     {workflow?.customers?.filter((customer) => {
-                        return (customer?.data?.vendor_name?.includes(filter) || customer?.data?.first_name?.includes(filter) || customer?.data?.last_name?.includes(filter));
+                        return (customer?.data?.vendor_name?.toLowerCase().includes(filter.toLowerCase()) || customer?.data?.first_name?.toLowerCase()?.includes(filter.toLowerCase()) || customer?.data?.last_name?.toLowerCase()?.includes(filter.toLowerCase()));
                     }).sort(currSort).slice(startOffset, endOffset).map((customer, index) => {
 
                         return (
@@ -102,11 +104,11 @@ export default function CustomerDetails() {
             </table>
         </div>
         <div className="flex flex-row justify-between items-center px-3 mb-2 h-12 w-full self-end" id="invoices_pagination">
-            <select className="bg-[#f5f5f5] p-2 rounded-xl text-secondary-text outline-none">
+            {/* <select className="bg-[#f5f5f5] p-2 rounded-xl text-secondary-text outline-none">
                 <option value="" disabled selected className="hidden">Actions</option>
                 <option>View</option>
                 <option>Delete</option>
-            </select>
+            </select> */}
             <NucleiPagination items={workflow?.customers} startPage={0} pageSize={50} pagesDisplayed={2} startState={[startOffset, setStart]} endState={[endOffset, setEnd]} />
         </div>
     </div>

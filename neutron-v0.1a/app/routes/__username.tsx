@@ -103,7 +103,7 @@ export default function CustomUserPage() {
 
 
 
-    const currView = useMemo(() => { return indexes?.filter((indexedItem) => indexedItem.index.includes(filter)) }, [indexes, filter]);
+    const currView = useMemo(() => { return indexes?.filter((indexedItem) => indexedItem.index.toLowerCase().includes(filter.toLowerCase())) }, [indexes, filter]);
 
 
     const metadata = data.metadata;

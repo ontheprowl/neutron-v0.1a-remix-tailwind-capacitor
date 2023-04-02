@@ -103,6 +103,7 @@ export default function CreateWorkflowScreen() {
     const actions: Array<{ [x: string]: any }> = useWatch({ control: workflowCreationForm.control, name: 'actions' })
     const actionType: string = useWatch({ control: workflowCreationForm.control, name: `actions.${currentAction}.action_type` })
     const template: string = useWatch({ control: workflowCreationForm.control, name: `actions.${currentAction}.template` })
+    const assignedTo: string = useWatch({ control: workflowCreationForm.control, name: `assigned_to` })
 
 
     useEffect(() => {
@@ -197,15 +198,13 @@ export default function CreateWorkflowScreen() {
                                     <option value={"Whatsapp"}>Whatsapp</option>
                                 </>}
                         </NucleiDropdownInput>
-                        {actionType == "automatic" &&
-                            <div>
-                                <NucleiDropdownInput name={`actions.${currentAction}.template`} label={"Template"} placeholder={"Which template do you wish to send out in your reminder?"} >
-                                    <option value={"Early Reminder"}>Early Reminder</option>
-                                    <option value={"On Due Date"}>On Due Date</option>
-                                    <option value={"Overdue Reminder"}>Overdue Reminder</option>
-                                </NucleiDropdownInput>
-                                <button type="button" onClick={() => { setTemplatePreviewModal(!templatePreviewModal) }}>Preview</button>
-                            </div>
+                        {actionType === "automatic" &&
+                            <NucleiDropdownInput name={`actions.${currentAction}.template`} label={"Template"} placeholder={"Which template do you wish to send out in your reminder?"} >
+                                <option value={"Early Reminder"}>Early Reminder</option>
+                                <option value={"On Due Date"}>On Due Date</option>
+                                <option value={"Overdue Reminder"}>Overdue Reminder</option>
+                            </NucleiDropdownInput>
+
                         }
                         {actionType == "manual" && <NucleiDropdownInput name={`actions.${currentAction}.assigned_to`} label={"Person In Charge"} placeholder={"Who are you assigning this task to?"} >
                             {businessData?.team?.map((member) => {
@@ -213,20 +212,26 @@ export default function CreateWorkflowScreen() {
                             })}
                         </NucleiDropdownInput>}
                         <NucleiTextInput name={`actions.${currentAction}.time`} type="time" label={"Time"} placeholder={"When do you want to schedule this action?"} />
+
                     </div>
-                    <button type="button" className="bg-primary-base flex flex-row space-x-2 justify-center transition-all hover:bg-primary-dark active:bg-primary-dark focus:bg-primary-dark max-w-fit items-center  text-white p-3 rounded-lg" onClick={() => {
-                        localActions[currentAction] = actions[currentAction];
-                        workflowCreationForm.resetField(`actions.${currentAction}.action`);
-                        workflowCreationForm.resetField(`actions.${currentAction}.template`);
-                        workflowCreationForm.resetField(`actions.${currentAction}.time`);
-                        workflowCreationForm.resetField(`actions.${currentAction}.trigger`);
-                        workflowCreationForm.resetField(`actions.${currentAction}.days`);
-                        setEditIndex(null);
-                        setCurrentAction(currentAction + 1);
-                    }}>
-                        <img src={PlusCircleIcon} alt="plus_circle" />
-                        <span className="transition-all self-center">{editIndex != null ? 'Save Edit' : 'Add Action'}</span>
-                    </button>
+                    <div className="flex flex-row space-x-4 justify-center">
+                        {actionType === "automatic" && <button type="button" className="p-3 px-6 transition-all text-primary-base border-2 border-primary-base max-w-fit rounded-xl hover:border-primary-dark hover:text-primary-dark mx-2" onClick={() => { setTemplatePreviewModal(!templatePreviewModal) }}>Preview</button>
+                        }
+                        <button type="button" className="bg-primary-base flex flex-row space-x-2 justify-center transition-all hover:bg-primary-dark active:bg-primary-dark focus:bg-primary-dark max-w-fit items-center  text-white p-3 rounded-lg" onClick={() => {
+                            localActions[currentAction] = actions[currentAction];
+                            workflowCreationForm.resetField(`actions.${currentAction}.action`);
+                            workflowCreationForm.resetField(`actions.${currentAction}.template`);
+                            workflowCreationForm.resetField(`actions.${currentAction}.time`);
+                            workflowCreationForm.resetField(`actions.${currentAction}.trigger`);
+                            workflowCreationForm.resetField(`actions.${currentAction}.days`);
+                            setEditIndex(null);
+                            setCurrentAction(currentAction + 1);
+                        }}>
+                            <img src={PlusCircleIcon} alt="plus_circle" />
+                            <span className="transition-all self-center">{editIndex != null ? 'Save Edit' : 'Add Action'}</span>
+                        </button>
+                    </div>
+
                     <ul className="flex flex-col space-y-4 h-[300px] overflow-y-scroll">
                         {localActions?.map((action, index) => {
                             return (
@@ -298,7 +303,7 @@ export default function CreateWorkflowScreen() {
 
         </FormProvider>
 
-        {templatePreviewModal && <NeutronModal type="email" heading={<h1> Template Name </h1>} body={<DunningTemplates templateName={template} actionType={actionType} />} toggleModalFunction={setTemplatePreviewModal} />}
+        {templatePreviewModal && <NeutronModal type="email" heading={<h1> Template Name : {template} </h1>} body={<DunningTemplates templateName={template} actionType={actionType} sender={{ name: businessData?.business_name, poc: assignedTo.split(",")[0], poc_contact: assignedTo.split(",")[1] }} />} toggleModalFunction={setTemplatePreviewModal} />}
     </>
     )
 

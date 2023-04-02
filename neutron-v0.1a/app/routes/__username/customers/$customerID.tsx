@@ -43,9 +43,9 @@ export default function CustomerOverview() {
                     <h1 className="text-lg">Customer Details</h1>
                     <span className="text-neutral-base"> Home - Customers - {currentCustomer?.vendor_name}</span>
                 </div>
-                <button className="bg-primary-base text-white hover:bg-primary-dark transition-all rounded-lg p-3">
+                {/* <button className="bg-primary-base text-white hover:bg-primary-dark transition-all rounded-lg p-3">
                     Add Invoices
-                </button>
+                </button> */}
             </div>
             <div id="settings_tabs" className=" flex flex-row font-gilroy-medium text-base space-x-6">
                 <Link to="overview" preventScrollReset className={`transition-all text-neutral-dark py-3 border-b-2 hover:opacity-70 ${pathname.includes('overview') ? 'text-primary-base border-primary-base font-bold' : 'border-transparent '}`}>Overview</Link>
