@@ -216,7 +216,6 @@ export async function uploadBatch(data: any[], batchesLeft: number, offset: numb
         const docRef = adminFirestore.doc(path);
         const doc = await docRef.get();
         if (doc.exists) {
-            console.log("DOCUMENT ALREADY EXISTS... SKIPPED");
             continue;
         } else {
             batch.create(docRef, elem);

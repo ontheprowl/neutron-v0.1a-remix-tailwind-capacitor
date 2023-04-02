@@ -19,6 +19,7 @@ import type { EmailPayloadStructure, WhatsappPayloadStructure } from "~/models/d
 import ActionType from "~/components/layout/ActionTypes";
 import NeutronModal from "~/components/layout/NeutronModal";
 import DunningTemplates from "~/components/layout/DunningTemplates";
+import NucleiCheckBox from "~/components/inputs/fields/NucleiCheckBox";
 
 
 
@@ -35,7 +36,7 @@ export const action: ActionFunction = async ({ request, params }) => {
 
     const businessData = await getSingleDoc(`businesses/${session?.metadata?.businessID}`);
 
-    const customers = payload?.customers
+    const customers: Array<{ id: string, data: { [x: string]: any } }> = payload?.customers
     const actions = payload?.actions;
     const assigned_to: [name: string, email: string] = payload?.assigned_to?.split(",")
 
@@ -62,7 +63,7 @@ export const action: ActionFunction = async ({ request, params }) => {
 
     const dunningCallsResult = await executeDunningPayloads(dunningPayloads);
 
-
+    payload['customer_ids'] = customers?.map((customer) => customer.id);
     const workflowCreationRef = await addFirestoreDocFromData(payload, 'workflows/business', session?.metadata?.businessID);
     const updateObject: { [x: string]: any } = {};
     updateObject[`${workflowCreationRef.id}`] = { id: workflowCreationRef.id, type: 'Workflow', index: payload?.name };
@@ -116,8 +117,11 @@ export default function CreateWorkflowScreen() {
     return (<>
         <FormProvider {...workflowCreationForm}>
             <form onSubmit={workflowCreationForm.handleSubmit((data) => {
-                data['customers'] = data['customers'].filter((customer: { id: string | boolean }) => {
-                    return (typeof customer.id == 'string')
+                const customerIDsArray: Array<string | boolean> = Object.values(data['customers'])
+                data['customers'] = customerIDsArray.filter((customerID) => {
+                    return (typeof customerID == 'string')
+                }).map((value) => {
+                    return { id: value }
                 });
                 data['actions'] = localActions
                 const formData = new FormData();
@@ -135,6 +139,7 @@ export default function CreateWorkflowScreen() {
 
                 formData.append('payload', JSON.stringify(data))
                 formData.append('customersData', JSON.stringify(data));
+                console.dir(data, { depth: null })
                 submit(formData, { method: "post" })
             })} className=" h-full flex flex-col space-y-4">
                 <div className="flex flex-row justify-between">
@@ -280,12 +285,9 @@ export default function CreateWorkflowScreen() {
 
                     </div>
                     <div className="grid grid-flow-dense auto-rows-min grid-cols-3  p-3 mt-4 h-[400px] overflow-y-scroll">
-                        {businessData?.customers.filter((customer) => (customer?.vendor_name.includes(customersFilter))).map((customer, index) => {
+                        {businessData?.customers.filter((customer) => (customer?.vendor_name?.toLowerCase().includes(customersFilter.toLowerCase()))).map((customer, index) => {
                             return (
-                                <div className="flex flex-row items-center space-x-4" key={index}>
-                                    <input {...workflowCreationForm.register(`customers.${index}.id`)} value={customer?.contact_id} className="text-primary-base fill-primary-base accent-primary-base rounded-full outline-none" type="checkbox" placeholder="" />
-                                    <span className="font-gilroy-medium text-lg">{customer?.vendor_name}</span>
-                                </div>)
+                                <NucleiCheckBox name={`customers.${customer?.contact_id}`} key={customer?.contact_id} value={customer?.contact_id} label={customer?.vendor_name} />)
                         })}
                     </div>
 

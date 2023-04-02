@@ -6,12 +6,12 @@ export default function EmailVerifiedPage() {
 
     let navigate = useNavigate();
 
-    // useEffect(() => {
-    //     setTimeout(() => {
-    //         navigate('/login')
-    //     },
-    //     3000);
-    // })
+    useEffect(() => {
+        setTimeout(() => {
+            navigate('/login')
+        },
+        3000);
+    })
 
     return (
         <div className="  h-screen w-full justify-center p-12 text-black bg-white align-middle">
