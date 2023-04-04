@@ -6,6 +6,7 @@ import MessageIcon from '~/assets/images/messageIcon.svg'
 import { NeutronDefaultChart } from '~/components/visualizations/NeutronCharts'
 import NucleiZeroState from '~/components/layout/NucleiZeroState';
 import moment from 'moment';
+import SectionUnderConstructionComponent from '~/components/layout/SectionUnderConstructionComponent'
 
 
 
@@ -30,9 +31,9 @@ export default function ARDashboard() {
 
     const [currentPeriod, cycleCurrentPeriod] = useCycle('30d', '60d', '90d', 'excess')
 
-    const chartData = useMemo(()=>{
-        return { outstanding: { '30d': businessData?.outstanding['30d'], '60d': businessData?.outstanding['60d'], '90d': businessData?.outstanding['90d'], 'excess': businessData?.outstanding['excess'] }, revenue: { '30d': businessData?.revenue['30d'], '60d': businessData?.revenue['60d'], '90d': businessData?.revenue['90d'], 'excess': businessData?.revenue['excess'] }, sales: { '30d': 0, '60d': 0, '90d': 0, 'excess': 0 } }
-    },[businessData])
+    const chartData = useMemo(() => {
+        return { outstanding: { '30d': businessData?.outstanding['30d'], '60d': businessData?.outstanding['60d'], '90d': businessData?.outstanding['90d'], 'excess': businessData?.outstanding['excess'] }, revenue: { '30d': businessData?.revenue['30d'], '60d': businessData?.revenue['60d'], '90d': businessData?.revenue['90d'], 'excess': businessData?.revenue['excess'] }, sales: { '30d': businessData?.revenue['30d'] + businessData?.outstanding['30d'], '60d': businessData?.revenue['60d'] + businessData?.outstanding['60d'], '90d': businessData?.revenue['90d'] + businessData?.outstanding['90d'], 'excess': businessData?.revenue['excess'] + businessData?.outstanding['excess'] } }
+    }, [businessData])
 
 
     const periodOptions = ['30d', '60d', '90d', 'excess']
@@ -86,7 +87,7 @@ export default function ARDashboard() {
                             Total Outstanding
                         </span>
                         {outstandingDiff && outstandingDiff > 0 ? <span className=" text-2xl text-success-light">
-                            {outstandingDiff}%
+                            {Math.ceil(outstandingDiff)}%
                         </span> : <></>}
                     </div>
                 </div>
@@ -97,7 +98,7 @@ export default function ARDashboard() {
                             Days Sales Outstanding
                         </span>
                         {dsoDiff && dsoDiff > 0 ? <span className=" text-2xl text-warning-dark">
-                            {dsoDiff}%
+                            {Math.ceil(dsoDiff)}%
                         </span> : <></>}
                     </div>
                 </div>
@@ -108,7 +109,7 @@ export default function ARDashboard() {
                             Revenue (Realized)
                         </span>
                         {revenueDiff && revenueDiff > 0 ? <span className=" text-2xl text-warning-dark">
-                            {revenueDiff}%
+                            {Math.ceil(revenueDiff)}%
                         </span> : <></>}
                     </div>
                 </div>
@@ -119,31 +120,25 @@ export default function ARDashboard() {
                         <h2 className="text-black">
                             Actions
                         </h2>
-                        <h2 className=" text-error-dark">
+                        <button onClick={() => {
+                            cycleCurrentPeriod()
+                        }} className='font-gilroy-medium p-3 w-auto transition-all active:opacity-80 hover:bg-primary-dark text-base text-white bg-primary-base rounded-xl whitespace-nowrap'>Current Period: {currentPeriod == "excess" ? 'Beyond 90d' : `Last ${currentPeriod}`}
+                        </button>
+                        {/* <h2 className=" text-error-dark">
                             {businessData?.pending_actions?.length ? businessData?.pending_actions?.length : 0} ACTIONS ARE PENDING
-                        </h2>
+                        </h2> */}
                     </div>
+
                     <ul className="h-full grid grid-cols-1 divide-y overflow-y-scroll divide-black m-5 mt-0">
                         {businessData?.pending_actions?.length > 0 ? businessData?.pending_actions?.map((action) => {
                             return (<li key={action?.id} className="flex flex-row items-center justify-start space-x-10">
                                 <img src={MessageIcon} alt="messageIcon" className="w-5" />
                                 <span>{action?.name}</span>
                             </li>);
-                        }) : <NucleiZeroState entity='actions' onClick={() => {
-                            navigate('/workflows/create')
-                        }} cta='Create Workflows' />}
+                        }) : <SectionUnderConstructionComponent />}
                     </ul>
                 </div>
                 <div className="w-3/5 h-full p-6 bg-white text-black shadow-lg rounded-xl">
-                    <div className='w-full flex flex-row max-h-fit justify-between'>
-                        <h2 className="text-black">
-                            Ageing Balance
-                        </h2>
-                        <button onClick={() => {
-                            cycleCurrentPeriod()
-                        }} className='font-gilroy-medium px-3 transition-all active:opacity-80 hover:bg-primary-dark text-base text-white bg-primary-base rounded-xl whitespace-nowrap'>Current Period: {currentPeriod == "excess" ? 'Beyond 90d' : `${currentPeriod}`}
-                        </button>
-                    </div>
                     <div id="visualizations_panel" className='h-full w-full p-2'>
                         <NeutronDefaultChart data={chartData} />
                     </div>

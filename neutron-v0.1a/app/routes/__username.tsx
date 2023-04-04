@@ -9,7 +9,7 @@ import { formatDateToReadableString } from "~/utils/utils";
 import Icon from '../assets/images/icon_black.svg';
 import IconWhite from '../assets/images/iconWhite.svg'
 import BottomNav from "~/components/layout/BottomNav";
-import { requireUser } from "~/session.server";
+import { logout, requireUser } from "~/session.server";
 import { motion, useCycle } from "framer-motion";
 import SettingsButton from "~/components/SettingsButton";
 import LogoutButton from "~/components/LogoutButton";
@@ -27,7 +27,19 @@ import TeamIcon from "~/components/inputs/TeamIcon";
 export const loader: LoaderFunction = async ({ request, params }) => {
 
     console.log("DATA REFRESH FROM USERNAME ROUTE")
-    const session = await requireUser(request);
+    let session
+
+    //* If the user's session has expired ( due to app redeployment or restart ,) delete the user's session and redirect them to login
+    try {
+        session = await requireUser(request);
+    }
+    catch (e: any) {
+        if (e instanceof Error) {
+            if (e.message === "Missing or insufficient permissions.") {
+                return logout(request);
+            }
+        }
+    }
 
     if (!session) {
         return redirect('/login')

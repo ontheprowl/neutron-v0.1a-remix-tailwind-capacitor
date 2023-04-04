@@ -41,7 +41,7 @@ export default function CustomerOverview() {
     const [filter, setFilter] = useState('');
 
 
-    const receivables = useMemo(() => customerData?.invoices?.filter((invoice) => invoice?.status == "overdue"), [customerData?.invoices])
+    const receivables = useMemo(() => customerData?.invoices?.filter((invoice) => invoice?.status == "overdue" || invoice?.status == "sent"  ), [customerData?.invoices])
     const paid = useMemo(() => customerData?.invoices?.filter((invoice) => invoice?.status == "paid"), [customerData?.invoices])
 
     const [currTab, setCurrTab] = useState('All')
@@ -63,8 +63,8 @@ export default function CustomerOverview() {
 
         <>
             <div id="invoices_table" className="bg-white shadow-lg rounded-xl justify-between h-full flex flex-col">
-                <div id="table_functions" className="flex flex-row items-center  p-5 py-1  justify-between h-auto">
-                    <div className="flex flex-row bg-[#f5f5f5]  h-10 space-x-4 p-2 w-1/4  rounded-lg">
+                <div id="table_functions" className="flex flex-row items-center  pl-5 py-3 pr-5 bprder-2  justify-between h-auto">
+                    <div className="flex flex-row bg-[#f5f5f5]  h-10 space-x-4 p-2 w-2/5  rounded-lg">
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M17.5 17.5L14.5834 14.5833M16.6667 9.58333C16.6667 13.4954 13.4954 16.6667 9.58333 16.6667C5.67132 16.6667 2.5 13.4954 2.5 9.58333C2.5 5.67132 5.67132 2.5 9.58333 2.5C13.4954 2.5 16.6667 5.67132 16.6667 9.58333Z" stroke="#6F6E6E" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
@@ -74,7 +74,7 @@ export default function CustomerOverview() {
                         }} placeholder="Search for an invoice by the date it was created" className="w-full bg-transparent text-neutral-dark placeholder:text-neutral-dark focus:border-transparent outline-none " />
 
                     </div>
-                    <div className="flex flex-row space-x-4 w-1/3 items-center justify-center">
+                    <div className="flex flex-row space-x-4 w-auto items-center justify-center">
                         <div className="flex flex-row space-x-4 self-end my-4">
                             <div className="flex flex-row space-x-4">
                                 <button onClick={() => {

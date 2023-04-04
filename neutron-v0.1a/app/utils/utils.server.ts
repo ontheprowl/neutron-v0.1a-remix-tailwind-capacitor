@@ -182,7 +182,7 @@ export function getScheduleForActionAndInvoice(invoice: any, senderInfo: { calle
         finalPayload = {
             id: randomUUID(),
             callerID: senderInfo?.caller_id,
-            jobType: 1,
+            jobType: 0,
             data: {
                 contact: customer?.email,
                 data: {

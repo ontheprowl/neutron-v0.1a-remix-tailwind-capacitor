@@ -35,6 +35,11 @@ export const action: ActionFunction = async ({ request, params }) => {
         const receivablesReset90Ref = await deleteCollection(`receivables/${business_id}/90d`, 500);
         const receivablesResetExcessRef = await deleteCollection(`receivables/${business_id}/excess`, 500);
 
+        const paidReset30Ref = await deleteCollection(`paid/${business_id}/30d`, 500);
+        const paidReset60Ref = await deleteCollection(`paid/${business_id}/60d`, 500);
+        const paidReset90Ref = await deleteCollection(`paid/${business_id}/90d`, 500);
+        const paidResetExcessRef = await deleteCollection(`paid/${business_id}/excess`, 500);
+
         const indexesResetRef = await deleteFirestoreDoc('indexes', business_id);
 
         const customersResetRef = await deleteCollection(`customers/business/${business_id}`, 500);

@@ -50,7 +50,7 @@ export const action: ActionFunction = async ({ request, params }) => {
                 const newCreds = await response.json();
                 console.log(newCreds)
                 if (newCreds) {
-                    zohoCreds = { ...newCreds, refresh_token: zohoCreds.refresh_token, timestamp: new Date().getTime(), organizations: organizations };
+                    zohoCreds = { ...newCreds, accountsServer: zohoCreds.accountsServer, api_domain: zohoCreds.api_domain, refresh_token: zohoCreds.refresh_token, timestamp: new Date().getTime(), organizations: organizations };
                     const newZohoCredsUpdateRef = await updateFirestoreDocFromData({ creds: zohoCreds }, 'businesses', business_id)
                 }
             }
@@ -60,7 +60,7 @@ export const action: ActionFunction = async ({ request, params }) => {
                 const apiDomain = zohoCreds?.api_domain;
 
 
-                // * Fetch receivables according to four brackets ( 0-30days ( due date after 30 days before today), 30-60 days, 60-90 days, 90+)
+                // * Fetch receivables according to four brackets ( 0-30days ( due date after 30 days before today), 0-60 days, 0-90 days, All)
                 console.log("FETCHING INVOICES")
 
                 // ? Is there a better way to implement pagination
@@ -96,22 +96,65 @@ export const action: ActionFunction = async ({ request, params }) => {
                     return { page_result: reducedInvoices, has_more_page: response?.page_context?.has_more_page }
                 });
 
+                const sentInvoices = await executePaginatedRequestandAggregate(async (page: number) => {
+                    const sentInvoicesRequest = await fetch(`${apiDomain}/books/v3/invoices?organization_id=${organization_id}&status=sent&page=${page}`, {
+                        method: "GET",
+                        headers: new Headers({
+                            'Authorization': `Zoho-oauthtoken ${access_token}`
+                        })
+                    })
+
+                    const response: { code: number, invoices: [{ [x: string]: any }], page_context: { has_more_page: boolean } } = await sentInvoicesRequest.json();
+
+                    const reducedInvoices = response?.invoices?.map((invoice) => {
+                        return {
+                            invoice_id: invoice.invoice_id,
+                            date: invoice.date,
+                            due_date: invoice.due_date,
+                            due_days: invoice.due_days,
+                            status: invoice.status,
+                            invoice_number: invoice.invoice_number,
+                            company_name: invoice.company_name,
+                            customer_name: invoice.customer_name,
+                            customer_id: invoice.customer_id,
+                            total: invoice.total,
+                            balance: invoice.balance
+                        }
+
+                    })
+
+                    return { page_result: reducedInvoices, has_more_page: response?.page_context?.has_more_page }
+                });
 
 
+                const allReceivables = [...receivableInvoices, ...sentInvoices]
 
-                const receivables30Days = receivableInvoices?.filter((invoice) => {
+                const oldestReceivableDate = allReceivables?.sort((a, b) => {
+                    if (a?.date && b?.date) {
+                        if (a?.date < b?.date) {
+                            return -1;
+                        } else {
+                            return 1;
+                        }
+                    }
+                    return 0;
+                })[0]?.date;
+
+                console.log(oldestReceivableDate)
+
+                const receivables30Days = allReceivables?.filter((invoice) => {
                     return invoice?.due_date > returnNormalizedDateString(moment().subtract(31, 'days').toDate())
                 });
 
-                const receivables60Days = receivableInvoices?.filter((invoice) => {
+                const receivables60Days = allReceivables?.filter((invoice) => {
                     return invoice?.due_date > returnNormalizedDateString(moment().subtract(61, 'days').toDate()) && invoice?.due_date < returnNormalizedDateString(moment().subtract(30, 'days').toDate());
                 });
 
-                const receivables90Days = receivableInvoices?.filter((invoice) => {
+                const receivables90Days = allReceivables?.filter((invoice) => {
                     return invoice?.due_date > returnNormalizedDateString(moment().subtract(91, 'days').toDate()) && invoice?.due_date < returnNormalizedDateString(moment().subtract(60, 'days').toDate());
                 });
 
-                const receivablesExcess = receivableInvoices?.filter((invoice) => {
+                const receivablesExcess = allReceivables?.filter((invoice) => {
                     return invoice?.due_date < returnNormalizedDateString(moment().subtract(90, 'days').toDate())
                 });
 
@@ -119,20 +162,21 @@ export const action: ActionFunction = async ({ request, params }) => {
                     if (last.balance) return first + last.balance
                     return first
                 }, 0)
-                const outstanding60Days = receivables60Days?.reduce((first, last) => {
+                const outstanding60Days = [...receivables60Days, ...receivables30Days]?.reduce((first, last) => {
                     if (last.balance) return first + last.balance
                     return first
                 }, 0)
-                const outstanding90Days = receivables90Days?.reduce((first, last) => {
+                const outstanding90Days = [...receivables30Days, ...receivables60Days, ...receivables90Days]?.reduce((first, last) => {
                     if (last.balance) return first + last.balance
                     return first
                 }, 0)
-                const outstandingExcess = receivablesExcess?.reduce((first, last) => {
+                const outstandingExcess = allReceivables?.reduce((first, last) => {
                     if (last.balance) return first + last.balance
                     return first
                 }, 0)
 
-                const total_outstanding = outstanding30Days + outstanding60Days + outstanding90Days + outstandingExcess
+                const total_outstanding = outstandingExcess
+
 
 
 
@@ -167,7 +211,20 @@ export const action: ActionFunction = async ({ request, params }) => {
 
                 });
 
-                console.dir(paidInvoices);
+                const oldestPaidDate = paidInvoices?.sort((a, b) => {
+                    if (a?.date && b?.date) {
+                        if (a?.date < b?.date) {
+                            return -1;
+                        } else {
+                            return 1;
+                        }
+                    }
+                    return 0;
+                })[0]?.date;
+
+                console.log(oldestPaidDate)
+                const oldestInvoice = oldestPaidDate < oldestReceivableDate ? oldestPaidDate : oldestReceivableDate;
+
                 const paidInvoices30Days = paidInvoices?.filter((invoice) => {
                     return invoice?.due_date > returnNormalizedDateString(moment().subtract(31, 'days').toDate())
                 });
@@ -187,21 +244,24 @@ export const action: ActionFunction = async ({ request, params }) => {
                 const revenue30Days = paidInvoices30Days.reduce((first, last) => {
                     if (last.total) return first + last.total
                     return first
-                }, 0)
-                const revenue60Days = paidInvoices60Days.reduce((first, last) => {
-                    if (last.total) return first + last.total
-                    return first
-                }, 0)
-                const revenue90Days = paidInvoices90Days.reduce((first, last) => {
-                    if (last.total) return first + last.total
-                    return first
-                }, 0)
-                const revenueExcess = paidInvoicesExcess.reduce((first, last) => {
-                    if (last.total) return first + last.total
-                    return first
-                }, 0)
+                }, 0);
 
-                const total_revenue = revenue30Days + revenue60Days + revenue90Days + revenueExcess
+                const revenue60Days = [...paidInvoices30Days, ...paidInvoices60Days].reduce((first, last) => {
+                    if (last.total) return first + last.total
+                    return first
+                }, 0);
+
+                const revenue90Days = [...paidInvoices30Days, ...paidInvoices60Days, ...paidInvoices90Days].reduce((first, last) => {
+                    if (last.total) return first + last.total
+                    return first
+                }, 0);
+
+                const revenueExcess = paidInvoices.reduce((first, last) => {
+                    if (last.total) return first + last.total
+                    return first
+                }, 0);
+
+                const total_revenue = revenueExcess;
 
 
                 console.log("FETCHING All CONTACTS")
@@ -223,13 +283,6 @@ export const action: ActionFunction = async ({ request, params }) => {
 
                 })
 
-
-
-
-
-
-
-
                 // // * Write all records to respective collections, and then add keys to the business_data
                 // ? Is there 
 
@@ -247,7 +300,7 @@ export const action: ActionFunction = async ({ request, params }) => {
                 const paidInvoices90daysIDS = await uploadBulkToCollection(paidInvoices90Days, `paid/${business_id}/90d`, 500, 'invoice_id')
                 const paidInvoicesExcessIDS = await uploadBulkToCollection(paidInvoicesExcess, `paid/${business_id}/excess`, 500, 'invoice_id')
 
-                const allInvoices = [...new Set([...receivables30Days, ...receivables60Days, ...receivables90Days, ...receivablesExcess, ...paidInvoices30Days, ...paidInvoices60Days, ...paidInvoices90Days, ...paidInvoicesExcess])];
+                const allInvoices = [...new Set([...allReceivables, ...paidInvoices])];
                 // const allClearedIDS = [...new Set([...paidInvoices30daysIDS, ...paidInvoices60daysIDS, ...paidInvoices90daysIDS, ...paidInvoicesExcessIDS])];
 
                 console.log("FETCHING INVOICES PER CUSTOMER...")
@@ -258,7 +311,7 @@ export const action: ActionFunction = async ({ request, params }) => {
                     })
                     if (customerInvoices.length > 0) {
                         customer['invoices'] = customerInvoices.map((invoice) => invoice?.invoice_id);
-                        customer['outstanding'] = customerInvoices.filter((invoice) => invoice?.status == "overdue").reduce((first, last) => {
+                        customer['outstanding'] = customerInvoices.filter((invoice) => invoice?.status == "overdue" || invoice?.status == "sent").reduce((first, last) => {
                             if (first?.total) return first.total + last.total
                             return first + last.total
                         }, 0);
@@ -266,7 +319,7 @@ export const action: ActionFunction = async ({ request, params }) => {
                             if (first?.total) return first.total + last.total
                             return first + last.total
                         }, 0);
-                        customer['dso'] = customer['revenue'] > 0 ? (customer['outstanding'] / customer['revenue']) * 365 : 'No revenue data'
+                        customer['dso'] = customer['revenue'] > 0 ? (customer['outstanding'] / customer['revenue']) * 30 : 'No data'
                         customerIndexes[customer?.contact_id] = { id: customer?.contact_id, type: "Customer", index: customer?.vendor_name };
                     }
                 }
@@ -295,10 +348,10 @@ export const action: ActionFunction = async ({ request, params }) => {
                         '30d': revenue30Days, '60d': revenue60Days, '90d': revenue90Days, 'excess': revenueExcess, 'total': total_revenue
                     },
                     dso: {
-                        '30d': revenue30Days ? (outstanding30Days / revenue30Days) * 365 : 0,
-                        '60d': revenue60Days ? (outstanding60Days / revenue60Days) * 365 : 0,
-                        '90d': revenue90Days ? (outstanding90Days / revenue90Days) * 365 : 0,
-                        'excess': revenueExcess ? (outstandingExcess / revenueExcess) * 365 : 0
+                        '30d': revenue30Days ? (outstanding30Days / revenue30Days) * 30 : 0,
+                        '60d': revenue60Days ? (outstanding60Days / revenue60Days) * 60 : 0,
+                        '90d': revenue90Days ? (outstanding90Days / revenue90Days) * 90 : 0,
+                        'excess': revenueExcess ? (outstandingExcess / revenueExcess) * Number(moment(oldestInvoice).diff(moment(), "days")) : 0
                     }
                 };
 

@@ -1,9 +1,5 @@
 import { Link, Outlet, useLocation, useOutletContext, useParams } from "@remix-run/react";
-import { useMemo, useState } from "react";
-import DeleteButton from "~/components/inputs/buttons/DeleteButton";
-import ExportButton from "~/components/inputs/buttons/ExportButton";
-import FilterButton from "~/components/inputs/buttons/FilterButton";
-import { InvoiceClearedStatus } from "~/components/layout/Statuses";
+import { useMemo } from "react";
 
 
 
@@ -20,7 +16,7 @@ export default function CustomerOverview() {
     const invoices = useMemo(() => [...receivables, ...paid], [receivables, paid]);
 
     const { pathname } = useLocation();
-
+ 
     const currentCustomer: { [x: string]: any } | null = useMemo(() => {
         for (const key of Object.keys(businessData?.customers)) {
             const currentCustomer = businessData?.customers[key];
@@ -41,7 +37,8 @@ export default function CustomerOverview() {
             <div className="flex flex-row justify-between">
                 <div id="page_title" className="flex flex-col">
                     <h1 className="text-lg">Customer Details</h1>
-                    <span className="text-neutral-base"> Home - Customers - {currentCustomer?.vendor_name}</span>
+                    {/* <BreadCrumbs segments={[{ name: 'Home', slug: '/dashboard' }, { name: 'Customers', slug: '/dashboard/customers' }]} /> */}
+                    <div className="text-neutral-base"> Home - Customers - <span className="font-gilroy-bold text-black">{currentCustomer?.vendor_name}</span></div>
                 </div>
                 {/* <button className="bg-primary-base text-white hover:bg-primary-dark transition-all rounded-lg p-3">
                     Add Invoices
@@ -66,7 +63,7 @@ export default function CustomerOverview() {
 
                     </div>
                     <div id="secondary_metric" className="w-1/3 bg-white flex flex-col text-black p-5 space-y-6 justify-between shadow-lg rounded-xl">
-                        <h1 className=" text-4xl">{currentCustomer?.dso} days</h1>
+                        <h1 className=" text-4xl">{Math.floor(currentCustomer?.dso)}</h1>
                         <div className="flex flex-row justify-between">
                             <span className=" text-lg">
                                 Day Sales Outstanding
@@ -79,9 +76,6 @@ export default function CustomerOverview() {
                         <div className="flex flex-row justify-between">
                             <span className=" text-lg">
                                 Revenue (Realized)
-                            </span>
-                            <span className=" text-2xl">
-                                +15%
                             </span>
                         </div>
                     </div>
