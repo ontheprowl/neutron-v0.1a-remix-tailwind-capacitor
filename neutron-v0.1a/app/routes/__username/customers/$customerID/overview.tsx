@@ -5,7 +5,7 @@ import DeleteButton from "~/components/inputs/buttons/DeleteButton";
 import ExportButton from "~/components/inputs/buttons/ExportButton";
 import FilterButton from "~/components/inputs/buttons/FilterButton";
 import NucleiPagination from "~/components/inputs/pagination/NucleiPagination";
-import { InvoiceClearedStatus, InvoicePendingStatus } from "~/components/layout/Statuses";
+import { InvoiceOverdueStatus, InvoicePaidStatus, InvoiceSentStatus } from "~/components/layout/Statuses";
 import { getSingleDoc } from "~/firebase/queries.server";
 import { requireUser } from "~/session.server";
 
@@ -41,7 +41,7 @@ export default function CustomerOverview() {
     const [filter, setFilter] = useState('');
 
 
-    const receivables = useMemo(() => customerData?.invoices?.filter((invoice) => invoice?.status == "overdue" || invoice?.status == "sent"  ), [customerData?.invoices])
+    const receivables = useMemo(() => customerData?.invoices?.filter((invoice) => invoice?.status == "overdue" || invoice?.status == "sent"), [customerData?.invoices])
     const paid = useMemo(() => customerData?.invoices?.filter((invoice) => invoice?.status == "paid"), [customerData?.invoices])
 
     const [currTab, setCurrTab] = useState('All')
@@ -50,12 +50,12 @@ export default function CustomerOverview() {
         switch (currTab) {
             case "All":
                 return customerData?.invoices;
-            case "Pending":
-                return receivables;
-
+            case "Overdue":
+                return receivables.filter((receivable) => receivable?.status == "overdue");
             case "Paid":
                 return paid;
-
+            case "Sent":
+                return receivables.filter((receivable) => receivable?.status == "sent");
         }
     }(currTab);
 
@@ -84,8 +84,11 @@ export default function CustomerOverview() {
                                     setCurrTab('Paid');
                                 }} className={`underline-offset-4 hover:opacity-75  transition-all ${currTab == "Paid" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>Paid</button>
                                 <button onClick={() => {
-                                    setCurrTab('Pending');
-                                }} className={`underline-offset-4 hover:opacity-75  transition-all ${currTab == "Pending" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>Pending</button>
+                                    setCurrTab('Overdue');
+                                }} className={`underline-offset-4 hover:opacity-75  transition-all ${currTab == "Overdue" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>Overdue</button>
+                                <button onClick={() => {
+                                    setCurrTab('Sent');
+                                }} className={`underline-offset-4 hover:opacity-75  transition-all ${currTab == "Sent" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>Sent</button>
                             </div>
                         </div>
                         {/* <div className="flex flex-row space-x-4 items-center">
@@ -160,7 +163,7 @@ export default function CustomerOverview() {
                                             {new Date(invoice?.due_date).toLocaleDateString('en-IN', { dateStyle: "long" })}
                                         </td>
                                         <td className="  px-2 py-4 w-full font-gilroy-regular justify-center flex flex-row  text-center">
-                                            {invoice?.status == "paid" ? <InvoiceClearedStatus /> : <InvoicePendingStatus />}
+                                            {invoice?.status == "overdue" ? <InvoiceOverdueStatus /> : invoice?.status == "paid" ? <InvoicePaidStatus /> : <InvoiceSentStatus />}
 
                                         </td>
                                         {/* <td className='px-2 py-4 w-full min-w-[160px] flex flex-row justify-center '>

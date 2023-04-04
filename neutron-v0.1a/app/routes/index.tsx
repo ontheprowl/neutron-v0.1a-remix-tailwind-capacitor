@@ -3,20 +3,29 @@ import { useLoaderData, useNavigate } from "@remix-run/react";
 import React from "react";
 import { useForm } from "react-hook-form";
 import Icon from "~/assets/images/iconFull.svg"
-import { requireUser } from "~/session.server";
+import { logout, requireUser } from "~/session.server";
 import { redirect } from "@remix-run/server-runtime";
 
 export async function loader({ request }: { request: Request }) {
 
-  const session = await requireUser(request, true);
+  let session;
+
+  //* If the user's session has expired ( due to app redeployment or restart ,) delete the user's session and redirect them to login
+  try {
+    session = await requireUser(request);
+  }
+  catch (e: any) {
+    return logout(request)
+  }
+
   if (session) {
-    if(session?.metadata?.businessID){
+    if (session?.metadata?.businessID) {
       return redirect(`/dashboard`)
-    } else { 
+    } else {
       return redirect(`/onboarding/integrations`)
     }
-    
-  } 
+
+  }
 }
 
 export default function Home() {

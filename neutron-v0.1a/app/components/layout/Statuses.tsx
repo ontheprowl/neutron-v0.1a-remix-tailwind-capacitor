@@ -49,12 +49,12 @@ export function ContractStatusGenerator({ status }: { status: ContractStatus }) 
 export function InvoiceStatusGenerator({ status }: { status: InvoiceStatus }) {
 
     switch (status) {
-        case InvoiceStatus.Pending:
-            return <h3 className="font-gilroy-medium p-2 max-w-fit rounded-xl text-warning-dark bg-warning-light">PENDING</h3>
+        case InvoiceStatus.Overdue:
+            return <h3 className="font-gilroy-medium p-2 max-w-fit rounded-xl text-error-dark bg-error-light">OVERDUE</h3>
         case InvoiceStatus.Paid:
             return <h3 className="font-gilroy-medium p-2 max-w-fit rounded-xl text-success-dark bg-success-light">PAID</h3>
-        case InvoiceStatus.Cleared:
-            return <h3 className="font-gilroy-medium p-2 max-w-fit rounded-xl text-success-dark bg-success-light">CLEARED</h3>
+        case InvoiceStatus.Sent:
+            return <h3 className="font-gilroy-medium p-2 max-w-fit rounded-xl text-primary-dark bg-primary-light">SENT</h3>
         default:
             return <h3 className="font-gilroy-medium text-black bg-gray-100 text-center text-[16px] rounded-lg p-1"> Invalid State </h3>
 
@@ -158,8 +158,8 @@ export const ContractPublishedStatus = () => {
 
 
 
-export const InvoiceClearedStatus = () => {
-    return <InvoiceStatusGenerator status={InvoiceStatus.Cleared}
+export const InvoiceSentStatus = () => {
+    return <InvoiceStatusGenerator status={InvoiceStatus.Sent}
     ></InvoiceStatusGenerator>
 }
 
@@ -168,12 +168,12 @@ export const InvoicePaidStatus = () => {
     ></InvoiceStatusGenerator>
 }
 
-export const InvoicePendingStatus = () => {
-    return <InvoiceStatusGenerator status={InvoiceStatus.Pending}
+export const InvoiceOverdueStatus = () => {
+    return <InvoiceStatusGenerator status={InvoiceStatus.Overdue}
     ></InvoiceStatusGenerator>
 }
 
 
-export const CustomerOnTimeStatus = () => { 
+export const CustomerOnTimeStatus = () => {
     return <CompanyRatingGenerator status={CustomerRating.OnTime}></CompanyRatingGenerator>
 }

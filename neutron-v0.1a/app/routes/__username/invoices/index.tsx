@@ -6,7 +6,7 @@ import ExportButton from "~/components/inputs/buttons/ExportButton";
 import FilterButton from "~/components/inputs/buttons/FilterButton";
 import NucleiPagination from "~/components/inputs/pagination/NucleiPagination";
 import NucleiZeroState from "~/components/layout/NucleiZeroState";
-import { InvoiceClearedStatus, InvoicePaidStatus, InvoicePendingStatus } from "~/components/layout/Statuses";
+import { InvoicePaidStatus, InvoiceOverdueStatus, InvoiceSentStatus } from "~/components/layout/Statuses";
 
 
 
@@ -26,13 +26,15 @@ export default function InvoicesList() {
         switch (currTab) {
             case "All":
                 return invoices;
-            case "Pending":
-                return receivables;
+            case "Overdue":
+                return receivables.filter((receivable) => receivable?.status == "overdue");
             case "Paid":
                 return paid;
+            case "Sent":
+                return receivables.filter((receivable) => receivable?.status == "sent");
         }
     }(currTab);
-    
+
     const [startOffset, setStart] = useState(0);
     const [endOffset, setEnd] = useState(50)
     const [filter, setFilter] = useState('')
@@ -71,8 +73,11 @@ export default function InvoicesList() {
                                     setCurrTab('Paid');
                                 }} className={`underline-offset-4 hover:opacity-75  transition-all ${currTab == "Paid" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>Paid</button>
                                 <button onClick={() => {
-                                    setCurrTab('Pending');
-                                }} className={`underline-offset-4 hover:opacity-75  transition-all ${currTab == "Pending" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>Pending</button>
+                                    setCurrTab('Overdue');
+                                }} className={`underline-offset-4 hover:opacity-75  transition-all ${currTab == "Overdue" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>Overdue</button>
+                                <button onClick={() => {
+                                    setCurrTab('Sent');
+                                }} className={`underline-offset-4 hover:opacity-75  transition-all ${currTab == "Sent" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>Sent</button>
                             </div>
                             {/* <div className="flex flex-row space-x-4 items-center">
                                 <FilterButton />
@@ -146,7 +151,7 @@ export default function InvoicesList() {
                                                 {new Date(invoice?.due_date).toLocaleDateString('en-IN', { dateStyle: "long" })}
                                             </td>
                                             <td className="  px-2 py-4 w-full font-gilroy-regular justify-center flex flex-row  text-center">
-                                                {invoice?.status == "paid" ? <InvoicePaidStatus /> : <InvoicePendingStatus />}
+                                                {invoice?.status == "overdue" ? <InvoiceOverdueStatus /> : invoice?.status == "paid" ? <InvoicePaidStatus /> : <InvoiceSentStatus />}
 
                                             </td>
                                             {/* <td className='px-2 py-4 w-full min-w-[160px] flex flex-row justify-center '>

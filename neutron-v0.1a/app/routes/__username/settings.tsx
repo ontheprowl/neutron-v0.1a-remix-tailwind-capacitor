@@ -4,7 +4,6 @@ import { useState } from "react";
 import DeleteButton from "~/components/inputs/buttons/DeleteButton";
 import ExportButton from "~/components/inputs/buttons/ExportButton";
 import FilterButton from "~/components/inputs/buttons/FilterButton";
-import { InvoiceClearedStatus } from "~/components/layout/Statuses";
 import { requireUser } from "~/session.server";
 
 

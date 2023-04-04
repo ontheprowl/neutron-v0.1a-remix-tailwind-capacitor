@@ -2,7 +2,7 @@
 
 
 export enum InvoiceStatus { 
-    Pending,
-    Paid,
-    Cleared
+    Overdue,
+    Sent,
+    Paid
 }

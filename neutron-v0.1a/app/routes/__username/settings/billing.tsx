@@ -3,8 +3,10 @@ import MessagesQuotaIcon from '~/assets/images/messagesQuotaIcon.svg'
 import WhatsappQuotaIcon from '~/assets/images/whatsappQuotasIcon.svg'
 
 
-const testOrders =
-    [
+
+export default function SettingsScreen() {
+
+    const testOrders = [
         {
             id: '#2121212122211',
             date: '14 Dec 2020'
@@ -20,25 +22,7 @@ const testOrders =
         }
     ]
 
-
-export default function SettingsScreen() {
-
-    const businessData = {
-        current_plan: {
-            name: 'Basic Plan',
-            monthly_rates: '2999',
-            expires_in: '14 days',
-            quotas: {
-                whatsapp: 20000,
-                email: 20000
-            },
-            usage: {
-                whatsapp: 2000,
-                email: 2000
-            }
-
-        }
-    }
+    const { metadata, businessData } = useOutletContext();
 
 
     return (
@@ -82,9 +66,9 @@ export default function SettingsScreen() {
                 </div>
             </div>
             <div className="flex flex-row h-full space-x-4">
-                <div className='bg-white px-3 py-2 rounded-lg w-1/3 drop-shadow-xl'>
+                <div className='bg-white flex flex-col space-y-4 px-3 py-2 rounded-lg w-1/3 drop-shadow-xl'>
                     <h1 className='text-xl'>Billing History</h1>
-                    <ul className='m-5 h-96 divide-y-2 overflow-y-scroll'>
+                    <ul className='mx-5 h-full border-2 divide-y-2 overflow-y-scroll'>
                         <div className='flex flex-row text-secondary-text justify-between p-5 text-sm'>
                             <span className='w-1/2'>ORDER ID</span>
                             <span className='w-1/2 text-left'>DATE</span>
@@ -101,18 +85,28 @@ export default function SettingsScreen() {
                 </div>
                 <div className='flex flex-col w-2/3 space-y-4 drop-shadow-xl'>
                     <div className='bg-white flex flex-col space-y-4 rounded-lg h-1/3 p-5'>
+                        <h1 className='text-xl'>Starter</h1>
+                        <div className='flex flex-col space-y-6 font-gilroy-medium'>
+                            <span>Perfect for companies using Neutron for the first time</span>
+
+                            <a className='font-gilroy-regular text-primary-base hover:underline decoration-primary-base' href="https://www.neutron.money/pricing">Plan Details</a>
+                        </div>
+                    </div>
+                    <div className='bg-white rounded-lg h-1/3 p-5'>
                         <h1 className='text-xl'>Basic</h1>
-                        <div className='flex flex-row space-y-6 font-gilroy-medium'>
+                        <div className='flex flex-col space-y-6 font-gilroy-medium'>
                             <span>Perfect for small and medium businesses dealing with less than 500 invoices in a month</span>
 
                             <a className='font-gilroy-regular text-primary-base hover:underline decoration-primary-base' href="https://www.neutron.money/pricing">Plan Details</a>
                         </div>
                     </div>
                     <div className='bg-white rounded-lg h-1/3 p-5'>
-                        Plan #2
-                    </div>
-                    <div className='bg-white rounded-lg h-1/3 p-5'>
-                        Plan #3
+                        <h1 className='text-xl'>Enterprise</h1>
+                        <div className='flex flex-col space-y-6 font-gilroy-medium'>
+                            <span>Perfect for small and medium businesses dealing with more than 500 invoices in a month</span>
+
+                            <a className='font-gilroy-regular text-primary-base hover:underline decoration-primary-base' href="https://www.neutron.money/pricing">Plan Details</a>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -27,18 +27,15 @@ import TeamIcon from "~/components/inputs/TeamIcon";
 export const loader: LoaderFunction = async ({ request, params }) => {
 
     console.log("DATA REFRESH FROM USERNAME ROUTE")
-    let session
+    let session;
+
 
     //* If the user's session has expired ( due to app redeployment or restart ,) delete the user's session and redirect them to login
     try {
         session = await requireUser(request);
     }
     catch (e: any) {
-        if (e instanceof Error) {
-            if (e.message === "Missing or insufficient permissions.") {
-                return logout(request);
-            }
-        }
+        return logout(request)
     }
 
     if (!session) {

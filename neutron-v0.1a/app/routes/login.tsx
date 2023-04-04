@@ -10,7 +10,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { getAuth } from "firebase/auth";
 import { signIn } from "~/models/user.server";
 import { trackJuneEvent } from "~/analytics/june-config.server";
-import { createUserSession, requireUser } from "~/session.server";
+import { createUserSession, logout, requireUser } from "~/session.server";
 import { getSingleDoc, updateFirestoreDocFromData } from "~/firebase/queries.server";
 import AuthPagesSidePanel from '~/assets/images/AuthPageSidePanel2.svg'
 import { doc } from "firebase/firestore";
@@ -21,7 +21,16 @@ import NucleiTextInput from "~/components/inputs/fields/NucleiTextInput";
 
 export async function loader({ request }: { request: Request }) {
 
-  const session = await requireUser(request);
+  let session;
+
+  //* If the user's session has expired ( due to app redeployment or restart ,) delete the user's session and redirect them to login
+  try {
+    session = await requireUser(request);
+  }
+  catch (e: any) {
+    return logout(request)
+  }
+
 
   if (session && getAuth().currentUser?.emailVerified) {
 

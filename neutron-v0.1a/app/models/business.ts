@@ -57,9 +57,36 @@ export type BusinessState = {
     },
     creds?: {
         [x: string]: any
+    },
+    current_plan: {
+
     }
 };
 
+export type NeutronPlan = {
+    name: string,
+    monthly_rates: number,
+    expires_in: number,
+    quotas: {
+        whatsapp: number,
+        email: number,
+        workflows: {
+            number: number,
+            customer_limit: number
+        },
+        team: number
+    },
+    usage: {
+        whatsapp: number,
+        email: number,
+        workflows: {
+            number: number,
+            customer_limit: number
+        },
+        team: number
+    }
+
+}
 
 export const DEFAULT_BUSINESS_DATA_STATE: BusinessState = {
     integration: "",

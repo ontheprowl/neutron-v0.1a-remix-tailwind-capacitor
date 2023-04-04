@@ -75,7 +75,6 @@ export default function WorkflowOverview() {
                                             <h1 className="text-primary-base text-lg">{action?.days} Days</h1>
                                             <span className="font-gilroy-medium">{action?.trigger}</span>
                                         </div>
-                                        <EditButton />
                                     </div>
                                     <div className="bg-white flex flex-row w-full px-12 py-3  justify-between items-center rounded-xl h-2/3">
                                         <div className="flex flex-col space-y-2">

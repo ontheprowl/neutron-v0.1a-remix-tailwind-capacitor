@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { getAuth, sendEmailVerification, updateProfile } from "firebase/auth";
 import { signUp } from "~/models/user.server";
-import { createUserSession, requireUser } from "~/session.server";
+import { createUserSession, logout, requireUser } from "~/session.server";
 import { getFirebaseDocs, setFirestoreDocFromData } from "~/firebase/queries.server";
 import { DEFAULT_USER_STATE } from "~/models/user";
 import { ValidationPatterns } from "~/utils/utils";
@@ -22,7 +22,16 @@ import { prependBaseURLForEnvironment } from "~/utils/utils.server";
 
 export async function loader({ request }: { request: Request }) {
 
-  const session = await requireUser(request);
+  let session;
+
+  //* If the user's session has expired ( due to app redeployment or restart ,) delete the user's session and redirect them to login
+  try {
+    session = await requireUser(request);
+  }
+  catch (e: any) {
+    return logout(request)
+  }
+
 
   if (session && getAuth().currentUser?.emailVerified) {
     return redirect(`/${session?.metadata?.displayName}/dashboard`)
