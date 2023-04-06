@@ -68,7 +68,7 @@ export default function SettingsScreen() {
             <div className="flex flex-row h-full space-x-4">
                 <div className='bg-white flex flex-col space-y-4 px-3 py-2 rounded-lg w-1/3 drop-shadow-xl'>
                     <h1 className='text-xl'>Billing History</h1>
-                    <ul className='mx-5 h-full border-2 divide-y-2 overflow-y-scroll'>
+                    <ul className='mx-5 h-full divide-y-2 overflow-y-scroll'>
                         <div className='flex flex-row text-secondary-text justify-between p-5 text-sm'>
                             <span className='w-1/2'>ORDER ID</span>
                             <span className='w-1/2 text-left'>DATE</span>

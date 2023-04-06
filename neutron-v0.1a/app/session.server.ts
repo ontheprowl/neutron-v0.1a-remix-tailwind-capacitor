@@ -16,7 +16,7 @@ export const sessionStorage = createCookieSessionStorage({
     path: "/",
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
-    secrets: ['grajeev','kunalsawant','hushpupper'],
+    secrets: ['grajeev', 'kunalsawant', 'hushpupper'],
   },
 });
 
@@ -78,14 +78,18 @@ export async function getUserSession(request: Request, autoRedirect?: boolean) {
     //? Change metadata retrieval logic to first attempt to retrieve the metadata from the cache. Default to firestore only when cache miss occurs.
     // console.log("REDIS KEY is : " + redisKey)
     //? Redis build is not stable. Max no. of clients is reached too quickly. Figure out why.
-    
+
     // if(await hasKey(path)){
     //   console.log("Retrieving from redis...")
     //   metadata = await retrieveObject(path)
     // } else {
     //   metadata = await getSingleDoc(path);
     // }
-    metadata = await getSingleDoc(path)
+    try {
+      metadata = await getSingleDoc(path);
+    } catch (e) {
+      return null;
+    }
 
   }
 

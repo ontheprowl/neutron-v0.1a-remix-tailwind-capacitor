@@ -13,7 +13,6 @@ export default function WorkflowOverview() {
 
     let navigate = useNavigate();
 
-    console.dir(workflow)
 
     return (
         <div className=" flex flex-row space-x-4 w-full h-full">

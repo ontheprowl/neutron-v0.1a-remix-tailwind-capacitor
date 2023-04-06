@@ -22,53 +22,13 @@ import { prependBaseURLForEnvironment } from "~/utils/utils.server";
 
 export async function loader({ request }: { request: Request }) {
 
-  let session;
-
-  //* If the user's session has expired ( due to app redeployment or restart ,) delete the user's session and redirect them to login
-  try {
-    session = await requireUser(request);
-  }
-  catch (e: any) {
-    return logout(request)
-  }
-
+  const session = await requireUser(request);
 
   if (session && getAuth().currentUser?.emailVerified) {
     return redirect(`/${session?.metadata?.displayName}/dashboard`)
   }
 
-  const usernames = await getFirebaseDocs('userUIDS', true);
-  return json({ usernames: usernames });
-  // getRedirectResult(auth)
-  //   .then((result) => {
-  //     // This gives you a Google Access Token. You can use it to access Google APIs.
-  //     const credential = GoogleAuthProvider.credentialFromResult(result);
-  //     const token = credential.accessToken;
-
-  //     // The signed-in user info.
-  //     const user = result.user;
-  //     console.log(`GOOGLE OAUTH AUTHENTICATED USER IS : ${user}`)
-  //   }).catch((error) => {
-  //     // Handle Errors here.
-  //     const errorCode = error.code;
-  //     const errorMessage = error.message;
-  //     console.log(`Error during oAuth flow.... error is : ${error.message}`)
-  //     // The email of the user's account used.
-  //     const email = error.customData.email;
-  //     // The AuthCredential type that was used.
-  //     const credential = GoogleAuthProvider.credentialFromError(error);
-  //     // ...
-  //   });
-
-  // const authURL = generateAuthUrl();
-  // const result = await authorizeAndExecute(() => {
-  //   return json({ gapi_scopes_valid: true, authurl: authURL });
-
-  // }, () => {
-  //   return json({ gapi_scopes_valid: false, authurl: authURL });
-
-  // })
-  // return result;
+  return null
 
 }
 
@@ -125,13 +85,9 @@ export default function Signup() {
   const transition = useTransition();
   let submit = useSubmit();
 
-  const userNames = data.usernames;
   let navigate = useNavigate();
   // const [user, loading, error] = useAuthState(auth);
 
-  const IsUsernameAvailable = (username: string) => {
-    return userNames.indexOf(username) == -1
-  }
 
 
   const methods = useForm();

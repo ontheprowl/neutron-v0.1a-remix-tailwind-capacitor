@@ -1,5 +1,5 @@
 import { createHmac, randomUUID } from "crypto"
-import moment from "moment"
+import moment from "moment-timezone"
 import type { EmailPayloadStructure, WhatsappPayloadStructure } from "~/models/dunning";
 import { templates } from "~/models/dunning"
 import { fetch } from "@remix-run/web-fetch";
@@ -186,7 +186,7 @@ export function getScheduleForActionAndInvoice(invoice: any, senderInfo: { calle
             data: {
                 contact: customer?.email,
                 data: {
-                    templateID: activeTemplate,
+                    templateID: Number(activeTemplate),
                     params: {
                         RECEIVER_NAME: customer?.first_name + customer?.last_name,
                         COMPANY_NAME: senderInfo?.company_name,
@@ -210,11 +210,11 @@ export function getScheduleForActionAndInvoice(invoice: any, senderInfo: { calle
 
 
 const dateToCron: (date: Date) => string = (date: Date) => {
-    const minutes = date.getMinutes();
-    const hours = date.getHours();
-    const days = date.getDate();
-    const months = date.getMonth() + 1;
-    const dayOfWeek = date.getDay();
+    const minutes = date.getUTCMinutes();
+    const hours = date.getUTCHours();
+    const days = date.getUTCDate();
+    const months = date.getUTCMonth() + 1;
+    const dayOfWeek = date.getUTCDay();
 
     return `${minutes} ${hours} ${days} ${months} ${dayOfWeek}`;
 };

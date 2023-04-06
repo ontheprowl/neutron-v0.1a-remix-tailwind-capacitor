@@ -21,15 +21,7 @@ import NucleiTextInput from "~/components/inputs/fields/NucleiTextInput";
 
 export async function loader({ request }: { request: Request }) {
 
-  let session;
-
-  //* If the user's session has expired ( due to app redeployment or restart ,) delete the user's session and redirect them to login
-  try {
-    session = await requireUser(request);
-  }
-  catch (e: any) {
-    return logout(request)
-  }
+  const session = await requireUser(request);
 
 
   if (session && getAuth().currentUser?.emailVerified) {
