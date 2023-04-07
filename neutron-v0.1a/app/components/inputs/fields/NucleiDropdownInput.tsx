@@ -35,7 +35,7 @@ export default function NucleiDropdownInput({ name, options, label, placeholder,
 
 
     return (
-        <div className="sm:text-left space-y-2 mb-1 w-full">
+        <div className="sm:text-left space-y-2 mb-1 w-full max-w-xl">
             <div className="flex flex-row justify-between">
                 <span className="prose prose-md text-black font-gilroy-bold text-[14px]">{label}</span>
                 {optional && <span className="text-secondary-text font-gilroy-medium">(Optional)</span>}

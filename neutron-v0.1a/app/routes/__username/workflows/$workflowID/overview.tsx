@@ -71,7 +71,7 @@ export default function WorkflowOverview() {
                                 <li key={action.triggerName} className="flex flex-col h-auto rounded-xl shadow-lg">
                                     <div className="bg-primary-light rounded-xl flex flex-row items-center justify-between h-1/3 p-12">
                                         <div className="flex flex-col justify-between">
-                                            <h1 className="text-primary-base text-lg">{action?.days} Days</h1>
+                                            <h1 className="text-primary-base text-lg">{action?.days ? `${action?.days} Days ` : ''}</h1>
                                             <span className="font-gilroy-medium">{action?.trigger}</span>
                                         </div>
                                     </div>

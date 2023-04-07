@@ -1,9 +1,9 @@
 
 import { useNavigate, useOutletContext } from '@remix-run/react'
 import { useCycle } from 'framer-motion'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import MessageIcon from '~/assets/images/messageIcon.svg'
-import { NeutronDefaultChart } from '~/components/visualizations/NeutronCharts'
+import { AgeingBalanceChart, SalesAndCollectionsChart } from '~/components/visualizations/NeutronCharts'
 import NucleiZeroState from '~/components/layout/NucleiZeroState';
 import moment from 'moment';
 import SectionUnderConstructionComponent from '~/components/layout/SectionUnderConstructionComponent'
@@ -29,7 +29,7 @@ export default function ARDashboard() {
     let navigate = useNavigate();
 
 
-    const [currentPeriod, cycleCurrentPeriod] = useCycle('30d', '60d', '90d', 'excess')
+    const [currentPeriod, setCurrentPeriod] = useState<'30d' | '60d' | '90d' | 'excess'>('30d');
 
     const chartData = useMemo(() => {
         return { outstanding: { '30d': businessData?.outstanding['30d'], '60d': businessData?.outstanding['60d'], '90d': businessData?.outstanding['90d'], 'excess': businessData?.outstanding['excess'] }, revenue: { '30d': businessData?.revenue['30d'], '60d': businessData?.revenue['60d'], '90d': businessData?.revenue['90d'], 'excess': businessData?.revenue['excess'] }, sales: { '30d': businessData?.revenue['30d'] + businessData?.outstanding['30d'], '60d': businessData?.revenue['60d'] + businessData?.outstanding['60d'], '90d': businessData?.revenue['90d'] + businessData?.outstanding['90d'], 'excess': businessData?.revenue['excess'] + businessData?.outstanding['excess'] } }
@@ -38,36 +38,6 @@ export default function ARDashboard() {
 
     const periodOptions = ['30d', '60d', '90d', 'excess']
 
-    // useEffect(() => {
-    //     setTimeout(() => {
-    //         setCurrentPeriod(periodOptions[Math.floor(Math.random() * periodOptions.length)])
-    //     }, 4000)
-    // }, [currentPeriod])
-
-
-
-    // useEffect(() => {
-    //     const chart_container = document.getElementById('visualizations_panel');
-
-    //     // if (chart_container) {
-    //     //     intializeNeutronChart(chart_container, 'Outstanding Amounts (From Specified Date)', [
-    //     //         {
-    //     //             time: moment().subtract('30', 'days').format("YYYY-MM-DD"), value: businessData?.outstanding['30d']
-    //     //         },
-    //     //         {
-    //     //             time: moment().subtract('60', 'days').format("YYYY-MM-DD"), value: businessData?.outstanding['60d']
-    //     //         },
-    //     //         {
-    //     //             time: moment().subtract('90', 'days').format("YYYY-MM-DD"), value: businessData?.outstanding['90d']
-    //     //         },
-    //     //         {
-    //     //             time: moment().subtract('200', 'days').format("YYYY-MM-DD"), value: businessData?.outstanding['excess']
-    //     //         },
-    //     //     ]
-    //     //     )
-    //     // }
-
-    // }, [businessData, currentPeriod])
 
 
     const outstandingDiff = businessData.last_outstanding[currentPeriod] > 0 ? ((businessData?.outstanding[currentPeriod] - businessData.last_outstanding[currentPeriod]) / businessData?.last_outstanding[currentPeriod]) * 100 : 0;
@@ -76,6 +46,35 @@ export default function ARDashboard() {
 
     return (
         <div className="flex flex-col space-y-3 h-full">
+            <div className="flex flex-row justify-between">
+                <div id="page_title" className="flex flex-col">
+                    <h1 className="text-lg">Dashboard</h1>
+                    <span className="text-neutral-base"> Home - Dashboard</span>
+                </div>
+                <div className='bg-white w-full rounded-xl p-3 space-x-4 items-center max-w-[600px] justify-between flex flex-row shadow-lg' id="time_period_buttons">
+                    <span className='whitespace-nowrap'>Time Range</span>
+                    <button onClick={() => {
+                        setCurrentPeriod('30d')
+                    }} className={`font-gilroy-medium p-3 w-full transition-all hover:bg-primary-base hover:text-white  border-2  text-base ${currentPeriod == '30d' ? 'text-white bg-primary-base border-transparent' : 'text-primary-base bg-primary-light border-primary-base'} rounded-xl whitespace-nowrap`}>30 Days
+                    </button>
+                    <button onClick={() => {
+                        setCurrentPeriod('60d')
+                    }} className={`font-gilroy-medium p-3 w-full transition-all hover:bg-primary-base hover:text-white  border-2  text-base ${currentPeriod == '60d' ? 'text-white bg-primary-base border-transparent' : 'text-primary-base bg-primary-light border-primary-base'} rounded-xl whitespace-nowrap`}>60 Days
+                    </button>
+                    <button onClick={() => {
+                        setCurrentPeriod('90d')
+                    }} className={`font-gilroy-medium p-3 w-full transition-all hover:bg-primary-base hover:text-white  border-2  text-base ${currentPeriod == '90d' ? 'text-white bg-primary-base border-transparent' : 'text-primary-base bg-primary-light border-primary-base'} rounded-xl whitespace-nowrap`}>90 Days
+                    </button>
+                    <button onClick={() => {
+                        setCurrentPeriod('excess')
+                    }} className={`font-gilroy-medium p-3 w-full transition-all hover:bg-primary-base hover:text-white  border-2  text-base ${currentPeriod == 'excess' ? 'text-white bg-primary-base border-transparent' : 'text-primary-base bg-primary-light border-primary-base'} rounded-xl whitespace-nowrap`}>All time
+                    </button>
+
+                </div>
+                {/* <button className="bg-primary-base text-white hover:bg-primary-dark transition-all rounded-lg p-3">
+                    Add Invoices
+                </button> */}
+            </div>
             <div className="flex flex-row space-x-3  h-1/5">
                 <div id="primary_metric" className="w-1/3 bg-primary-base flex flex-col text-white p-5 space-y-6 justify-between shadow-lg rounded-xl">
                     <div className="flex flex-row justify-between">
@@ -114,33 +113,27 @@ export default function ARDashboard() {
                     </div>
                 </div>
             </div>
-            <div className="flex flex-row space-x-3 h-2/5">
-                <div id="actions" className="w-2/5 h-full flex flex-col bg-primary-light text-black shadow-lg rounded-xl">
-                    <div className="flex flex-row h-auto justify-between p-5 pb-3">
-                        <h2 className="text-black">
-                            Actions
-                        </h2>
-                        <button onClick={() => {
-                            cycleCurrentPeriod()
-                        }} className='font-gilroy-medium p-3 w-auto transition-all active:opacity-80 hover:bg-primary-dark text-base text-white bg-primary-base rounded-xl whitespace-nowrap'>Current Period: {currentPeriod == "excess" ? 'Beyond 90d' : `Last ${currentPeriod}`}
-                        </button>
-                        {/* <h2 className=" text-error-dark">
-                            {businessData?.pending_actions?.length ? businessData?.pending_actions?.length : 0} ACTIONS ARE PENDING
-                        </h2> */}
+            <div className="flex flex-row w-full space-x-3 h-2/5">
+                <div id="actions" className="w-1/2 h-full p-6 bg-white text-black shadow-lg rounded-xl">
+                    <span>Sales vs. Collections (in Lakh INR)</span>
+
+                    <div id="visualizations_panel" className='h-full w-full p-2'>
+                        <SalesAndCollectionsChart data={chartData} />
                     </div>
 
-                    <ul className="h-full grid grid-cols-1 divide-y overflow-y-scroll divide-black m-5 mt-0">
+                    {/* <ul className="h-full grid grid-cols-1 divide-y overflow-y-scroll divide-black m-5 mt-0">
                         {businessData?.pending_actions?.length > 0 ? businessData?.pending_actions?.map((action) => {
                             return (<li key={action?.id} className="flex flex-row items-center justify-start space-x-10">
                                 <img src={MessageIcon} alt="messageIcon" className="w-5" />
                                 <span>{action?.name}</span>
                             </li>);
                         }) : <SectionUnderConstructionComponent />}
-                    </ul>
+                    </ul> */}
                 </div>
-                <div className="w-3/5 h-full p-6 bg-white text-black shadow-lg rounded-xl">
-                    <div id="visualizations_panel" className='h-full w-full p-2'>
-                        <NeutronDefaultChart data={chartData} />
+                <div className="w-1/2 h-full p-6 bg-white text-black shadow-lg rounded-xl">
+                    <span>Ageing Balance (in Lakh INR)</span>
+                    <div id="visualizations_panel" className='h-full w-full p-3'>
+                        <AgeingBalanceChart data={{ due: businessData?.due, overdue: businessData?.outstanding['excess'], ...businessData?.outstanding }} />
                     </div>
                 </div>
 

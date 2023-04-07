@@ -117,8 +117,9 @@ export function getScheduleForActionAndInvoice(invoice: any, senderInfo: { calle
     let referenceDate: Date;
     let operation: string;
     switch (action.trigger) {
-        case "After Issue Date":
+        case "On Due Date":
             referenceDate = new Date(invoice?.date);
+            action.days = '0'
             operation = "+";
             break;
         case "Before Due Date":
@@ -137,7 +138,7 @@ export function getScheduleForActionAndInvoice(invoice: any, senderInfo: { calle
 
     const [hours, minutes] = action?.time?.split(":");
 
-    const targetDate: Date = operation === "+" ? moment(new Date(referenceDate)).add(action?.days, 'days').set('hours', Number(hours)).set('minutes', Number(minutes)).toDate() : moment(new Date(referenceDate)).subtract(action?.days, 'days').set('hours', Number(hours)).set('minutes', Number(minutes)).toDate();
+    const targetDate: Date = operation === "+" ? moment.tz(new Date(referenceDate), "Asia/Colombo").add(action?.days, 'days').set('hours', Number(hours)).set('minutes', Number(minutes)).toDate() : moment.tz(new Date(referenceDate), "Asia/Colombo").subtract(action?.days, 'days').set('hours', Number(hours)).set('minutes', Number(minutes)).toDate();
 
     const targetCron = dateToCron(targetDate);
 

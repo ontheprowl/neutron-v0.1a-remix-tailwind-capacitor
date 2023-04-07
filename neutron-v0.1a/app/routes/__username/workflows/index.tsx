@@ -64,11 +64,11 @@ export default function WorkflowsList() {
                     <h1 className="text-lg">Workflows</h1>
                     <span className="text-neutral-base"> Home - Workflows</span>
                 </div>
-                <button onClick={() => {
+                {workflows?.length > 0 && <button onClick={() => {
                     navigate("create")
                 }} className="bg-primary-base text-white hover:bg-primary-dark transition-all rounded-lg p-3">
                     Add Workflow
-                </button>
+                </button>}
             </div>
             {workflows?.length > 0 ?
                 <div id="workflows_table" className="bg-white shadow-lg rounded-xl justify-between h-full flex flex-col">

@@ -129,6 +129,11 @@ export const action: ActionFunction = async ({ request, params }) => {
 
                 const allReceivables = [...receivableInvoices, ...sentInvoices]
 
+                const due = sentInvoices.reduce((first, last) => {
+                    if (last.total) return first + last.total
+                    return first
+                }, 0);
+
                 const oldestReceivableDate = allReceivables?.sort((a, b) => {
                     if (a?.date && b?.date) {
                         if (a?.date < b?.date) {
@@ -339,8 +344,10 @@ export const action: ActionFunction = async ({ request, params }) => {
                 // // }
 
 
+                const daysSinceEarliestInvoice = -Number(moment(oldestInvoice).diff(moment(), "days"));
 
                 const dataToBeSynced = {
+                    due: due,
                     outstanding: {
                         '30d': outstanding30Days, '60d': outstanding60Days, '90d': outstanding90Days, 'excess': outstandingExcess, 'total': total_outstanding
                     },
@@ -351,7 +358,7 @@ export const action: ActionFunction = async ({ request, params }) => {
                         '30d': revenue30Days ? (outstanding30Days / revenue30Days) * 30 : 0,
                         '60d': revenue60Days ? (outstanding60Days / revenue60Days) * 60 : 0,
                         '90d': revenue90Days ? (outstanding90Days / revenue90Days) * 90 : 0,
-                        'excess': revenueExcess ? (outstandingExcess / revenueExcess) * Number(moment(oldestInvoice).diff(moment(), "days")) : 0
+                        'excess': revenueExcess ? (outstandingExcess / revenueExcess) * daysSinceEarliestInvoice : 0
                     }
                 };
 

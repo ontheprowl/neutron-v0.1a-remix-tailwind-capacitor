@@ -33,7 +33,7 @@ export default function NucleiTextInput({ name, options, label, placeholder, opt
     }, [trigger, inputWatch, hasRealError, errors, name])
 
     return (
-        <div className="sm:text-left space-y-2 mb-1 w-full">
+        <div className="sm:text-left transition-all space-y-2 mb-1 w-full">
             <div className="flex flex-row justify-between">
                 <span className="prose prose-md text-black font-gilroy-bold text-[14px]">{label}</span>
                 {optional && <span className="text-secondary-text font-gilroy-medium">(Optional)</span>}

@@ -42,7 +42,9 @@ export default function TeamPage() {
 
         <div id="team_members" className="h-full overflow-y-scroll">
             <ul className="flex flex-col space-y-6">{
-                businessData?.team?.map((member: { email: string, name: string, role: string }) => {
+                businessData?.team?.filter((member: { email: string, name: string, role: string })=>{
+                    return member.email != ''  && member.name != '' 
+                }).map((member: { email: string, name: string, role: string }) => {
                     return (
                         <div key={member.email} className="bg-white w-full rounded-xl shadow-lg p-6 ">
                             <div className="flex flex-row  items-center justify-between">

@@ -102,6 +102,7 @@ export default function CreateWorkflowScreen() {
 
     const actions: Array<{ [x: string]: any }> = useWatch({ control: workflowCreationForm.control, name: 'actions' })
     const actionType: string = useWatch({ control: workflowCreationForm.control, name: `actions.${currentAction}.action_type` })
+    const trigger: string = useWatch({ control: workflowCreationForm.control, name: `actions.${currentAction}.trigger` })
     const template: string = useWatch({ control: workflowCreationForm.control, name: `actions.${currentAction}.template` })
     const assignedTo: string = useWatch({ control: workflowCreationForm.control, name: `assigned_to` })
 
@@ -174,13 +175,13 @@ export default function CreateWorkflowScreen() {
 
                 <div id="workflow_settings" className="h-auto flex p-6 flex-col space-y-4 bg-white shadow-lg rounded-xl">
                     <h1 className="text-lg">Workflow Details</h1>
-                    <div className="flex flex-row space-x-6 mt-4">
+                    <div className="flex flex-row transition-all space-x-6 mt-4">
                         <NucleiDropdownInput name={`actions.${currentAction}.trigger`} label={"Trigger"} placeholder={"The action's trigger condition"} >
-                            <option value={"After Issue Date"}>After Issue Date</option>
                             <option value={"Before Due Date"}>Before Due Date</option>
+                            <option value={"On Due Date"}>On Due Date</option>
                             <option value={"After Due Date"}>After Due Date</option>
                         </NucleiDropdownInput>
-                        <NucleiTextInput name={`actions.${currentAction}.days`} label="Days" placeholder="E.g: 20 Days" />
+                        {trigger != "On Due Date" && <NucleiTextInput name={`actions.${currentAction}.days`} label="Days" placeholder="E.g: 20 Days" />}
                         <NeutronRadioGroup>
                             <NeutronRadioButton noIcon name={`actions.${currentAction}.action_type`} value={"automatic"} heading={"Automatic"} no={1} />
                             <NeutronRadioButton noIcon name={`actions.${currentAction}.action_type`} value={"manual"} heading={"Manual"} no={2} />
@@ -218,6 +219,7 @@ export default function CreateWorkflowScreen() {
                         {actionType === "automatic" && <button type="button" className="p-3 px-6 transition-all text-primary-base border-2 border-primary-base max-w-fit rounded-xl hover:border-primary-dark hover:text-primary-dark mx-2" onClick={() => { setTemplatePreviewModal(!templatePreviewModal) }}>Preview</button>
                         }
                         <button type="button" className="bg-primary-base flex flex-row space-x-2 justify-center transition-all hover:bg-primary-dark active:bg-primary-dark focus:bg-primary-dark max-w-fit items-center  text-white p-3 rounded-lg" onClick={() => {
+                            // if (trigger == "On Due Date") actions[currentAction].days = '0';
                             localActions[currentAction] = actions[currentAction];
                             workflowCreationForm.resetField(`actions.${currentAction}.action`);
                             workflowCreationForm.resetField(`actions.${currentAction}.template`);
@@ -241,7 +243,7 @@ export default function CreateWorkflowScreen() {
                                             <img src={WorkflowMessageIcon} alt="workflow_message_icon"></img>
                                             <div className="flex flex-col space-y-4">
                                                 <span className="font-gilroy-bold text-lg">{action?.action}</span>
-                                                <span className="font-gilroy-medium text-base">{action?.days} days {action?.trigger}</span>
+                                                <span className="font-gilroy-medium text-base">{action?.days ? ` ${action?.days} days ${action?.trigger}` : `${action?.trigger}`}</span>
                                             </div>
                                         </div>
                                         <div className="flex flex-row w-1/4 items-center space-x-4">
