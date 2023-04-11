@@ -95,10 +95,10 @@ export async function sendChatMessage(message: string, from: string, to: string,
  * @param sandbox If true, the event being sent has been generated from a sandbox instance  
  * @returns a promise that returns true
  */
-export async function sendEvent(eventData: NeutronEvent, viewers?: string[], sandbox?: boolean): Promise<boolean> {
+export async function sendEvent(eventData: NeutronEvent, sandbox?: boolean): Promise<boolean> {
 
     try {
-        const result = await serverDatabase.set(serverDatabase.push(serverDatabase.ref(db, 'events/' + eventData.type)), { ...eventData, sandbox: sandbox ? sandbox : false, timestamp: new Date().getTime(), viewers: viewers })
+        const result = await serverDatabase.set(serverDatabase.push(serverDatabase.ref(db, 'events/' + eventData.type)), { ...eventData, sandbox: sandbox ? sandbox : false, timestamp: new Date().getTime() })
         return true
     }
     catch (e) {

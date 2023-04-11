@@ -51,7 +51,7 @@ export default function InvoicesList() {
                     Add Invoices
                 </button> */}
             </div>
-            {currView && currView.length > 0 ?
+            {invoices && invoices?.length > 0 ?
                 <div id="invoices_table" className="bg-white shadow-lg rounded-xl justify-between h-full flex flex-col">
                     <div id="table_functions" className="flex flex-row items-center pl-5 pr-5 py-3  justify-between h-auto">
                         <div className="flex flex-row bg-[#f5f5f5]  h-10 space-x-4 p-2 w-1/4  rounded-lg">
@@ -118,7 +118,7 @@ export default function InvoicesList() {
                                     </th>
                                 </tr>
                                 {currView?.filter((invoice) => {
-                                    return invoice?.customer_name?.includes(filter);
+                                    return invoice?.customer_name?.toLowerCase()?.includes(filter?.toLowerCase());
                                 }).sort((a, b) => {
                                     if (a?.balance > b.balance) {
                                         return -1

@@ -1,5 +1,7 @@
 import { Link, Outlet, useLocation, useOutletContext, useParams } from "@remix-run/react";
 import { useMemo } from "react";
+import ErrorIcon from '~/assets/images/errorIcon.svg';
+import CustomerDetailsMissingPanel from "~/components/layout/CustomerDetailsMissingPanel";
 
 
 
@@ -16,7 +18,7 @@ export default function CustomerOverview() {
     const invoices = useMemo(() => [...receivables, ...paid], [receivables, paid]);
 
     const { pathname } = useLocation();
- 
+
     const currentCustomer: { [x: string]: any } | null = useMemo(() => {
         for (const key of Object.keys(businessData?.customers)) {
             const currentCustomer = businessData?.customers[key];
@@ -44,42 +46,68 @@ export default function CustomerOverview() {
                     Add Invoices
                 </button> */}
             </div>
-            <div id="settings_tabs" className=" flex flex-row font-gilroy-medium text-base space-x-6">
-                <Link to="overview" preventScrollReset className={`transition-all text-neutral-dark py-3 border-b-2 hover:opacity-70 ${pathname.includes('overview') ? 'text-primary-base border-primary-base font-bold' : 'border-transparent '}`}>Overview</Link>
-                <Link to="contacts" preventScrollReset className={`transition-all text-neutral-dark py-3 border-b-2 hover:opacity-70 ${pathname.includes('contacts') ? 'text-primary-base border-primary-base font-bold' : 'border-transparent '}`}>Contacts</Link>
-                <Link to="insights" preventScrollReset className={`transition-all text-neutral-dark py-3 border-b-2 hover:opacity-70 ${pathname.includes('insights') ? 'text-primary-base border-primary-base font-bold' : 'border-transparent '}`}>Insights</Link>
-
-            </div>
-            <div id="customer_details_content" className="h-full flex flex-col space-y-6  overflow-y-scroll">
-                <div className="flex flex-row space-x-3 w-2/3 h-1/5 min-h-[160px]">
-                    <div id="primary_metric" className="w-1/3 bg-primary-base flex h-full min-h-fit flex-col text-white p-5 space-y-6 justify-between shadow-lg rounded-xl">
-                        <h1 className=" text-4xl">Rs. {Number(currentCustomer?.outstanding
-                        ).toLocaleString('en-IN')}</h1>
-                        <div className="flex flex-row h-fit justify-between">
-                            <span className=" text-lg">
-                                Total Outstanding
-                            </span>
-                        </div>
+            <div className="flex flex-row space-x-4 w-full items-end justify-between">
+                <div className="flex flex-col space-y-3  w-4/6">
+                    <div id="settings_tabs" className=" flex flex-row font-gilroy-medium text-base space-x-6">
+                        <Link to="overview" preventScrollReset className={`transition-all text-neutral-dark py-3 border-b-2 hover:opacity-70 ${pathname.includes('overview') ? 'text-primary-base border-primary-base font-bold' : 'border-transparent '}`}>Overview</Link>
+                        <Link to="contacts" preventScrollReset className={`transition-all text-neutral-dark py-3 border-b-2 hover:opacity-70 ${pathname.includes('contacts') ? 'text-primary-base border-primary-base font-bold' : 'border-transparent '}`}>Contacts</Link>
+                        <Link to="insights" preventScrollReset className={`transition-all text-neutral-dark py-3 border-b-2 hover:opacity-70 ${pathname.includes('insights') ? 'text-primary-base border-primary-base font-bold' : 'border-transparent '}`}>Insights</Link>
+                        <Link to="details" preventScrollReset className={`transition-all text-neutral-dark py-3 border-b-2 hover:opacity-70 ${pathname.includes('details') ? 'text-primary-base border-primary-base font-bold' : 'border-transparent '}`}>Details</Link>
 
                     </div>
-                    <div id="secondary_metric" className="w-1/3 bg-white flex flex-col text-black p-5 space-y-6 justify-between shadow-lg rounded-xl">
-                        <h1 className=" text-4xl">{Math.floor(currentCustomer?.dso)}</h1>
-                        <div className="flex flex-row justify-between">
-                            <span className=" text-lg">
-                                Day Sales Outstanding
-                            </span>
+                    <div className="flex flex-row space-x-3 w-full h-1/5 min-h-[160px]">
+                        <div id="primary_metric" className="w-1/3 bg-primary-base flex   flex-col text-white p-5 space-y-6 justify-between shadow-lg rounded-xl">
+                            <h1 className=" text-4xl">Rs. {Number(currentCustomer?.outstanding
+                            ).toLocaleString('en-IN')}</h1>
+                            <div className="flex flex-row h-fit justify-between">
+                                <span className=" text-lg">
+                                    Total Outstanding
+                                </span>
+                            </div>
+
                         </div>
-                    </div>
-                    <div id="tertiary_metric" className="w-1/3 flex flex-col bg-white p-5 space-y-6 justify-between text-black shadow-lg rounded-xl">
-                        <h1 className=" text-4xl">Rs. {Number(currentCustomer?.revenue
-                        ).toLocaleString('en-IN')}</h1>
-                        <div className="flex flex-row justify-between">
-                            <span className=" text-lg">
-                                Revenue (Realized)
-                            </span>
+                        <div id="secondary_metric" className="w-1/3 bg-white flex flex-col text-black p-5 space-y-6 justify-between shadow-lg rounded-xl">
+                            <h1 className=" text-4xl">{Math.floor(currentCustomer?.dso)}</h1>
+                            <div className="flex flex-row justify-between">
+                                <span className=" text-lg">
+                                    Day Sales Outstanding
+                                </span>
+                            </div>
+                        </div>
+                        <div id="tertiary_metric" className="w-1/3 flex flex-col bg-white p-5 space-y-6 justify-between text-black shadow-lg rounded-xl">
+                            <h1 className=" text-4xl">Rs. {Number(currentCustomer?.revenue
+                            ).toLocaleString('en-IN')}</h1>
+                            <div className="flex flex-row justify-between">
+                                <span className=" text-lg">
+                                    Revenue (Realized)
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
+                <div className="bg-white shadow-lg rounded-xl flex flex-col space-y-4 divide-y divide-dashed divide-neutral-light p-3 w-2/6">
+                    <div className="text-left p-6 flex flex-col space-y-4 ">
+                        <h1>{currentCustomer?.vendor_name}</h1>
+                        <h1 className="font-gilroy-medium text-secondary-text">Contact - {currentCustomer?.first_name && currentCustomer?.last_name ? currentCustomer?.first_name + " " + currentCustomer?.last_name : 'Data missing'}</h1>
+                        {currentCustomer?.assigned_workflow && <div className="text-primary-base bg-primary-light  w-fit rounded-lg p-3">{currentCustomer?.assigned_workflow}</div>}
+
+                    </div>
+                    <div className="text-left p-6 flex flex-row justify-between ">
+                        <div className="flex flex-col justify-between">
+                            <h1>Email</h1>
+                            <span className=" font-gilroy-medium text-secondary-text">{currentCustomer?.email ? currentCustomer?.email : 'Data Missing'}</span>
+                        </div>
+                        <div className="flex flex-col justify-between">
+                            <h1>Whatsapp Mobile Number</h1>
+                            <span className=" font-gilroy-medium text-secondary-text">{currentCustomer?.mobile ? currentCustomer?.mobile : 'Data missing'}</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <CustomerDetailsMissingPanel email={currentCustomer?.email == ""} phone={currentCustomer?.mobile == ""} firstName={currentCustomer?.first_name == ""} lastName={currentCustomer?.last_name == ""} />
+
+            <div id="customer_details_content" className="h-full flex flex-col space-y-6  overflow-y-scroll">
                 <Outlet context={currentCustomer}></Outlet>
             </div>
 

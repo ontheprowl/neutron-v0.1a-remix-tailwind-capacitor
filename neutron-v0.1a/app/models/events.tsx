@@ -35,6 +35,15 @@ export enum ContractEvent {
 	ContractTerminated,
 }
 
+
+export enum DunningEvent {
+	MessageSent,
+	MessageDelivered,
+	EmailSent,
+	EmailDelivered,
+	WorkflowTriggered
+}
+
 export enum PaymentEvent {
 	PayinRequested,
 	PayinCompleted,
@@ -48,7 +57,7 @@ export enum ChatEvent {
 
 
 export enum EventType {
-	ContractEvent, KYCEvent
+	DunningEvent, KYCEvent
 }
 
 
@@ -66,8 +75,8 @@ export type NeutronEvent = {
 	id?: string;
 	uid: string;
 	type: EventType;
-	sandbox?:boolean;
-	event: ContractEvent | KYCEvent | ChatEvent | PaymentEvent;
+	sandbox?: boolean;
+	event: DunningEvent;
 	payload?: EventPayload;
 	timestamp?: string;
 }

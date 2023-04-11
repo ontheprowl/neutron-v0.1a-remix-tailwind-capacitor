@@ -1,12 +1,13 @@
 
 import { useNavigate, useOutletContext } from '@remix-run/react'
 import { useCycle } from 'framer-motion'
-import { useEffect, useMemo, useState } from 'react'
+import { ForwardedRef, useEffect, useMemo, useRef, useState } from 'react'
 import MessageIcon from '~/assets/images/messageIcon.svg'
 import { AgeingBalanceChart, SalesAndCollectionsChart } from '~/components/visualizations/NeutronCharts'
 import NucleiZeroState from '~/components/layout/NucleiZeroState';
 import moment from 'moment';
 import SectionUnderConstructionComponent from '~/components/layout/SectionUnderConstructionComponent'
+import { ChartJSOrUndefined } from 'react-chartjs-2/dist/types'
 
 
 
@@ -24,6 +25,16 @@ export default function ARDashboard() {
 
     const { businessData } = useOutletContext()
 
+
+    // const chartRef : ForwardedRef<ChartJSOrUndefined<"bar", number[], string>> | undefined  = useRef(null);
+
+    // useEffect(() => {
+    //     const chart = chartRef.current;
+
+    //     if (chart) {
+    //         chart.canvas.className="w-auto"
+    //     }
+    // }, []);
 
 
     let navigate = useNavigate();
@@ -45,7 +56,7 @@ export default function ARDashboard() {
     const revenueDiff = businessData.last_revenue[currentPeriod] > 0 ? ((businessData?.revenue[currentPeriod] - businessData.last_revenue[currentPeriod]) / businessData?.last_revenue[currentPeriod]) * 100 : 0;
 
     return (
-        <div className="flex flex-col space-y-3 h-full">
+        <div className="flex flex-col space-y-3 h-full w-full">
             <div className="flex flex-row justify-between">
                 <div id="page_title" className="flex flex-col">
                     <h1 className="text-lg">Dashboard</h1>
@@ -130,12 +141,15 @@ export default function ARDashboard() {
                         }) : <SectionUnderConstructionComponent />}
                     </ul> */}
                 </div>
-                <div className="w-1/2 h-full p-6 bg-white text-black shadow-lg rounded-xl">
-                    <span>Ageing Balance (in Lakh INR)</span>
-                    <div id="visualizations_panel" className='h-full w-full p-3'>
-                        <AgeingBalanceChart data={{ due: businessData?.due, overdue: businessData?.outstanding['excess'], ...businessData?.outstanding }} />
+                <div className='w-1/2 flex flex-row justify-center  p-6 bg-white text-black shadow-lg rounded-xl'>
+                    <div className="w-[98%] h-full">
+                        <span>Ageing Balance (in Lakh INR)</span>
+                        <div id="visualizations_panel" className='h-full w-full p-3'>
+                            <AgeingBalanceChart data={{ due: businessData?.due, overdue: businessData?.outstanding['excess'], ...businessData?.outstanding }} />
+                        </div>
                     </div>
                 </div>
+
 
             </div>
             <div className="flex flex-row space-x-3 h-2/5">
@@ -201,8 +215,8 @@ export default function ARDashboard() {
                             return (
                                 <li key={index} className='flex flex-row items-center py-3 justify-between'>
                                     <div className='flex flex-col space-y-2'>
-                                        <span className='font-gilroy-bold text-base'>{String(customer?.first_name + " " + customer?.last_name).toUpperCase()}</span>
-                                        <span className='font-gilroy-medium text-sm text-secondary-text'>{String(customer?.contact_name).toUpperCase()}</span>
+                                        <span className='font-gilroy-bold text-base'>{String(customer?.contact_name).toUpperCase()}</span>
+                                        <span className='font-gilroy-medium text-sm text-secondary-text'>{String(customer?.first_name + " " + customer?.last_name).toUpperCase()}</span>
                                     </div>
                                     <div className='flex flex-row space-x-4 items-center'>
                                         <span className='text-secondary-text uppercase font-gilroy-medium text-base'>

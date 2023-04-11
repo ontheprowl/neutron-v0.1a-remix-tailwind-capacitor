@@ -58,15 +58,13 @@ export type BusinessState = {
     creds?: {
         [x: string]: any
     },
-    current_plan: {
-
-    }
+    current_plan: NeutronPlan
 };
 
 export type NeutronPlan = {
     name: string,
-    monthly_rates: number,
-    expires_in: number,
+    monthly_rates: number | string,
+    expires_in: number | string,
     quotas: {
         whatsapp: number,
         email: number,
@@ -87,6 +85,31 @@ export type NeutronPlan = {
     }
 
 }
+
+export const StarterPlan: NeutronPlan = {
+    name: "Starter",
+    monthly_rates: "Free",
+    expires_in: "Never expires",
+    quotas: {
+        whatsapp: 150,
+        email: 150,
+        workflows: {
+            number: 2,
+            customer_limit: 25
+        },
+        team: 2
+    },
+    usage: {
+        whatsapp: 0,
+        email: 0,
+        workflows: {
+            number: 0,
+            customer_limit: 0
+        },
+        team: 1
+    }
+}
+
 
 export const DEFAULT_BUSINESS_DATA_STATE: BusinessState = {
     integration: "",
@@ -127,7 +150,8 @@ export const DEFAULT_BUSINESS_DATA_STATE: BusinessState = {
         '90d': 0,
         'excess': 0,
         'total': 0
-    }
+    },
+    current_plan: StarterPlan
 }
 
 

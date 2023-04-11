@@ -6,6 +6,7 @@ import FilterButton from "~/components/inputs/buttons/FilterButton";
 import NucleiPagination from "~/components/inputs/pagination/NucleiPagination";
 import NucleiZeroState from "~/components/layout/NucleiZeroState";
 import { CustomerOnTimeStatus } from "~/components/layout/Statuses";
+import ErrorIcon from '~/assets/images/errorIcon.svg';
 
 
 
@@ -64,11 +65,11 @@ export default function CustomersList() {
                         <div className="flex flex-row space-x-4 w-2/5 p-2  items-center justify-end">
                             <div className="flex flex-row space-x-4">
                                 <button onClick={() => {
-                                setCurrTab('All')
-                            }} className={`underline-offset-4 hover:opacity-75 transition-all ${currTab == "All" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>All</button>
-                            <button onClick={() => {
-                                setCurrTab('Outstanding');
-                            }} className={`underline-offset-4 hover:opacity-75  transition-all ${currTab == "Outstanding" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>Outstanding</button>
+                                    setCurrTab('All')
+                                }} className={`underline-offset-4 hover:opacity-75 transition-all ${currTab == "All" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>All</button>
+                                <button onClick={() => {
+                                    setCurrTab('Outstanding');
+                                }} className={`underline-offset-4 hover:opacity-75  transition-all ${currTab == "Outstanding" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>Outstanding</button>
                             </div>
                             {/* <div className="flex flex-row space-x-4 items-center">
                                 <FilterButton />
@@ -105,7 +106,7 @@ export default function CustomersList() {
                                     </th>
                                 </tr>
                                 {currView.filter((customer) => {
-                                    return (customer?.vendor_name?.includes(filter) || customer?.first_name?.includes(filter) || customer?.last_name?.includes(filter));
+                                    return (customer?.vendor_name?.toLowerCase()?.includes(filter.toLowerCase()) || customer?.first_name?.toLowerCase()?.includes(filter.toLowerCase()) || customer?.last_name?.toLowerCase()?.includes(filter.toLowerCase()));
                                 }).sort(currSort).slice(startOffset, endOffset).map((customer, index) => {
                                     return (
                                         <tr key={index} className={`border-b border-dashed sm:flex sm:flex-row sm:justify-evenly h-24 sm:items-center w-full border-gray-400 dark:bg-gray-800 dark:border-gray-700 transition-all hover:bg-bg-primary-dark hover:bg-opacity-50 hover:border-primary-dark`}>
@@ -113,6 +114,7 @@ export default function CustomersList() {
                                                 <div className="flex flex-row w-auto justify-start items-center space-x-4">
                                                     <input type="checkbox"></input>
                                                     <Link to={`${customer?.contact_id}/overview`} preventScrollReset><span className="w-full break-words ">{customer?.vendor_name}</span></Link>
+                                                    {(customer?.mobile == "" || customer?.email == "" || (customer?.firstName || customer?.lastName)) && <img src={ErrorIcon} alt="customer_details_missing_icon"></img>}
                                                 </div>
                                             </td>
                                             <td className="px-2 py-4 w-full text-left flex flex-col space-y-2  ">

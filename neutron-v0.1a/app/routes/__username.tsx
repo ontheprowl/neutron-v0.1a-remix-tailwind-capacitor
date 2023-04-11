@@ -461,13 +461,13 @@ export default function CustomUserPage() {
                     </div>
                     <div
                         id="content-window"
-                        className="h-screen overflow-y-scroll  w-auto sm:rounded-sm  transition-height "
+                        className="h-screen overflow-y-scroll w-auto sm:rounded-sm  transition-height "
                     >
                         <Outlet context={{ metadata: metadata, businessData: businessData }}></Outlet>
                     </div>
-                    <div className="bottom-0 sm:hidden left-0 fixed w-full z-50 h-auto">
+                    {/* <div className="bottom-0 sm:hidden left-0 fixed w-full z-50 h-auto">
                         <BottomNav></BottomNav>
-                    </div>
+                    </div> */}
 
                 </div >
 

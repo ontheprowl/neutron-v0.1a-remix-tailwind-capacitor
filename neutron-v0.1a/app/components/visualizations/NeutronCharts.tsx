@@ -1,7 +1,8 @@
 import { Chart as ChartJS, Legend, CategoryScale, BarElement, Tooltip, LinearScale, Title, BarController } from 'chart.js';
-import React from 'react';
+import React, { ForwardedRef, useEffect, useRef } from 'react';
 import { useMemo } from 'react';
 import { Bar, Chart } from 'react-chartjs-2';
+import { ChartJSOrUndefined } from 'react-chartjs-2/dist/types';
 
 
 
@@ -107,14 +108,14 @@ function NucleiSalesAndCollectionsChart({ data }: { data: { outstanding: { '30d'
     };
 
     return (
-        <Bar redraw={false} className='w-full h-full' datasetIdKey='id' options={options}
+        <Bar redraw={false} datasetIdKey='id' options={options}
             data={chartData} >
         </Bar>)
 
 }
 
 
-function NucleiAgeingBalanceChart({ data }: { data: { 'due': number, 'overdue': number, '30d': number, '60d': number, '90d': number, 'excess': number } }) {
+function NucleiAgeingBalanceChart({ data }: { data: { 'due': number, 'overdue': number, '30d': number, '60d': number, '90d': number, 'excess': number, ref?: ForwardedRef<ChartJSOrUndefined<"bar", number[], string>> | undefined } }) {
     ChartJS.register(
         CategoryScale,
         LinearScale,
@@ -124,6 +125,7 @@ function NucleiAgeingBalanceChart({ data }: { data: { 'due': number, 'overdue': 
         Tooltip,
         Legend
     );
+
     const options = {
 
         plugins: {
@@ -209,7 +211,7 @@ function NucleiAgeingBalanceChart({ data }: { data: { 'due': number, 'overdue': 
     };
 
     return (
-        <Bar redraw={false} className='w-full h-full' datasetIdKey='id' options={options}
+        <Bar ref={data?.ref ? data?.ref : null} redraw={false}  datasetIdKey='id' options={options}
             data={chartData} >
         </Bar >)
 

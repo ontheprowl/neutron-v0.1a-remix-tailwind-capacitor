@@ -1,4 +1,4 @@
-import { useFetcher, useLocation, useOutletContext, useSubmit } from "@remix-run/react";
+import { useFetcher, useLocation, useNavigate, useOutletContext, useSubmit } from "@remix-run/react";
 import { useEffect, useMemo, useState } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import DeleteButton from "~/components/inputs/buttons/DeleteButton";
@@ -13,7 +13,7 @@ import PlusCircleIcon from "~/assets/images/plusCircleIcon.svg"
 import { ActionFunction, redirect } from "@remix-run/server-runtime";
 import { requireUser } from "~/session.server";
 
-import { addFirestoreDocFromData, getSingleDoc, updateArrayInFirestoreDoc, updateFirestoreDocFromData } from "~/firebase/queries.server";
+import { addFirestoreDocFromData, getSingleDoc, sendEvent, updateArrayInFirestoreDoc, updateFirestoreDocFromData } from "~/firebase/queries.server";
 import { executeDunningPayloads, getScheduleForActionAndInvoice } from "~/utils/utils.server";
 import type { EmailPayloadStructure, WhatsappPayloadStructure } from "~/models/dunning";
 import ActionType from "~/components/layout/ActionTypes";
@@ -69,6 +69,7 @@ export const action: ActionFunction = async ({ request, params }) => {
     updateObject[`${workflowCreationRef.id}`] = { id: workflowCreationRef.id, type: 'Workflow', index: payload?.name };
     const indexUpdateRef = await updateFirestoreDocFromData(updateObject, 'indexes', session?.metadata?.businessID);
 
+
     return redirect('/workflows');
 
 }
@@ -89,6 +90,8 @@ export default function CreateWorkflowScreen() {
 
     const { pathname } = useLocation();
     const submit = useSubmit();
+
+    let navigate = useNavigate();
 
     const workflowCreationForm = useForm();
 
@@ -151,7 +154,9 @@ export default function CreateWorkflowScreen() {
                     </div>
                     <div className="flex flex-row space-x-4">
                         <SaveButton submit />
-                        <DeleteButton />
+                        <DeleteButton text={"Discard"} onClick={() => {
+                            navigate(-1)
+                        }} />
                     </div>
                 </div>
 
@@ -234,7 +239,7 @@ export default function CreateWorkflowScreen() {
                         </button>
                     </div>
 
-                    <ul className="flex flex-col space-y-4 h-[300px] overflow-y-scroll">
+                    <ul className="flex flex-col space-y-4 h-[700px] overflow-y-scroll">
                         {localActions?.map((action, index) => {
                             return (
                                 <li className={`transition-all border-2 ${editIndex == index ? ' border-dashed border-primary-dark bg-primary-light' : 'border-neutral-light'}  p-6 rounded-lg w-full`} key={index}>
@@ -297,8 +302,15 @@ export default function CreateWorkflowScreen() {
                                 <NucleiCheckBox name={`customers.${customer?.contact_id}`} key={customer?.contact_id} value={customer?.contact_id} label={customer?.vendor_name} />)
                         })}
                     </div>
+                    <div className="flex flex-row py-5 justify-end space-x-4">
+                        <SaveButton submit />
+                        <DeleteButton text={"Discard"} onClick={() => {
+                            navigate(-1)
+                        }} />
+                    </div>
 
                 </div>
+
 
 
             </form>

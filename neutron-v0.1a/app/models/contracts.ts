@@ -65,6 +65,15 @@ export enum MilestoneStatus {
   Upcoming,
 }
 
+
+export enum MessageStatus {
+  Sent,
+  Completed,
+  Failed,
+  Upcoming,
+  Opened,
+}
+
 export type Milestone = {
   isLastMilestone?: boolean;
   expectedDate?: Date;
