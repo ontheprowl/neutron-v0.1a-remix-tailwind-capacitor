@@ -1,8 +1,5 @@
-import { Link, useOutlet, useOutletContext } from "@remix-run/react";
-import { MouseEvent, useMemo, useState } from "react";
-import DeleteButton from "~/components/inputs/buttons/DeleteButton";
-import ExportButton from "~/components/inputs/buttons/ExportButton";
-import FilterButton from "~/components/inputs/buttons/FilterButton";
+import { Link, useOutletContext } from "@remix-run/react";
+import { useState } from "react";
 import NucleiPagination from "~/components/inputs/pagination/NucleiPagination";
 import NucleiZeroState from "~/components/layout/NucleiZeroState";
 import { CustomerOnTimeStatus } from "~/components/layout/Statuses";
@@ -113,7 +110,7 @@ export default function CustomersList() {
                                             <td scope="row" className="px-2 py-4 w-full font-gilroy-regular text-left">
                                                 <div className="flex flex-row w-auto justify-start items-center space-x-4">
                                                     <input type="checkbox"></input>
-                                                    <Link to={`${customer?.contact_id}/overview`} preventScrollReset><span className="w-full break-words ">{customer?.vendor_name}</span></Link>
+                                                    <Link to={`${customer?.contact_id}/overview`} preventScrollReset><span className="w-full break-words underline decoration-transparent hover:decoration-black underline-offset-1">{customer?.vendor_name}</span></Link>
                                                     {(customer?.mobile == "" || customer?.email == "" || (customer?.firstName || customer?.lastName)) && <img src={ErrorIcon} alt="customer_details_missing_icon"></img>}
                                                 </div>
                                             </td>

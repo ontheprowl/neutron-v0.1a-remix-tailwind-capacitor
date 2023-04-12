@@ -1,9 +1,5 @@
 import { useOutletContext } from "@remix-run/react";
-import { MouseEvent, useEffect, useMemo, useState } from "react";
-import ContractZeroState from "~/components/contracts/ContractZeroState";
-import DeleteButton from "~/components/inputs/buttons/DeleteButton";
-import ExportButton from "~/components/inputs/buttons/ExportButton";
-import FilterButton from "~/components/inputs/buttons/FilterButton";
+import { useMemo, useState } from "react";
 import NucleiPagination from "~/components/inputs/pagination/NucleiPagination";
 import NucleiZeroState from "~/components/layout/NucleiZeroState";
 import { InvoicePaidStatus, InvoiceOverdueStatus, InvoiceSentStatus } from "~/components/layout/Statuses";
@@ -118,7 +114,7 @@ export default function InvoicesList() {
                                     </th>
                                 </tr>
                                 {currView?.filter((invoice) => {
-                                    return invoice?.customer_name?.toLowerCase()?.includes(filter?.toLowerCase());
+                                    return invoice?.customer_name?.toLowerCase().includes(filter.toLowerCase());
                                 }).sort((a, b) => {
                                     if (a?.balance > b.balance) {
                                         return -1
@@ -131,7 +127,7 @@ export default function InvoicesList() {
                                             <td scope="row" className="px-2 py-4 w-full font-gilroy-regular text-center  whitespace-nowrap">
                                                 <div className="flex flex-row w-auto justify-start space-x-4">
                                                     <input type="checkbox"></input>
-                                                    <h1>#{startOffset + index}</h1>
+                                                    <h1>{invoice?.invoice_number}</h1>
                                                 </div>
                                             </td>
                                             <td className="px-2 py-4 w-full text-left flex flex-col space-y-2  ">

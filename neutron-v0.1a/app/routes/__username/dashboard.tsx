@@ -1,13 +1,8 @@
 
 import { useNavigate, useOutletContext } from '@remix-run/react'
-import { useCycle } from 'framer-motion'
-import { ForwardedRef, useEffect, useMemo, useRef, useState } from 'react'
-import MessageIcon from '~/assets/images/messageIcon.svg'
+import { useMemo, useState } from 'react'
 import { AgeingBalanceChart, SalesAndCollectionsChart } from '~/components/visualizations/NeutronCharts'
 import NucleiZeroState from '~/components/layout/NucleiZeroState';
-import moment from 'moment';
-import SectionUnderConstructionComponent from '~/components/layout/SectionUnderConstructionComponent'
-import { ChartJSOrUndefined } from 'react-chartjs-2/dist/types'
 
 
 
@@ -152,7 +147,7 @@ export default function ARDashboard() {
 
 
             </div>
-            <div className="flex flex-row space-x-3 h-2/5">
+            <div className="flex flex-row space-x-3 h-3/5">
                 <div id="receivables_queue" className="w-1/2 bg-white flex flex-col text-black shadow-lg rounded-xl">
                     <div className='flex flex-row justify-between items-center m-5'>
                         <div className='flex flex-col w-auto'>
@@ -167,7 +162,7 @@ export default function ARDashboard() {
                             View All Invoices
                         </button>
                     </div>
-                    <ul className=' m-5 mt-0 h-[400px] overflow-y-scroll divide-y-2'>
+                    <ul className=' m-5 mt-0 h-[700px] overflow-y-scroll divide-y-2 snap-y'>
                         {businessData?.receivables[currentPeriod]?.length > 0 ? businessData?.receivables[currentPeriod].sort((a, b) => {
                             if (b?.balance < a?.balance) {
                                 return -1
@@ -176,7 +171,7 @@ export default function ARDashboard() {
                             }
                         }).map((invoice, index) => {
                             return (
-                                <li key={index} className='flex flex-row items-center py-3 justify-between'>
+                                <li key={index} className='flex flex-row items-center py-3 snap-start justify-between'>
                                     <div className='flex flex-col space-y-2'>
                                         <span className='font-gilroy-bold text-base'>{String(invoice?.customer_name).toUpperCase()}</span>
                                         <span className='font-gilroy-medium text-sm text-secondary-text'>{String(invoice?.company_name).toUpperCase()}</span>
@@ -202,7 +197,7 @@ export default function ARDashboard() {
                             View All Customers
                         </button>
                     </div>
-                    <ul className='m-5 mt-0 h-[400px] overflow-y-scroll divide-y-2'>
+                    <ul className='m-5 mt-0 h-[700px] overflow-y-scroll divide-y-2 snap-y'>
                         {businessData?.customers?.length > 0 ? businessData?.customers.filter((customer) => {
                             return customer?.outstanding_receivable_amount > 0
                         }).sort((a, b) => {
@@ -213,7 +208,7 @@ export default function ARDashboard() {
                             }
                         }).map((customer, index) => {
                             return (
-                                <li key={index} className='flex flex-row items-center py-3 justify-between'>
+                                <li key={index} className='flex flex-row items-center py-3 snap-start justify-between'>
                                     <div className='flex flex-col space-y-2'>
                                         <span className='font-gilroy-bold text-base'>{String(customer?.contact_name).toUpperCase()}</span>
                                         <span className='font-gilroy-medium text-sm text-secondary-text'>{String(customer?.first_name + " " + customer?.last_name).toUpperCase()}</span>

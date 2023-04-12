@@ -1,13 +1,10 @@
-import { Link, useLoaderData, useNavigate, useOutletContext, useSubmit } from "@remix-run/react";
-import { ActionFunction, LoaderFunction, json } from "@remix-run/server-runtime";
+import { Link, useLoaderData, useNavigate, useSubmit } from "@remix-run/react";
+import type { ActionFunction, LoaderFunction} from "@remix-run/server-runtime";
+import { json } from "@remix-run/server-runtime";
 import { useState } from "react";
 import DeleteButton from "~/components/inputs/buttons/DeleteButton";
-import EditButton from "~/components/inputs/buttons/EditButton";
-import ExportButton from "~/components/inputs/buttons/ExportButton";
-import FilterButton from "~/components/inputs/buttons/FilterButton";
 import NucleiPagination from "~/components/inputs/pagination/NucleiPagination";
 import NucleiZeroState from "~/components/layout/NucleiZeroState";
-import { InvoiceClearedStatus } from "~/components/layout/Statuses";
 import { deleteFieldsFromFirestoreDoc, deleteFirestoreDoc, getFirebaseDocs } from "~/firebase/queries.server";
 import { requireUser } from "~/session.server";
 
@@ -111,7 +108,7 @@ export default function WorkflowsList() {
                                         </div>
                                     </th>
                                     <th scope="row" className="px-2 text-left py-4 w-full font-medium  whitespace-nowrap">
-                                        No. OF CUSTOMERS
+                                        NO. OF CUSTOMERS
                                     </th>
                                     <th scope="row" className="px-2 py-4 w-full font-medium text-left ">
                                         WORKFLOW TYPE
@@ -133,7 +130,7 @@ export default function WorkflowsList() {
                                             </div>
                                         </td>
 
-                                        <td className="px-2 py-4 font-gilroy-regular  w-full text-left ">
+                                        <td className=" py-4 font-gilroy-regular  w-full text-left px-10 ">
                                             {workflow?.data?.customers?.length}
                                         </td>
                                         <td className="  px-2 py-4 w-full font-gilroy-regular justify-start flex flex-row  text-left">
