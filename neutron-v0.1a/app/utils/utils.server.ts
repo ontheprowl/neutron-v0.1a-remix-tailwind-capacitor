@@ -118,7 +118,7 @@ export function getScheduleForActionAndInvoice(invoice: any, senderInfo: { calle
     let operation: string;
     switch (action.trigger) {
         case "On Due Date":
-            referenceDate = new Date(invoice?.date);
+            referenceDate = new Date(invoice?.due_date);
             action.days = '0'
             operation = "+";
             break;
@@ -155,7 +155,7 @@ export function getScheduleForActionAndInvoice(invoice: any, senderInfo: { calle
                 contact: customer?.mobile,
                 message: activeTemplate,
                 data: action?.template == "Early Reminder" ? [
-                    customer?.first_name + customer?.last_name,
+                    customer?.first_name + " " + customer?.last_name,
                     senderInfo?.company_name,
                     invoice?.invoice_number,
                     invoice?.due_date,
@@ -164,7 +164,7 @@ export function getScheduleForActionAndInvoice(invoice: any, senderInfo: { calle
                     senderInfo?.assigned_to_contact,
                     senderInfo?.company_name,
                 ] : [
-                    customer?.first_name + customer?.last_name,
+                    customer?.first_name + " " + customer?.last_name,
                     senderInfo?.company_name,
                     invoice?.invoice_number,
                     String(invoice?.balance),
@@ -189,7 +189,7 @@ export function getScheduleForActionAndInvoice(invoice: any, senderInfo: { calle
                 data: {
                     templateID: Number(activeTemplate),
                     params: {
-                        RECEIVER_NAME: customer?.first_name + customer?.last_name,
+                        RECEIVER_NAME: customer?.first_name + " " + customer?.last_name,
                         COMPANY_NAME: senderInfo?.company_name,
                         INVOICE_NUMBER: invoice?.invoice_number,
                         AMOUNT_DUE: String(invoice?.balance),
@@ -215,7 +215,6 @@ const dateToCron: (date: Date) => string = (date: Date) => {
     const hours = date.getUTCHours();
     const days = date.getUTCDate();
     const months = date.getUTCMonth() + 1;
-    const dayOfWeek = date.getUTCDay();
 
-    return `${minutes} ${hours} ${days} ${months} ${dayOfWeek}`;
+    return `${minutes} ${hours} ${days} ${months} *`;
 };
