@@ -25,7 +25,7 @@ export const action: ActionFunction = async ({ request, params }) => {
     if (business_id) {
         console.log("BUSINESS_ID DETECTED")
         console.log(business_id)
-        const businessDataRef = await getSingleDoc(`businesses/${business_id}`)
+        const businessDataRef = await getSingleDoc(`businesses/${business_id}`);
 
         // * Refresh Zoho creds if required
         let zohoCreds = businessDataRef?.creds;

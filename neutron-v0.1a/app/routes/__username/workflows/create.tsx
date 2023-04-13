@@ -10,7 +10,7 @@ import NeutronRadioGroup from "~/components/inputs/radios/NeutronRadioGroup";
 import WorkflowMessageIcon from "~/assets/images/workflowMessageIcon.svg";
 import EditButton from "~/components/inputs/buttons/EditButton";
 import PlusCircleIcon from "~/assets/images/plusCircleIcon.svg"
-import type { ActionFunction} from "@remix-run/server-runtime";
+import type { ActionFunction } from "@remix-run/server-runtime";
 import { redirect } from "@remix-run/server-runtime";
 import { requireUser } from "~/session.server";
 
@@ -164,8 +164,8 @@ export default function CreateWorkflowScreen() {
                 <div id="workflow_details" className=" h-auto flex flex-col p-6 bg-white shadow-lg rounded-xl">
                     <h1 className="text-lg">Workflow Details</h1>
                     <div className="flex flex-row space-x-4 mt-4">
-                        <NucleiTextInput name={"name"} label={"Workflow Name"} options={{ required: "This field is required" }} placeholder={"E.g: General Workflow"} ></NucleiTextInput>
-                        <NucleiDropdownInput name={"assigned_to"} options={{ required: "This field is required" }} label={"Person In Charge"} placeholder={""}>
+                        <NucleiTextInput name={"name"} label={"Workflow Name"} placeholder={"E.g: General Workflow"} ></NucleiTextInput>
+                        <NucleiDropdownInput name={"assigned_to"} label={"Person In Charge"} placeholder={""}>
                             {businessData?.team?.map((member) => {
                                 return (<option key={member?.email} value={[member?.name, member?.email]}> {member?.name}</option>)
                             })}
@@ -182,19 +182,19 @@ export default function CreateWorkflowScreen() {
                 <div id="workflow_settings" className="h-auto flex p-6 flex-col space-y-4 bg-white shadow-lg rounded-xl">
                     <h1 className="text-lg">Workflow Details</h1>
                     <div className="flex flex-row transition-all space-x-6 mt-4">
-                        <NucleiDropdownInput name={`actions.${currentAction}.trigger`} options={{ required: "This field is required" }} label={"Trigger"} placeholder={"The action's trigger condition"} >
+                        <NucleiDropdownInput name={`actions.${currentAction}.trigger`} label={"Trigger"} placeholder={"The action's trigger condition"} >
                             <option value={"Before Due Date"}>Before Due Date</option>
                             <option value={"On Due Date"}>On Due Date</option>
                             <option value={"After Due Date"}>After Due Date</option>
                         </NucleiDropdownInput>
-                        {trigger != "On Due Date" && <NucleiTextInput name={`actions.${currentAction}.days`} options={{ required: "This field is required" }} label="Days" placeholder="E.g: 20 " />}
+                        {trigger != "On Due Date" && <NucleiTextInput name={`actions.${currentAction}.days`} label="Days" placeholder="E.g: 20 " />}
                         <NeutronRadioGroup>
                             <NeutronRadioButton noIcon name={`actions.${currentAction}.action_type`} value={"automatic"} heading={"Automatic"} no={1} />
                             <NeutronRadioButton noIcon name={`actions.${currentAction}.action_type`} value={"manual"} heading={"Manual"} no={2} />
                         </NeutronRadioGroup>
                     </div>
                     <div className="flex flex-row space-x-4 mt-4">
-                        <NucleiDropdownInput name={`actions.${currentAction}.action`}  options={{ required: "This field is required" }} label={"Action"} placeholder={"Email / Whatsapp"} >
+                        <NucleiDropdownInput name={`actions.${currentAction}.action`} label={"Action"} placeholder={"Email / Whatsapp"} >
                             {actionType == "manual" ?
                                 <>
                                     <option value={"Manual Visit"}>Manual Visit</option>
@@ -206,19 +206,19 @@ export default function CreateWorkflowScreen() {
                                 </>}
                         </NucleiDropdownInput>
                         {actionType === "automatic" &&
-                            <NucleiDropdownInput name={`actions.${currentAction}.template`}  options={{ required: "This field is required" }} label={"Template"} placeholder={"Which template do you wish to send out in your reminder?"} >
+                            <NucleiDropdownInput name={`actions.${currentAction}.template`} label={"Template"} placeholder={"Which template do you wish to send out in your reminder?"} >
                                 <option value={"Early Reminder"}>Early Reminder</option>
                                 <option value={"On Due Date"}>On Due Date</option>
                                 <option value={"Overdue Reminder"}>Overdue Reminder</option>
                             </NucleiDropdownInput>
 
                         }
-                        {actionType == "manual" && <NucleiDropdownInput name={`actions.${currentAction}.assigned_to`}  options={{ required: "This field is required" }} label={"Person In Charge"} placeholder={"Who are you assigning this task to?"} >
+                        {actionType == "manual" && <NucleiDropdownInput name={`actions.${currentAction}.assigned_to`} label={"Person In Charge"} placeholder={"Who are you assigning this task to?"} >
                             {businessData?.team?.map((member) => {
                                 return (<option key={member?.email} value={member?.email}>{member?.name}</option>)
                             })}
                         </NucleiDropdownInput>}
-                        <NucleiTextInput name={`actions.${currentAction}.time`} type="time" label={"Time"}  options={{ required: "This field is required" }} placeholder={"When do you want to schedule this action?"} />
+                        <NucleiTextInput name={`actions.${currentAction}.time`} type="time" label={"Time"} placeholder={"When do you want to schedule this action?"} />
 
                     </div>
                     <div className="flex flex-row space-x-4 justify-center">
