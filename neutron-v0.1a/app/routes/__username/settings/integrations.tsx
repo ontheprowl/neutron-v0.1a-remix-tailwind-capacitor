@@ -70,7 +70,7 @@ export default function IntegrationsScreen() {
         if (zohoFetcher.data && zohoFetcher.state == "loading") {
             if (zohoFetcher.data['status'] == '1') {
                 if (zohoFetcher.formAction?.includes("sync")) {
-                    emitToast("Zoho Data sync successful", null, "success")
+                    emitToast("Zoho Data Sync started", "The sync process can take upto 30 minutes. Until then, please do not close this window. ", "success")
                 }
             }
         }

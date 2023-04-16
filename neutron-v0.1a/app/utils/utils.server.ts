@@ -112,7 +112,7 @@ export function returnNormalizedDateString(date: Date) {
 /**
  * 
  */
-export function getScheduleForActionAndInvoice(invoice: any, senderInfo: { caller_id: string, company_name: string, assigned_to: string, assigned_to_contact: string }, customer: any, action: { action: string, action_type: string, days: string, template: string, time: string, trigger: string }): { dunningPayload: WhatsappPayloadStructure | EmailPayloadStructure, targetDate: Date } {
+export function getScheduleForActionAndInvoice(invoice: any, senderInfo: { caller_id: string, workflow_id: string, company_name: string, assigned_to: string, assigned_to_contact: string }, customer: any, action: { action: string, action_type: string, days: string, template: string, time: string, trigger: string }): { dunningPayload: WhatsappPayloadStructure | EmailPayloadStructure, targetDate: Date } {
 
     let referenceDate: Date;
     let operation: string;
@@ -150,6 +150,9 @@ export function getScheduleForActionAndInvoice(invoice: any, senderInfo: { calle
         finalPayload = {
             id: randomUUID(),
             callerID: senderInfo?.caller_id,
+            invoice_id: invoice?.invoice_id,
+            workflow_id: senderInfo?.workflow_id,
+            customer_id: customer?.contact_id,
             jobType: 1,
             data: {
                 contact: customer?.mobile,
@@ -183,6 +186,9 @@ export function getScheduleForActionAndInvoice(invoice: any, senderInfo: { calle
         finalPayload = {
             id: randomUUID(),
             callerID: senderInfo?.caller_id,
+            invoice_id: invoice?.invoice_id,
+            workflow_id: senderInfo?.workflow_id,
+            customer_id: customer?.contact_id,
             jobType: 0,
             data: {
                 contact: customer?.email,

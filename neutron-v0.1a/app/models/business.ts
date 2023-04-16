@@ -55,6 +55,7 @@ export type BusinessState = {
         'excess': number,
         'total': number
     },
+    due?: number,
     creds?: {
         [x: string]: any
     },
@@ -151,6 +152,7 @@ export const DEFAULT_BUSINESS_DATA_STATE: BusinessState = {
         'excess': 0,
         'total': 0
     },
+    due: 0,
     current_plan: StarterPlan
 }
 

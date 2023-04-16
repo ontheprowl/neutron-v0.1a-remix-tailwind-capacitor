@@ -184,7 +184,6 @@ export async function deleteFieldsFromFirestoreDoc(fieldKeys: string[], collecti
 }
 
 export async function uploadBulkToCollection(data: any[], collectionPath: string, batchSize: number, idKey: string) {
-
     const batches = Math.ceil(data.length / batchSize);
 
 
@@ -220,7 +219,9 @@ export async function uploadBatch(data: any[], batchesLeft: number, offset: numb
         } else {
             batch.create(docRef, elem);
         }
+
     }
+
     await batch.commit();
 
     process.nextTick(() => {

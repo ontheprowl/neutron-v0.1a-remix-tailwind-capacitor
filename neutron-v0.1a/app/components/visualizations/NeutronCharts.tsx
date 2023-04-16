@@ -87,7 +87,7 @@ function NucleiSalesAndCollectionsChart({ data }: { data: { outstanding: { '30d'
         },
     };
 
-    const labels = ['30d', '60d', '90d', 'Beyond 90 Days'];
+    const labels = ['0-30d', '0-60d', '0-90d', 'All-time'];
 
     const chartData = {
         labels,
