@@ -35,7 +35,7 @@ export default function CustomerOverview() {
     console.dir(currentCustomer)
 
     return (
-        <div className=" h-full flex flex-col space-y-4">
+        <div className=" h-screen overflow-y-scroll flex flex-col space-y-4">
             <div className="flex flex-row justify-between">
                 <div id="page_title" className="flex flex-col">
                     <h1 className="text-lg">Customer Details</h1>
@@ -67,7 +67,7 @@ export default function CustomerOverview() {
 
                         </div>
                         <div id="secondary_metric" className="w-1/3 bg-white flex flex-col text-black p-5 space-y-6 justify-between shadow-lg rounded-xl">
-                            <h1 className=" text-4xl">{Math.floor(currentCustomer?.dso)}</h1>
+                            <h1 className=" text-4xl">{currentCustomer?.dso == "No data" ? 'No data' : Math.floor(Number(currentCustomer?.dso))}</h1>
                             <div className="flex flex-row justify-between">
                                 <span className=" text-lg">
                                     Day Sales Outstanding
@@ -107,7 +107,7 @@ export default function CustomerOverview() {
             </div>
             <CustomerDetailsMissingPanel email={currentCustomer?.email == ""} phone={currentCustomer?.mobile == ""} firstName={currentCustomer?.first_name == ""} lastName={currentCustomer?.last_name == ""} />
 
-            <div id="customer_details_content" className="h-full flex flex-col space-y-6  overflow-y-scroll">
+            <div id="customer_details_content" className="h-full flex flex-col space-y-6 ">
                 <Outlet context={currentCustomer}></Outlet>
             </div>
 
