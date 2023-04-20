@@ -12,7 +12,7 @@ import TimelineStep from './NucleiTimelineStep';
 
 
 
-export default function NucleiTimeline({ id }: { id: string }) {
+export default function NucleiTimeline({ id, index }: { id: string, index?: string }) {
 
 
     console.log(id)
@@ -25,7 +25,7 @@ export default function NucleiTimeline({ id }: { id: string }) {
     // const eventsGet = clientGet(query)
 
     useEffect(() => {
-        const messageQuery = generateEventsQuery(EventType.DunningEvent, id, "uid");
+        const messageQuery = generateEventsQuery(EventType.DunningEvent, id, index ? index : "customer_id");
         return client_onValue(messageQuery, (snapshot) => {
             let result: NeutronEvent[] = []
 
@@ -45,15 +45,7 @@ export default function NucleiTimeline({ id }: { id: string }) {
     function generateStepForEvent(event: NeutronEvent, variant = MilestoneStatus.Completed, lastEvent?: boolean): JSX.Element {
 
         return <TimelineStep
-            key={event.id} event={{
-                id: undefined,
-                uid: '',
-                type: EventType.DunningEvent,
-                sandbox: undefined,
-                event: DunningEvent.MessageSent,
-                payload: undefined,
-                timestamp: undefined
-            }} variant={MessageStatus.Sent} lastStep={lastEvent} />
+            key={event.id} event={event} variant={MessageStatus.Sent} lastStep={lastEvent} />
 
     }
 

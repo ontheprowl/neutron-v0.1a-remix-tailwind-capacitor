@@ -7,10 +7,10 @@ export function generateEventsQuery(type: EventType, id?: string, byKey?: string
     let eventsQuery
     if (id) {
         if (byKey) {
-            eventsQuery = clientQuery(clientRef(db, 'events/' + type), clientDatabase.orderByChild(byKey), clientDatabase.equalTo(id));
+            eventsQuery = clientQuery(clientRef(db, type + "/" + id));
         }
         else {
-            eventsQuery = clientQuery(clientRef(db, 'events/' + type), clientDatabase.orderByChild("id"), clientDatabase.equalTo(id));
+            eventsQuery = clientQuery(clientRef(db, type + "/" + id));
         }
     } else {
         eventsQuery = clientQuery(clientRef(db, 'events/' + type));

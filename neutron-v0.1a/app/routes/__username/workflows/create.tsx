@@ -15,7 +15,7 @@ import { redirect } from "@remix-run/server-runtime";
 import { requireUser } from "~/session.server";
 
 import { addFirestoreDocFromData, getSingleDoc, updateFirestoreDocFromData } from "~/firebase/queries.server";
-import { executeDunningPayloads, getScheduleForActionAndInvoice } from "~/utils/utils.server";
+import { executeDunningPayloads, getScheduleForActionAndInvoice, registerWorkflowTriggerForCustomer } from "~/utils/utils.server";
 import type { EmailPayloadStructure, WhatsappPayloadStructure } from "~/models/dunning";
 import ActionType from "~/components/layout/ActionTypes";
 import NeutronModal from "~/components/layout/NeutronModal";
@@ -65,8 +65,13 @@ export const action: ActionFunction = async ({ request, params }) => {
 
     const dunningCallsResult = await executeDunningPayloads(dunningPayloads);
 
-    payload['customer_ids'] = customers?.map((customer) => customer.id);
-    const workflowUpdationRef = await updateFirestoreDocFromData(payload, 'workflows/business', session?.metadata?.businessID);
+    payload['customer_ids'] = customers?.map((customer) => {
+        registerWorkflowTriggerForCustomer(session?.metadata?.businessID, customer.id, workflowCreationRef.id)
+        return customer.id
+    });
+
+
+    const workflowUpdationRef = await updateFirestoreDocFromData(payload, 'workflows/business', `${session?.metadata?.businessID}/${workflowCreationRef.id}`);
     const updateObject: { [x: string]: any } = {};
     updateObject[`${workflowCreationRef.id}`] = { id: workflowCreationRef.id, type: 'Workflow', index: payload?.name };
     const indexUpdateRef = await updateFirestoreDocFromData(updateObject, 'indexes', session?.metadata?.businessID);

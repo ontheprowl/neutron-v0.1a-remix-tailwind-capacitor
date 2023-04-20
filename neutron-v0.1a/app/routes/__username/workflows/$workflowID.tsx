@@ -36,6 +36,8 @@ export default function WorkflowsDetailsScreen() {
         <div id="settings_tabs" className=" flex flex-row font-gilroy-medium text-base space-x-6">
             <Link to="overview" preventScrollReset className={`transition-all text-neutral-dark py-3 border-b-2 hover:opacity-70 ${pathname.includes('overview') ? 'text-primary-base border-primary-base font-bold' : 'border-transparent '}`}>Overview</Link>
             <Link to="customers" preventScrollReset className={`transition-all text-neutral-dark py-3 border-b-2 hover:opacity-70 ${pathname.includes('customers') ? 'text-primary-base border-primary-base font-bold' : 'border-transparent '}`}>Customers</Link>
+            <Link to="timeline" preventScrollReset className={`transition-all text-neutral-dark py-3 border-b-2 hover:opacity-70 ${pathname.includes('timeline') ? 'text-primary-base border-primary-base font-bold' : 'border-transparent '}`}>Timeline</Link>
+
         </div>
 
         <div id="settings_panel" className="h-full overflow-y-scroll">

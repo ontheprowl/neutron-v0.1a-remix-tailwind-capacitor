@@ -51,7 +51,7 @@ export default function CustomerOverview() {
                     <div id="settings_tabs" className=" flex flex-row font-gilroy-medium text-base space-x-6">
                         <Link to="overview" preventScrollReset className={`transition-all text-neutral-dark py-3 border-b-2 hover:opacity-70 ${pathname.includes('overview') ? 'text-primary-base border-primary-base font-bold' : 'border-transparent '}`}>Overview</Link>
                         <Link to="contacts" preventScrollReset className={`transition-all text-neutral-dark py-3 border-b-2 hover:opacity-70 ${pathname.includes('contacts') ? 'text-primary-base border-primary-base font-bold' : 'border-transparent '}`}>Contacts</Link>
-                        <Link to="insights" preventScrollReset className={`transition-all text-neutral-dark py-3 border-b-2 hover:opacity-70 ${pathname.includes('insights') ? 'text-primary-base border-primary-base font-bold' : 'border-transparent '}`}>Insights</Link>
+                        <Link to="timeline" preventScrollReset className={`transition-all text-neutral-dark py-3 border-b-2 hover:opacity-70 ${pathname.includes('timeline') ? 'text-primary-base border-primary-base font-bold' : 'border-transparent '}`}>Timeline</Link>
                         <Link to="details" preventScrollReset className={`transition-all text-neutral-dark py-3 border-b-2 hover:opacity-70 ${pathname.includes('details') ? 'text-primary-base border-primary-base font-bold' : 'border-transparent '}`}>Details</Link>
 
                     </div>
@@ -85,7 +85,7 @@ export default function CustomerOverview() {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white shadow-lg rounded-xl flex flex-col space-y-4 divide-y divide-dashed divide-neutral-light p-3 w-2/6">
+                <div className="bg-white shadow-lg rounded-xl flex flex-col space-y-2 divide-y divide-dashed divide-neutral-light p-1 w-2/6">
                     <div className="text-left p-6 flex flex-col space-y-4 ">
                         <h1>{currentCustomer?.vendor_name}</h1>
                         <h1 className="font-gilroy-medium text-secondary-text">Contact - {currentCustomer?.first_name && currentCustomer?.last_name ? currentCustomer?.first_name + " " + currentCustomer?.last_name : 'Data missing'}</h1>

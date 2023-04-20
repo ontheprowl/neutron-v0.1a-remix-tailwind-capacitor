@@ -1,41 +1,4 @@
 
-
-
-
-
-export enum ContractEvent {
-	ContractDrafted,
-	ContractPublished,
-	ContractPendingSignByServiceProvider,
-	ContractSignedByServiceProvider,
-	ContractPendingSignByClient,
-	ContractSignedByBoth,
-	ContractPayinRequested,
-	ContractPayinCompleted,
-	ContractAdvancePending,
-	ContractAdvancePayoutCompleted,
-	ContractMilestonePending,
-	ContractMilestoneSubmitted,
-	ContractMilestoneInFeedback,
-	ContractMilestoneCompleted,
-	ContractPayoutRequested,
-	ContractPayoutCompleted,
-	ContractMilestonePayoutRequested,
-	ContractMilestonePayoutCompleted,
-	ContractInProcess,
-	ContractDisputeRegistered,
-	ContractDisputeCancelled,
-	ContractDisputeInProcess,
-	ContractDisputeEscalated,
-	ContractDisputeRejected,
-	ContractDisputeResolved,
-	ContractDisputeInArbitration,
-	ContractCompleted,
-	ContractClosed,
-	ContractTerminated,
-}
-
-
 export enum DunningEvent {
 	MessageSent,
 	MessageDelivered,
@@ -55,30 +18,18 @@ export enum ChatEvent {
 	MessageReceived
 }
 
-
 export enum EventType {
 	DunningEvent, KYCEvent
 }
 
-
-export enum KYCEvent {
-	BankAccountDetailsVerified,
-	BankAccountDetailsRejected,
-	AadhaarVerified,
-	AadhaarRejected,
-	PANVerified,
-	PANRejected
-}
-
-
 export type NeutronEvent = {
-	id?: string;
+	id: string;
 	uid: string;
 	type: EventType;
 	sandbox?: boolean;
 	event: DunningEvent;
 	payload?: EventPayload;
-	timestamp?: string;
+	timestamp: number;
 }
 
 export type EventPayload = {

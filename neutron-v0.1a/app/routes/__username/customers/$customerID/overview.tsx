@@ -1,13 +1,7 @@
 import { useLocation, useOutletContext } from "@remix-run/react";
-import { LoaderFunction } from "@remix-run/server-runtime";
 import { useMemo, useState } from "react";
-import DeleteButton from "~/components/inputs/buttons/DeleteButton";
-import ExportButton from "~/components/inputs/buttons/ExportButton";
-import FilterButton from "~/components/inputs/buttons/FilterButton";
 import NucleiPagination from "~/components/inputs/pagination/NucleiPagination";
 import { InvoiceOverdueStatus, InvoicePaidStatus, InvoiceSentStatus } from "~/components/layout/Statuses";
-import { getSingleDoc } from "~/firebase/queries.server";
-import { requireUser } from "~/session.server";
 
 
 // export const loader: LoaderFunction = async ({ request, params }) => {
@@ -99,8 +93,8 @@ export default function CustomerOverview() {
                     </div>
                 </div>
 
-                <div className={`hidden sm:table p-3 rounded-xl h-[75vh] max-h-[75vh] mt-1`}>
-                    <table className={`w-full max-h-[70vh] overflow-y-scroll sm:block table-auto text-sm text-left text-black`}>
+                <div className={`hidden sm:table p-3 rounded-xl h-full mt-1`}>
+                    <table className={`w-full h-full overflow-y-scroll sm:block table-auto text-sm text-left text-black`}>
                         <tbody className='sm:block table-row-group'>
                             <tr className={` bg-white border-b text-secondary-text sm:flex sm:flex-row w-full transition-all sticky top-0 pointer-events-none bg-bg-secondary-dark z-20  hover:bg-opacity-50  dark:hover:bg-gray-600`}>
 

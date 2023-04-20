@@ -1,18 +1,13 @@
 import { FormProvider, useForm, useWatch } from "react-hook-form";
-import EditButton from "~/components/inputs/buttons/EditButton";
-import NeutronRadioButton from "~/components/inputs/radios/NeutronRadioButton";
-import NeutronRadioGroup from "~/components/inputs/radios/NeutronRadioGroup";
-import AccentedToggle from "~/components/layout/AccentedToggleV1";
 import TallyLogo from '~/assets/images/tally_logo.svg';
 import ZohoLogo from '~/assets/images/zoho_logo.svg';
-import NucleiToggle from "~/components/inputs/NucleiToggle";
 import { useEffect, useState } from "react";
-import { AnimatePresence, m, motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import NucleiTextInput from "~/components/inputs/fields/NucleiTextInput";
 import { useFetcher, useOutletContext } from "@remix-run/react";
 import DefaultSpinner from "~/components/layout/DefaultSpinner";
 import { emitToast } from "~/utils/toasts/NeutronToastContainer";
-import { LoaderFunction } from "@remix-run/server-runtime";
+import type { LoaderFunction } from "@remix-run/server-runtime";
 import { requireUser } from "~/session.server";
 import { updateFirestoreDocFromData } from "~/firebase/queries.server";
 import DisconnectButton from "~/components/inputs/buttons/DisconnectButton";
@@ -70,7 +65,7 @@ export default function IntegrationsScreen() {
         if (zohoFetcher.data && zohoFetcher.state == "loading") {
             if (zohoFetcher.data['status'] == '1') {
                 if (zohoFetcher.formAction?.includes("sync")) {
-                    emitToast("Zoho Data Sync started", "The sync process can take upto 30 minutes. Until then, please do not close this window. ", "success")
+                    emitToast("Your Zoho Books data is being synced", "It may take upto 30 minutes for all your data to reflect on the platform ", "success")
                 }
             }
         }

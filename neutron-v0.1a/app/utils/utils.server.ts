@@ -4,6 +4,8 @@ import type { EmailPayloadStructure, WhatsappPayloadStructure } from "~/models/d
 import { templates } from "~/models/dunning"
 import { fetch } from "@remix-run/web-fetch";
 import { env } from "process"
+import { sendEvent } from "~/firebase/queries.server";
+import { DunningEvent, EventType, NeutronEvent } from "~/models/events";
 
 
 export const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
@@ -149,8 +151,8 @@ export function getScheduleForActionAndInvoice(invoice: any, senderInfo: { calle
 
         finalPayload = {
             id: randomUUID(),
-            callerID: senderInfo?.caller_id,
-            invoice_id: invoice?.invoice_id,
+            uid: senderInfo?.caller_id,
+            invoice_number: invoice?.invoice_number,
             workflow_id: senderInfo?.workflow_id,
             customer_id: customer?.contact_id,
             jobType: 1,
@@ -185,8 +187,8 @@ export function getScheduleForActionAndInvoice(invoice: any, senderInfo: { calle
     } else {
         finalPayload = {
             id: randomUUID(),
-            callerID: senderInfo?.caller_id,
-            invoice_id: invoice?.invoice_id,
+            uid: senderInfo?.caller_id,
+            invoice_number: invoice?.invoice_number,
             workflow_id: senderInfo?.workflow_id,
             customer_id: customer?.contact_id,
             jobType: 0,
@@ -213,6 +215,29 @@ export function getScheduleForActionAndInvoice(invoice: any, senderInfo: { calle
     }
 
     return { dunningPayload: finalPayload, targetDate: targetDate };
+}
+
+
+export function registerWorkflowTriggerForCustomer(businessID: string, customerID: string, workflowID: string) : boolean {
+    const workflowTriggeredEvent: NeutronEvent = {
+        id: randomUUID(),
+        uid: businessID,
+        sandbox: false,
+        type: EventType.DunningEvent,
+        event: DunningEvent.WorkflowTriggered,
+        payload: {
+            message: "Workflow Triggered",
+            data: {
+                customer_id: customerID,
+                workflow_id: workflowID
+            }
+        },
+        timestamp: moment.tz("Asia/Colombo").unix()
+    }
+
+    sendEvent(workflowTriggeredEvent, ['workflow_id', "customer_id"])
+
+    return true
 }
 
 

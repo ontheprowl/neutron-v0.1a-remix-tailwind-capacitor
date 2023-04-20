@@ -19,8 +19,8 @@ export const templates: { [x: string]: any } = {
 
 export type WhatsappPayloadStructure = {
     "id": string,
-    "callerID": string,
-    "invoice_id": string,
+    "uid": string,
+    "invoice_number": string,
     "workflow_id": string,
     "customer_id": string,
     "jobType": 0 | 1 | 2,
@@ -34,8 +34,8 @@ export type WhatsappPayloadStructure = {
 
 export type EmailPayloadStructure = {
     "id": string,
-    "callerID": string,
-    "invoice_id": string,
+    "uid": string,
+    "invoice_number": string,
     "workflow_id": string,
     "customer_id": string,
     "jobType": 0 | 1 | 2,
