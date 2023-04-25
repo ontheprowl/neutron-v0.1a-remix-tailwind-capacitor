@@ -110,7 +110,7 @@ export default function IntegrationDetails() {
                 <div className=" h-auto mx-20 flex flex-col">
                     {integrationType == "tally" ?
                         <TallyIntegrationComponent></TallyIntegrationComponent>
-                        : <ZohoIntegrationComponent></ZohoIntegrationComponent>
+                        : <ZohoIntegrationComponent onboarding></ZohoIntegrationComponent>
                     }
                 </div>
             } toggleModalFunction={setCredentialsModal}></NeutronModal>}

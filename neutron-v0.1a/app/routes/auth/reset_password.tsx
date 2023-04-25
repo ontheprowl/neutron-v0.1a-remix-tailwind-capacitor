@@ -1,23 +1,20 @@
-import { Link, useActionData, useLoaderData, useSubmit, useTransition } from "@remix-run/react";
+import { Link, useActionData, useLoaderData, useNavigate, useSearchParams, useSubmit, useTransition } from "@remix-run/react";
 
-import { firestore } from "../firebase/neutron-config.server";
 import { json } from "@remix-run/server-runtime";
 import { redirect } from "@remix-run/server-runtime";
 import React from "react";
 
 import { injectStyle } from 'react-toastify/dist/inject-style'
-import { FormProvider, useForm } from "react-hook-form";
-import { getAuth } from "firebase/auth";
-import { signIn } from "~/models/user.server";
-import { trackJuneEvent } from "~/analytics/june-config.server";
-import { createUserSession, logout, requireUser } from "~/session.server";
-import { getSingleDoc, updateFirestoreDocFromData } from "~/firebase/queries.server";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
+import { confirmPasswordReset, getAuth } from "firebase/auth";
+import { requireUser } from "~/session.server";
 import AuthPagesSidePanel from '~/assets/images/AuthPageSidePanel2.svg'
-import { doc } from "firebase/firestore";
 import { NeutronError } from "~/logging/NeutronError";
 import DefaultSpinner from "~/components/layout/DefaultSpinner";
 import { emitToast } from "~/utils/toasts/NeutronToastContainer";
 import NucleiTextInput from "~/components/inputs/fields/NucleiTextInput";
+import { auth } from "~/firebase/neutron-config.server";
+import { ValidationPatterns } from "~/utils/utils";
 
 export async function loader({ request }: { request: Request }) {
 
@@ -70,51 +67,24 @@ export async function loader({ request }: { request: Request }) {
 
 export async function action({ request }: { request: Request }) {
 
+  console.log("REQUEST RECEIVED")
   try {
     const data = await request.formData();
-    const email: string = data.get('email') as string;
     const password: string = data.get('password') as string;
-    const { user } = await signIn(email, password);
-    const ref = doc(firestore, '/metadata/', user.uid);
-    const metadata = await getSingleDoc(`/metadata/${user.uid}`)
-    const profileComplete = Boolean(metadata?.profileComplete);
+    const oobCode: string = data.get('oobCode') as string;
 
-    const firstLogin = Boolean(metadata?.firstLogin);
-
-
-
-    const token = await user.getIdToken();
-
-    if (user.emailVerified || email == "test@test.com" || email == "demo@neutron-demo.com" || email == "tester@neutronalpha.in") {
-      //* Send Welcome Email on First Login (SIB Template #13)
-      if (!firstLogin && user?.displayName) {
-        // const emailResult = await sendTeamEmail(email, user?.displayName, { "FIRSTNAME": user?.displayName }, 13);
-        const updateLoginMetadataRef = await updateFirestoreDocFromData({ firstLogin: true }, 'metadata', `${user.uid}`);
-
-      }
-      // * Identify user login event on June 
-
-
-      trackJuneEvent(user.uid, 'User Logged In', { ...user.metadata, ...metadata }, 'userEvents');
-
-
-      // // * First test redis caching
-      // const result = await cacheObject(`metadata/${user.uid}`, { ...user.metadata, ...metadata })
-      // if (result) {
-      //   console.log("Caching to Redis was successful...")
-      // }
-
-
-      // ? Can we refactor creating the User Session and defer to after onboarding? Create a branching path here.
-      return createUserSession({ request: request, metadata: { path: ref.path }, userId: token, remember: true, redirectTo: profileComplete ? `/dashboard` : `/onboarding/integrations` })
-    } else {
-      throw new Error("neutron-auth/email-not-verified");
+    console.log("PASSWORD: " + password + ", and OOBCODE: " + oobCode)
+    if (!oobCode) {
+      return json({ status: 0 })
     }
+    await confirmPasswordReset(auth, oobCode, password);
   } catch (e: any) {
     console.log(e)
     const neutronError = new NeutronError(e);
     return json({ type: neutronError.type, message: neutronError.message });
   }
+
+  return json({ status: 1 })
 
 }
 
@@ -123,11 +93,15 @@ export async function action({ request }: { request: Request }) {
 export default function Login() {
 
 
+  const [searchParams] = useSearchParams();
+
+  const oobCode = searchParams.get('oobCode') as string
+
   const loginButtonStates = (state: string) => {
     switch (state) {
       case "idle":
       case "loading":
-        return (<span>Log In</span>)
+        return (<span>Reset Password</span>)
       case "submitting":
         return (<DefaultSpinner size="regular"></DefaultSpinner>)
     }
@@ -142,16 +116,30 @@ export default function Login() {
   // const [user, loading, error] = useAuthState(auth);
 
   const methods = useForm();
+  let navigate = useNavigate();
 
-  const register = methods.register;
+  console.log(methods.formState.errors)
+
+  const control = methods.control
+  const password = useWatch({ control, name: 'password', defaultValue: '' })
+
   const handleSubmit = methods.handleSubmit;
 
   React.useEffect(() => {
     injectStyle();
-    const neutronError = actionData as NeutronError;
-    if (neutronError) {
-      emitToast(neutronError.message, null, "error")
+    if (actionData?.message) {
+      emitToast(actionData.message, null, "error")
 
+    }
+    if (actionData?.status == 1) {
+      emitToast("Password Reset Successfully!", null, "success")
+      setTimeout(() => {
+        navigate('/')
+      },5000)
+
+    }
+    if (actionData?.status == 0) {
+      emitToast("Password Reset Failed", "Please use the password reset link that has been sent to you via email", "success")
     }
 
 
@@ -181,25 +169,31 @@ export default function Login() {
                 <h1
                   className={`text-left sm:ml-0 font-gilroy-bold  text-[30px]`}
                 >
-                  Login
+                  Reset Password
                 </h1>
-                <h2 className="prose prose-sm font-gilroy-medium text-[#7D7D7D]">Welcome Back</h2>
+                <h2 className="prose prose-sm font-gilroy-medium text-[#7D7D7D]">Enter a new password</h2>
 
                 <div className=" flex flex-col sm:flex-row items-start space-y-4 sm:space-y-0 text-black  w-full justify-between">
-                  <div className="flex flex-col justify-items-start space-y-4 mt-5 w-full ">
+                  <div className="flex flex-col justify-items-start space-y-2 mt-5 w-full ">
                     <FormProvider {...methods}>
                       <form
                         className=" space-y-6"
                         onSubmit={handleSubmit((data) => {
 
                           const form = new FormData();
-                          form.append('email', data.email);
-                          form.append('password', data.password)
+                          form.append('password', data.password);
+                          form.append('oobCode', oobCode)
                           submit(form, { replace: true, method: 'post' })
                         })}
                       >
-                        <NucleiTextInput name={"email"} label={"Email"} placeholder="e.g : name@example.com" />
-                        <NucleiTextInput name={"password"} type="password" label={"Password"} placeholder="Enter Password" />
+                        <NucleiTextInput name={"password"} options={{
+                          minLength: { value: 8, message: 'Password should be at least 8 characters long' }
+                        }} type="password" label={"Password"} placeholder="Enter New Password" />
+                        <NucleiTextInput defaultValue={''} name={"confirm_password"} options={{
+                          validate: (v) => {
+                            return v == password || "Passwords do not match"
+                          }
+                        }} type="password" label={"Confirm Password"} placeholder="Confirm New Password" />
 
                         <div className="flex flex-col sm:flex-row  items-center justify-start space-y-4 sm:space-y-0 sm:space-x-4">
                           <button
@@ -230,9 +224,7 @@ export default function Login() {
                       </form>
                     </FormProvider>
 
-                    <div className="hover:underline font-gilroy-medium  w-full text-center decoration-white self-start mt-4 pt-4"><span className="text-black">Don't have an account?</span> <Link to="/signup" className=" text-[#6950ba] hover:underline hover:decoration-[#6950ba]">Sign Up </Link></div>
 
-                    <Link to="/forgot_password" className=" text-[#6950ba] hover:underline text-center hover:decoration-[#6950ba]"> Forgot your password? </Link>
 
                   </div>
 

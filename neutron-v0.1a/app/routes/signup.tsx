@@ -155,11 +155,6 @@ export default function Signup() {
                     </FormProvider>
 
                     <div className="hover:underline font-gilroy-medium  w-full text-center decoration-white self-start mt-4 pt-4"><span className="text-black">Already have an account?</span> <Link to="/login" className=" text-[#6950ba] hover:underline hover:decoration-[#6950ba]">Log In </Link></div>
-
-                    <div className="flex flex-row w-full">
-
-
-                    </div>
                   </div>
 
                 </div>

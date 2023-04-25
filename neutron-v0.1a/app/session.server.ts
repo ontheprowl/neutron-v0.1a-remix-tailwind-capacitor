@@ -87,6 +87,7 @@ export async function getUserSession(request: Request, autoRedirect?: boolean) {
     // }
     try {
       metadata = await getSingleDoc(path);
+      console.log("METADATA RETRIEVED SUCCESSFULLY")
     } catch (e) {
       return null;
     }

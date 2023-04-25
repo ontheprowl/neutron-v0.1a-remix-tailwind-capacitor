@@ -154,7 +154,8 @@ export function maskSensitiveField(value: string) {
  */
 export const ValidationPatterns = {
     emailValidationPattern: /^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$/,
-    projectNameValidationPattern: /^[a-z ' A-Z 0-9 ,]+$/
+    projectNameValidationPattern: /^[a-z ' A-Z 0-9 ,]+$/,
+    passwordValidationPattern: /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&-+=()])(?=\\S+$).{8, 16}$/,
 
 }
 
