@@ -21,6 +21,7 @@ import ActionType from "~/components/layout/ActionTypes";
 import NeutronModal from "~/components/layout/NeutronModal";
 import DunningTemplates from "~/components/layout/DunningTemplates";
 import NucleiCheckBox from "~/components/inputs/fields/NucleiCheckBox";
+import { register } from "react-scroll/modules/mixins/scroller";
 
 
 
@@ -42,42 +43,66 @@ export const action: ActionFunction = async ({ request, params }) => {
     const assigned_to: [name: string, email: string] = payload?.assigned_to?.split(",")
     const workflowCreationRef = await addFirestoreDocFromData(payload, 'workflows/business', session?.metadata?.businessID);
 
-    let dunningPayloads: Array<WhatsappPayloadStructure | EmailPayloadStructure> = [];
-    for (const customer of customers) {
-        // ? only the invoice IDs are being sent, not the invoices themselves
-        const customersReceivables = customer?.data?.invoices;
-        if (customersReceivables) {
-            for (const receivable of customersReceivables) {
-                console.log("THE RECEIVABLE IS BEING LOGGED HERE")
-                console.dir(receivable, { depth: null });
-                for (const action of actions) {
-                    if (action?.action_type == "automatic") {
-                        const { dunningPayload, targetDate } = getScheduleForActionAndInvoice(receivable, { caller_id: session?.metadata?.businessID, workflow_id: workflowCreationRef?.id, company_name: businessData?.business_name, assigned_to: assigned_to[0], assigned_to_contact: assigned_to[1] }, customer?.data, action);
-                        dunningPayloads.push(dunningPayload);
-                        customer['data']['dunning_starts_on'] = targetDate.toLocaleDateString('en-IN');
+    const workflowCreationRoutine = new Promise(async (resolve, reject) => {
+        let dunningPayloads: Array<WhatsappPayloadStructure | EmailPayloadStructure> = [];
+
+        for (const customer of customers) {
+            customer['data']['dunning_meta'] = {}
+            // ? only the invoice IDs are being sent, not the invoices themselves
+            const customersReceivables = customer?.data?.invoices;
+            if (customersReceivables) {
+                customer['data']['dunning_meta']['has_receivables'] = true
+                if (!customer['data']['email'] || !customer['data']['mobile']) {
+                    customer['data']['dunning_meta']['details_missing'] = true
+                    continue;
+                }
+                for (const receivable of customersReceivables) {
+                    for (const action of actions) {
+                        if (action?.action_type == "automatic") {
+                            const { dunningPayload, targetDate } = getScheduleForActionAndInvoice(receivable, { caller_id: session?.metadata?.businessID, workflow_id: workflowCreationRef?.id, company_name: businessData?.business_name, assigned_to: assigned_to[0], assigned_to_contact: assigned_to[1] }, customer?.data, action);
+                            //* Push only dunningPayloads that have a targetDate after today
+                            if (targetDate.getTime() > Date.now()) {
+                                dunningPayloads.push(dunningPayload);
+                                if (customer['data']['dunning_meta']['dunning_starts_on'] && targetDate.toLocaleDateString('en-IN') < customer['data']['dunning_meta']['dunning_starts_on']) {
+                                    customer['data']['dunning_meta']['dunning_starts_on'] = targetDate.toLocaleDateString('en-IN');
+                                } else {
+                                    customer['data']['dunning_meta']['dunning_starts_on'] = targetDate.toLocaleDateString('en-IN');
+                                }
+
+                            }
+                        }
                     }
                 }
+            } else {
+                customer['data']['dunning_meta']['has_receivables'] = false
             }
+            if (!customer['data']['dunning_meta']['dunning_starts_on']) {
+                customer['data']['dunning_meta']['has_dunnable_invoices'] = false
+            }
+
         }
+        // ? Need to build reactive infrastructure for invoices that are to be added later.
 
-    }
-    // ? Need to build reactive infrastructure for invoices that are to be added later.
+        executeDunningPayloads(dunningPayloads);
 
-    const dunningCallsResult = await executeDunningPayloads(dunningPayloads);
+        payload['customer_ids'] = customers?.map((customer) => {
+            registerWorkflowTriggerForCustomer(session?.metadata?.businessID, customer.id, workflowCreationRef.id)
+            return customer.id
+        });
 
-    payload['customer_ids'] = customers?.map((customer) => {
-        registerWorkflowTriggerForCustomer(session?.metadata?.businessID, customer.id, workflowCreationRef.id)
-        return customer.id
+
+        updateFirestoreDocFromData(payload, 'workflows/business', `${session?.metadata?.businessID}/${workflowCreationRef.id}`);
+        const updateObject: { [x: string]: any } = {};
+        updateObject[`${workflowCreationRef.id}`] = { id: workflowCreationRef.id, type: 'Workflow', index: payload?.name };
+        updateFirestoreDocFromData(updateObject, 'indexes', session?.metadata?.businessID);
+        resolve(redirect('/workflows'))
+
+    }).then(() => {
+        console.log("WORKFLOW CREATION ROUTINE COMPLETE...")
     });
-
-
-    const workflowUpdationRef = await updateFirestoreDocFromData(payload, 'workflows/business', `${session?.metadata?.businessID}/${workflowCreationRef.id}`);
-    const updateObject: { [x: string]: any } = {};
-    updateObject[`${workflowCreationRef.id}`] = { id: workflowCreationRef.id, type: 'Workflow', index: payload?.name };
-    const indexUpdateRef = await updateFirestoreDocFromData(updateObject, 'indexes', session?.metadata?.businessID);
-
-
     return redirect('/workflows');
+
+
 
 }
 
@@ -115,7 +140,11 @@ export default function CreateWorkflowScreen() {
     const trigger: string = useWatch({ control: workflowCreationForm.control, name: `actions.${currentAction}.trigger` })
     const template: string = useWatch({ control: workflowCreationForm.control, name: `actions.${currentAction}.template` })
     const assignedTo: string = useWatch({ control: workflowCreationForm.control, name: `assigned_to` })
+    const all_customers: boolean = useWatch({ control: workflowCreationForm.control, name: 'all_customers' })
 
+    useEffect(() => {
+        console.log("ALL_CUSTOMERS : " + all_customers)
+    }, [all_customers])
 
     useEffect(() => {
         if (actionType == "manual") {
@@ -128,13 +157,17 @@ export default function CreateWorkflowScreen() {
 
     return (<>
         <FormProvider {...workflowCreationForm}>
-            <form onSubmit={workflowCreationForm.handleSubmit((data) => {
+            <form onSubmit={workflowCreationForm.handleSubmit(async (data) => {
                 const customerIDsArray: Array<string | boolean> = Object.values(data['customers'])
                 data['customers'] = customerIDsArray.filter((customerID) => {
                     return (typeof customerID == 'string')
                 }).map((value) => {
                     return { id: value }
                 });
+
+                if (data?.all_customers) {
+                    data['customers'] = businessData?.customers.map((customer) => { return { id: customer?.contact_id } })
+                }
                 data['actions'] = localActions
                 const formData = new FormData();
 
@@ -303,11 +336,14 @@ export default function CreateWorkflowScreen() {
                         }} placeholder="Search for customers" className="w-full bg-transparent text-neutral-dark placeholder:text-neutral-dark border-transparent focus:border-transparent outline-none focus:ring-0 ring-0 " />
 
                     </div>
-                    {/* <input type="checkbox" className="text-primary-base mt-5 place-self-start mx-3 fill-primary-base accent-primary-base rounded-full outline-none" placeholder="" /> */}
-                    <div className="grid grid-flow-dense auto-rows-min grid-cols-3  p-3 mt-4 h-[400px] overflow-y-scroll">
+                    <div className="flex flex-row space-x-1 mt-2 w- px-6 justify-end items-center">
+                        <input type="checkbox" {...workflowCreationForm.register('all_customers')} className="text-primary-base mx-3 fill-primary-base accent-primary-base rounded-full outline-none" placeholder="" />
+                        <span className="font-gilroy-medium text-lg">Select All Customers</span>
+                    </div>
+                    <div className="grid grid-flow-dense auto-rows-min grid-cols-3 border-2 border-neutral-light rounded-xl mt-2  p-3 h-[400px] overflow-y-scroll">
                         {businessData?.customers.filter((customer) => (customer?.vendor_name?.toLowerCase().includes(customersFilter.toLowerCase()))).map((customer, index) => {
                             return (
-                                <NucleiCheckBox name={`customers.${customer?.contact_id}`} key={customer?.contact_id} value={customer?.contact_id} label={customer?.vendor_name} />)
+                                <NucleiCheckBox stateControl={all_customers} name={`customers.${customer?.contact_id}`} key={customer?.contact_id} value={customer?.contact_id} label={customer?.vendor_name} />)
                         })}
                     </div>
                     <div className="flex flex-row py-5 justify-end space-x-4">

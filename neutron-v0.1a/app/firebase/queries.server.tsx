@@ -113,6 +113,18 @@ export async function sendEvent(eventData: NeutronEvent, indexes?: string[], san
     }
 }
 
+export async function deleteEvents(path: string, indexes: string[]): Promise<void> {
+
+    try {
+        for (const index of indexes) {
+            await serverDatabase.remove(serverDatabase.ref(db, `0/${index}/${path}`))
+        }
+    }
+    catch (e) {
+        throw e
+    }
+}
+
 export async function fetchEvents(type: EventType, id?: string, byUser?: boolean): Promise<NeutronEvent[]> {
     let eventsQuery
     if (id) {

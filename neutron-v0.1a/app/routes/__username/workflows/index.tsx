@@ -1,11 +1,11 @@
 import { Link, useLoaderData, useNavigate, useSubmit } from "@remix-run/react";
-import type { ActionFunction, LoaderFunction} from "@remix-run/server-runtime";
+import type { ActionFunction, LoaderFunction } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
 import { useState } from "react";
 import DeleteButton from "~/components/inputs/buttons/DeleteButton";
 import NucleiPagination from "~/components/inputs/pagination/NucleiPagination";
 import NucleiZeroState from "~/components/layout/NucleiZeroState";
-import { deleteFieldsFromFirestoreDoc, deleteFirestoreDoc, getFirebaseDocs } from "~/firebase/queries.server";
+import { deleteEvents, deleteFieldsFromFirestoreDoc, deleteFirestoreDoc, getFirebaseDocs } from "~/firebase/queries.server";
 import { requireUser } from "~/session.server";
 
 
@@ -29,6 +29,8 @@ export const action: ActionFunction = async ({ request, params }) => {
             const ids: string[] = JSON.parse(formData.get('ids'));
             for (const id of ids) {
                 const deleteDocRef = await deleteFirestoreDoc('workflows', `business/${session?.metadata?.businessID}/${id}`);
+                const deleteEventsRef = await deleteEvents(id, ['workflow_id']);
+
             }
             const indexUpdateRef = await deleteFieldsFromFirestoreDoc(ids, 'indexes', session?.metadata?.businessID);
             break;

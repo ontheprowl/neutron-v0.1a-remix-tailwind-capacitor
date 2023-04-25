@@ -1,4 +1,4 @@
-import type { ActionFunction} from "@remix-run/server-runtime";
+import type { ActionFunction } from "@remix-run/server-runtime";
 import { json } from "@remix-run/server-runtime";
 import moment from "moment";
 import { getSingleDoc, setFirestoreDocFromData, updateFirestoreDocFromData, uploadBulkToCollection } from "~/firebase/queries.server";
@@ -91,7 +91,9 @@ export const action: ActionFunction = async ({ request, params }) => {
                                     customer_name: invoice.customer_name,
                                     customer_id: invoice.customer_id,
                                     total: invoice.total,
-                                    balance: invoice.balance
+                                    balance: invoice.balance,
+                                    payment_terms: invoice?.payment_terms,
+                                    payment_terms_label: invoice?.payment_terms_label
                                 }
 
                             })
@@ -121,7 +123,9 @@ export const action: ActionFunction = async ({ request, params }) => {
                                     customer_name: invoice.customer_name,
                                     customer_id: invoice.customer_id,
                                     total: invoice.total,
-                                    balance: invoice.balance
+                                    balance: invoice.balance,
+                                    payment_terms: invoice?.payment_terms,
+                                    payment_terms_label: invoice?.payment_terms_label
                                 }
 
                             })
@@ -210,7 +214,9 @@ export const action: ActionFunction = async ({ request, params }) => {
                                     customer_name: invoice.customer_name,
                                     customer_id: invoice.customer_id,
                                     total: invoice.total,
-                                    balance: invoice.balance
+                                    balance: invoice.balance,
+                                    payment_terms: invoice?.payment_terms,
+                                    payment_terms_label: invoice?.payment_terms_label
                                 }
 
                             })
@@ -218,6 +224,7 @@ export const action: ActionFunction = async ({ request, params }) => {
                             return { page_result: reducedInvoices, has_more_page: response?.page_context?.has_more_page }
 
                         });
+
 
                         const oldestPaidDate = paidInvoices?.sort((a, b) => {
                             if (a?.date && b?.date) {

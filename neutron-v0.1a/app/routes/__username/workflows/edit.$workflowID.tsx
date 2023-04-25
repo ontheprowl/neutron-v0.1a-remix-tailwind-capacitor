@@ -1,5 +1,5 @@
-import { useLoaderData, useLocation, useOutletContext, useSubmit } from "@remix-run/react";
-import { useEffect, useState } from "react";
+import { useFetcher, useLoaderData, useLocation, useNavigate, useOutletContext, useSubmit } from "@remix-run/react";
+import { useEffect, useMemo, useState } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import DeleteButton from "~/components/inputs/buttons/DeleteButton";
 import SaveButton from "~/components/inputs/buttons/SaveButton";
@@ -14,8 +14,12 @@ import { ActionFunction, LoaderFunction, json, redirect } from "@remix-run/serve
 import { requireUser } from "~/session.server";
 
 import { addFirestoreDocFromData, getSingleDoc, updateFirestoreDocFromData } from "~/firebase/queries.server";
-import { executeDunningPayloads, getScheduleForActionAndInvoice } from "~/utils/utils.server";
+import { executeDunningPayloads, getScheduleForActionAndInvoice, registerWorkflowTriggerForCustomer } from "~/utils/utils.server";
 import type { EmailPayloadStructure, WhatsappPayloadStructure } from "~/models/dunning";
+import NucleiCheckBox from "~/components/inputs/fields/NucleiCheckBox";
+import ActionType from "~/components/layout/ActionTypes";
+import DunningTemplates from "~/components/layout/DunningTemplates";
+import NeutronModal from "~/components/layout/NeutronModal";
 
 
 
@@ -23,42 +27,76 @@ import type { EmailPayloadStructure, WhatsappPayloadStructure } from "~/models/d
 export const action: ActionFunction = async ({ request, params }) => {
 
     const session = await requireUser(request);
-    const workflowID = params.workflowID;
+    const workflowID: string = params.workflowID as string;
 
     console.log("REQUEST RECEIVED");
     const formData = await request.formData();
-    const payload = JSON.parse(formData.get("payload"));
-
+    const payload: { [x: string]: any } = JSON.parse(formData.get("payload"));
     // // **  For invoices that exist already, calculate all trigger conditions ( cron schedules ), filter cron schedules that are after today, then procedurally queue messages right now. 
 
     const businessData = await getSingleDoc(`businesses/${session?.metadata?.businessID}`);
 
-    const customers = payload?.customers
+    const customers: Array<{ id: string, data: { [x: string]: any } }> = payload?.customers
     const actions = payload?.actions;
     const assigned_to: [name: string, email: string] = payload?.assigned_to?.split(",")
 
-    let dunningPayloads: Array<WhatsappPayloadStructure | EmailPayloadStructure> = [];
-    for (const customer of customers) {
-        const customersReceivables = customer?.data?.invoices;
-        if (customersReceivables) {
-            for (const receivable of customersReceivables) {
-                for (const action of actions) {
-                    if (action?.action_type == "automatic") {
-                        const dunningPayload = getScheduleForActionAndInvoice(receivable, { caller_id: session?.metadata?.businessID, company_name: businessData?.business_name, assigned_to: assigned_to[0], assigned_to_contact: assigned_to[1] }, customer?.data, action);
-                        dunningPayloads.push(dunningPayload);
+    const workflowCreationRoutine = new Promise(async (resolve, reject) => {
+        let dunningPayloads: Array<WhatsappPayloadStructure | EmailPayloadStructure> = [];
+
+        for (const customer of customers) {
+            customer['data']['dunning_meta'] = {}
+            // ? only the invoice IDs are being sent, not the invoices themselves
+            const customersReceivables = customer?.data?.invoices;
+            if (customersReceivables) {
+                customer['data']['dunning_meta']['has_receivables'] = true
+                if (!customer['data']['email'] || !customer['data']['mobile']) {
+                    customer['data']['dunning_meta']['details_missing'] = true
+                    continue;
+                }
+                for (const receivable of customersReceivables) {
+                    for (const action of actions) {
+                        if (action?.action_type == "automatic") {
+                            const { dunningPayload, targetDate } = getScheduleForActionAndInvoice(receivable, { caller_id: session?.metadata?.businessID, workflow_id: workflowID, company_name: businessData?.business_name, assigned_to: assigned_to[0], assigned_to_contact: assigned_to[1] }, customer?.data, action);
+                            //* Push only dunningPayloads that have a targetDate after today
+                            if (targetDate.getTime() > Date.now()) {
+                                dunningPayloads.push(dunningPayload);
+                                if (customer['data']['dunning_meta']['dunning_starts_on'] && targetDate.toLocaleDateString('en-IN') < customer['data']['dunning_meta']['dunning_starts_on']) {
+                                    customer['data']['dunning_meta']['dunning_starts_on'] = targetDate.toLocaleDateString('en-IN');
+                                } else {
+                                    customer['data']['dunning_meta']['dunning_starts_on'] = targetDate.toLocaleDateString('en-IN');
+                                }
+
+                            }
+                        }
                     }
                 }
+            } else {
+                customer['data']['dunning_meta']['has_receivables'] = false
             }
+            if (!customer['data']['dunning_meta']['dunning_starts_on']) {
+                customer['data']['dunning_meta']['has_dunnable_invoices'] = false
+            }
+
         }
+        // ? Need to build reactive infrastructure for invoices that are to be added later.
 
-    }
-    // ? Need to build reactive infrastructure for invoices that are to be added later.
+        executeDunningPayloads(dunningPayloads);
 
-    const dunningCallsResult = await executeDunningPayloads(dunningPayloads);
+        payload['customer_ids'] = customers?.map((customer) => {
+            registerWorkflowTriggerForCustomer(session?.metadata?.businessID, customer.id, workflowID)
+            return customer.id
+        });
 
-    const workflowCreationRef = await updateFirestoreDocFromData(payload, 'workflows/business', `${session?.metadata?.businessID}/${workflowID}`);
 
+        updateFirestoreDocFromData(payload, 'workflows/business', `${session?.metadata?.businessID}/${workflowID}`);
+        resolve(redirect('/workflows'))
+
+    }).then(() => {
+        console.log("WORKFLOW CREATION ROUTINE COMPLETE...")
+    });
     return redirect('/workflows');
+
+
 
 }
 
@@ -76,25 +114,42 @@ export default function CreateWorkflowScreen() {
 
     const { metadata, businessData } = useOutletContext();
 
+    const fetcher = useFetcher();
 
-    const workflowData = useLoaderData();
-    console.log(workflowData)
+    const receivables = useMemo(() => { return [...new Set([...businessData?.receivables['30d'], ...businessData?.receivables['60d'], ...businessData?.receivables['90d'], ...businessData?.receivables['excess']])] }, [businessData?.receivables])
+    const paid = useMemo(() => { return [...new Set([...businessData?.paid['excess'], ...businessData?.paid['90d'], ...businessData?.paid['60d'], ...businessData?.paid['30d']])] }, [businessData?.paid])
+
+    const invoices = useMemo(() => [...receivables, ...paid], [receivables, paid]);
+
     const { pathname } = useLocation();
     const submit = useSubmit();
+
+    const workflowData = useLoaderData()
+
+    let navigate = useNavigate();
 
     const workflowCreationForm = useForm({ defaultValues: workflowData });
 
 
     const [currentAction, setCurrentAction] = useState(0)
-    const [localActions, setCurrentActions] = useState<Array<{ [x: string]: any }>>();
-    const [editIndex, setEditIndex] = useState<number | null>(null);
-    const [customersFilter, setCustomersFilter] = useState('');
 
-    const [tags, setTags] = useState<string[]>([])
 
     const actions: Array<{ [x: string]: any }> = useWatch({ control: workflowCreationForm.control, name: 'actions' })
-    const actionType = useWatch({ control: workflowCreationForm.control, name: `actions.${currentAction}.action_type` })
+    const actionType: string = useWatch({ control: workflowCreationForm.control, name: `actions.${currentAction}.action_type` })
+    const trigger: string = useWatch({ control: workflowCreationForm.control, name: `actions.${currentAction}.trigger` })
+    const template: string = useWatch({ control: workflowCreationForm.control, name: `actions.${currentAction}.template` })
+    const assignedTo: string = useWatch({ control: workflowCreationForm.control, name: `assigned_to` })
+    const all_customers: boolean = useWatch({ control: workflowCreationForm.control, name: 'all_customers' })
 
+    const [localActions, setCurrentActions] = useState<Array<{ [x: string]: any }>>(actions);
+    const [editIndex, setEditIndex] = useState<number | null>(null);
+    const [customersFilter, setCustomersFilter] = useState('');
+    const [templatePreviewModal, setTemplatePreviewModal] = useState(false);
+    const [tags, setTags] = useState<string[]>([])
+
+    useEffect(() => {
+        console.dir(actions, { depth: null })
+    }, [actions])
 
     useEffect(() => {
         if (actionType == "manual") {
@@ -104,38 +159,49 @@ export default function CreateWorkflowScreen() {
         }
     }, [actionType])
 
-    useEffect(()=>{
-        setCurrentActions(actions);
-    },[actions])
 
-    return (
+    return (<>
         <FormProvider {...workflowCreationForm}>
-            <form onSubmit={workflowCreationForm.handleSubmit((data) => {
-                data['customers'] = data['customers'].filter((customer: { id: string | boolean }) => {
-                    return (typeof customer.id == 'string')
+            <form onSubmit={workflowCreationForm.handleSubmit(async (data) => {
+                const customerIDsArray: Array<string | boolean> = Object.values(data['customers'])
+                data['customers'] = customerIDsArray.filter((customerID) => {
+                    return (typeof customerID == 'string')
+                }).map((value) => {
+                    return { id: value }
                 });
+
+                if (data?.all_customers) {
+                    data['customers'] = businessData?.customers.map((customer) => { return { id: customer?.contact_id } })
+                }
                 data['actions'] = localActions
                 const formData = new FormData();
 
                 // ? Is there a better solution than sending invoices to be dunned from client to server?
 
                 for (const customer of data['customers']) {
+
                     const customerDetails = businessData?.customers?.find((customerData) => { return (customerData?.contact_id == customer?.id) });
                     customer['data'] = customerDetails;
+
+                    // * Retrieve invoices for this customer
+                    customer['data']['invoices'] = invoices.filter((invoice) => invoice?.customer_id == customerDetails?.contact_id);
                 }
 
                 formData.append('payload', JSON.stringify(data))
                 formData.append('customersData', JSON.stringify(data));
+                console.dir(data, { depth: null })
                 submit(formData, { method: "post" })
             })} className=" h-full flex flex-col space-y-4">
                 <div className="flex flex-row justify-between">
                     <div id="page_title" className="flex flex-col">
-                        <h1 className="text-lg">Edit Workflow</h1>
-                        <span className="text-neutral-base text-sm font-gilroy-medium"> Home - Workflows - Edit Workflow</span>
+                        <h1 className="text-lg">Create Workflow</h1>
+                        <span className="text-neutral-base text-sm font-gilroy-medium"> Home - Workflows - Create Workflow</span>
                     </div>
                     <div className="flex flex-row space-x-4">
                         <SaveButton submit />
-                        <DeleteButton />
+                        <DeleteButton text={"Discard"} onClick={() => {
+                            navigate(-1)
+                        }} />
                     </div>
                 </div>
 
@@ -150,22 +216,22 @@ export default function CreateWorkflowScreen() {
                         </NucleiDropdownInput>
                     </div>
 
-                    <NucleiTextInput name={"tags"} label={"Tags"} placeholder={"E.g: Pune Customers, High Priority"} />
+                    <NucleiTextInput name={"tags"} label={"Tags"} optional placeholder={"E.g: Pune Customers, High Priority"} />
                     {/* <div className="flex flex-row space-x-4 mt-4">
-                        <NucleiTagsInput name={"tags"} label={"Tags"} placeholder={"E.g: High Priority, Pune Customers, etc"} tagsState={[tags,setTags]}/>
-                    </div> */}
+                    <NucleiTagsInput name={"tags"} label={"Tags"} placeholder={"E.g: High Priority, Pune Customers, etc"} tagsState={[tags,setTags]}/>
+                </div> */}
 
                 </div>
 
                 <div id="workflow_settings" className="h-auto flex p-6 flex-col space-y-4 bg-white shadow-lg rounded-xl">
                     <h1 className="text-lg">Workflow Details</h1>
-                    <div className="flex flex-row space-x-6 mt-4">
+                    <div className="flex flex-row transition-all space-x-6 mt-4">
                         <NucleiDropdownInput name={`actions.${currentAction}.trigger`} label={"Trigger"} placeholder={"The action's trigger condition"} >
-                            <option value={"After Issue Date"}>After Issue Date</option>
                             <option value={"Before Due Date"}>Before Due Date</option>
+                            <option value={"On Due Date"}>On Due Date</option>
                             <option value={"After Due Date"}>After Due Date</option>
                         </NucleiDropdownInput>
-                        <NucleiTextInput name={`actions.${currentAction}.days`} label="Days" placeholder="E.g: 20 Days" />
+                        {trigger != "On Due Date" && <NucleiTextInput name={`actions.${currentAction}.days`} label="Days" placeholder="E.g: 20 " />}
                         <NeutronRadioGroup>
                             <NeutronRadioButton noIcon name={`actions.${currentAction}.action_type`} value={"automatic"} heading={"Automatic"} no={1} />
                             <NeutronRadioButton noIcon name={`actions.${currentAction}.action_type`} value={"manual"} heading={"Manual"} no={2} />
@@ -183,33 +249,42 @@ export default function CreateWorkflowScreen() {
                                     <option value={"Whatsapp"}>Whatsapp</option>
                                 </>}
                         </NucleiDropdownInput>
-                        {actionType == "automatic" &&
+                        {actionType === "automatic" &&
                             <NucleiDropdownInput name={`actions.${currentAction}.template`} label={"Template"} placeholder={"Which template do you wish to send out in your reminder?"} >
                                 <option value={"Early Reminder"}>Early Reminder</option>
                                 <option value={"On Due Date"}>On Due Date</option>
                                 <option value={"Overdue Reminder"}>Overdue Reminder</option>
-                            </NucleiDropdownInput>}
+                            </NucleiDropdownInput>
+
+                        }
                         {actionType == "manual" && <NucleiDropdownInput name={`actions.${currentAction}.assigned_to`} label={"Person In Charge"} placeholder={"Who are you assigning this task to?"} >
                             {businessData?.team?.map((member) => {
                                 return (<option key={member?.email} value={member?.email}>{member?.name}</option>)
                             })}
                         </NucleiDropdownInput>}
                         <NucleiTextInput name={`actions.${currentAction}.time`} type="time" label={"Time"} placeholder={"When do you want to schedule this action?"} />
+
                     </div>
-                    <button type="button" className="bg-primary-base flex flex-row space-x-2 justify-center transition-all hover:bg-primary-dark active:bg-primary-dark focus:bg-primary-dark max-w-fit items-center  text-white p-3 rounded-lg" onClick={() => {
-                        localActions[currentAction] = actions[currentAction];
-                        workflowCreationForm.resetField(`actions.${currentAction}.action`);
-                        workflowCreationForm.resetField(`actions.${currentAction}.template`);
-                        workflowCreationForm.resetField(`actions.${currentAction}.time`);
-                        workflowCreationForm.resetField(`actions.${currentAction}.trigger`);
-                        workflowCreationForm.resetField(`actions.${currentAction}.days`);
-                        setEditIndex(null);
-                        setCurrentAction(currentAction + 1);
-                    }}>
-                        <img src={PlusCircleIcon} alt="plus_circle" />
-                        <span className="transition-all self-center">{editIndex != null ? 'Save Edit' : 'Add Action'}</span>
-                    </button>
-                    <ul className="flex flex-col space-y-4 h-[300px] overflow-y-scroll">
+                    <div className="flex flex-row space-x-4 justify-center">
+                        {actionType === "automatic" && <button type="button" className="p-3 px-6 transition-all text-primary-base border-2 border-primary-base max-w-fit rounded-xl hover:border-primary-dark hover:text-primary-dark mx-2" onClick={() => { setTemplatePreviewModal(!templatePreviewModal) }}>Preview</button>
+                        }
+                        <button type="button" className="bg-primary-base flex flex-row space-x-2 justify-center transition-all hover:bg-primary-dark active:bg-primary-dark focus:bg-primary-dark max-w-fit items-center  text-white p-3 rounded-lg" onClick={() => {
+                            // if (trigger == "On Due Date") actions[currentAction].days = '0';
+                            localActions[currentAction] = actions[currentAction];
+                            workflowCreationForm.resetField(`actions.${currentAction}.action`);
+                            workflowCreationForm.resetField(`actions.${currentAction}.template`);
+                            workflowCreationForm.resetField(`actions.${currentAction}.time`);
+                            workflowCreationForm.resetField(`actions.${currentAction}.trigger`);
+                            workflowCreationForm.resetField(`actions.${currentAction}.days`);
+                            setEditIndex(null);
+                            setCurrentAction(currentAction + 1);
+                        }}>
+                            <img src={PlusCircleIcon} alt="plus_circle" />
+                            <span className="transition-all self-center">{editIndex != null ? 'Save Edit' : 'Add Action'}</span>
+                        </button>
+                    </div>
+
+                    <ul className="flex flex-col space-y-4 h-auto overflow-y-scroll">
                         {localActions?.map((action, index) => {
                             return (
                                 <li className={`transition-all border-2 ${editIndex == index ? ' border-dashed border-primary-dark bg-primary-light' : 'border-neutral-light'}  p-6 rounded-lg w-full`} key={index}>
@@ -218,11 +293,11 @@ export default function CreateWorkflowScreen() {
                                             <img src={WorkflowMessageIcon} alt="workflow_message_icon"></img>
                                             <div className="flex flex-col space-y-4">
                                                 <span className="font-gilroy-bold text-lg">{action?.action}</span>
-                                                <span className="font-gilroy-medium text-base">{action?.days} days {action?.trigger}</span>
+                                                <span className="font-gilroy-medium text-base">{action?.days ? ` ${action?.days} days ${action?.trigger}` : `${action?.trigger}`}</span>
                                             </div>
                                         </div>
                                         <div className="flex flex-row w-1/4 items-center space-x-4">
-                                            <span className="p-3 rounded-xl bg-success-light uppercase text-success-dark">{action?.action_type}</span>
+                                            <ActionType actionType={action?.action_type} />
                                         </div>
                                         <div className="flex flex-row w-1/4 items-center space-x-4">
                                             <div className="flex flex-col space-y-4">
@@ -266,21 +341,34 @@ export default function CreateWorkflowScreen() {
                         }} placeholder="Search for customers" className="w-full bg-transparent text-neutral-dark placeholder:text-neutral-dark border-transparent focus:border-transparent outline-none focus:ring-0 ring-0 " />
 
                     </div>
-                    <div className="grid grid-flow-dense auto-rows-min grid-cols-3  p-3 mt-4 h-[400px] overflow-y-scroll">
-                        {businessData?.customers.filter((customer) => (customer?.vendor_name.includes(customersFilter))).map((customer, index) => {
+                    <div className="flex flex-row space-x-1 mt-2 w- px-6 justify-end items-center">
+                        <input type="checkbox" {...workflowCreationForm.register('all_customers')} className="text-primary-base mx-3 fill-primary-base accent-primary-base rounded-full outline-none" placeholder="" />
+                        <span className="font-gilroy-medium text-lg">Select All Customers</span>
+                    </div>
+                    <div className="grid grid-flow-dense auto-rows-min grid-cols-3 border-2 border-neutral-light rounded-xl mt-2  p-3 h-[400px] overflow-y-scroll">
+                        {businessData?.customers.filter((customer) => (customer?.vendor_name?.toLowerCase().includes(customersFilter.toLowerCase()))).map((customer, index) => {
                             return (
-                                <div className="flex flex-row items-center space-x-4" key={index}>
-                                    <input {...workflowCreationForm.register(`customers.${index}.id`)} value={customer?.contact_id} className="text-primary-base fill-primary-base accent-primary-base rounded-full outline-none" type="checkbox" placeholder="" />
-                                    <span className="font-gilroy-medium text-lg">{customer?.vendor_name}</span>
-                                </div>)
+                                <NucleiCheckBox stateControl={all_customers} name={`customers.${customer?.contact_id}`} key={customer?.contact_id} value={customer?.contact_id} label={customer?.vendor_name} />)
                         })}
+                    </div>
+                    <div className="flex flex-row py-5 justify-end space-x-4">
+                        <SaveButton submit />
+                        <DeleteButton text={"Discard"} onClick={() => {
+                            navigate(-1)
+                        }} />
                     </div>
 
                 </div>
 
 
+
             </form>
-        </FormProvider >)
+
+        </FormProvider>
+
+        {templatePreviewModal && <NeutronModal type="email" heading={<h1> Template Name : {template} </h1>} body={<DunningTemplates templateName={template} actionType={actionType} sender={{ name: businessData?.business_name, poc: assignedTo.split(",")[0], poc_contact: assignedTo.split(",")[1] }} />} toggleModalFunction={setTemplatePreviewModal} />}
+    </>
+    )
 
 }
 

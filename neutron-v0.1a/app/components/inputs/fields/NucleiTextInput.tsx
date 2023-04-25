@@ -20,7 +20,7 @@ export default function NucleiTextInput({ name, options, label, placeholder, opt
 
     const [hasError, setHasError] = useState(false)
 
-    const hasRealError = name in errors && errors[name].message != "";
+    const hasRealError = name in errors && errors[name]?.message != "";
 
 
     useEffect(() => {

@@ -15,7 +15,6 @@ export default function CustomerDetails() {
 
     const workflow: { customers: Array<{ [x: string]: any }> } = useOutletContext();
 
-    console.log(workflow?.customers)
 
     const [startOffset, setStart] = useState(0);
     const [endOffset, setEnd] = useState(50);
@@ -28,6 +27,29 @@ export default function CustomerDetails() {
             return 1
         }
     };
+
+    const generateCustomerDunningStatus = (dunningMeta: { [x: string]: any }) => {
+
+        if (dunningMeta?.dunning_starts_on) {
+            return <div className="text-success-dark bg-success-light p-3 rounded-xl font-gilroy-medium">RUNNING</div>
+        } else {
+            if (dunningMeta?.is_paused) {
+                return <div className="text-warning-dark bg-warning-light p-3 font-gilroy-medium rounded-xl">PAUSED</div>
+            } else if (dunningMeta?.details_missing) {
+                return <div className="text-error-dark bg-error-light p-3 rounded-xl font-gilroy-medium">DETAILS MISSING</div>
+            } else if (!dunningMeta?.has_receivables) {
+                return <div className="text-primary-dark bg-primary-light p-3 font-gilroy-medium rounded-xl">NO RECEIVABLES</div>
+
+            } else if (!dunningMeta?.has_dunnable_invoices) {
+                return <div className="text-primary-dark bg-primary-light p-3 font-gilroy-medium rounded-xl">NO APPLICABLE INVOICES</div>
+
+            }
+
+        }
+
+    }
+
+
 
     return <div id="workflow_customers_table" className="bg-white shadow-lg rounded-xl justify-between h-full flex flex-col">
         <div id="table_functions" className="flex flex-row items-center  p-5 py-3  justify-between h-auto">
@@ -92,10 +114,10 @@ export default function CustomerDetails() {
 
                                 </td>
                                 <td className="px-2 py-4 font-gilroy-regular  w-full text-center ">
-                                    {customer?.data?.dunning_starts_on}
+                                    {customer?.data?.dunning_meta?.dunning_starts_on ? customer?.data?.dunning_meta?.dunning_starts_on : 'No reminders scheduled'}
                                 </td>
                                 <td className="  px-2 py-4 w-full font-gilroy-regular justify-center flex flex-row  text-center">
-                                    {customer?.data?.dunning_starts_on ? customer?.data?.is_paused ? <div className="text-warning-dark bg-warning-light p-3 font-gilroy-medium rounded-xl">PAUSED</div> : <div className="text-success-dark bg-success-light p-3 rounded-xl font-gilroy-medium">RUNNING</div> : <div className="text-error-dark bg-error-light p-3 rounded-xl font-gilroy-medium">DETAILS MISSING</div>}
+                                    {generateCustomerDunningStatus(customer?.data?.dunning_meta)}
                                 </td>
                             </tr>
                         )
