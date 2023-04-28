@@ -40,7 +40,7 @@ export default function WorkflowsDetailsScreen() {
 
         </div>
 
-        <div id="settings_panel" className="h-full overflow-y-scroll">
+        <div id="workflow_detail_screens" className="h-full flex flex-col overflow-y-scroll">
             <Outlet context={{ ...workflowData, id: workflowID }}></Outlet>
         </div>
 

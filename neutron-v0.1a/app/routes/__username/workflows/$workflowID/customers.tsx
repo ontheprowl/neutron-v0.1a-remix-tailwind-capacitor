@@ -3,7 +3,7 @@ import { useState } from "react";
 import DeleteButton from "~/components/inputs/buttons/DeleteButton";
 import EditButton from "~/components/inputs/buttons/EditButton";
 import NucleiPagination from "~/components/inputs/pagination/NucleiPagination";
-import { CustomerOnTimeStatus, InvoiceClearedStatus } from "~/components/layout/Statuses";
+import { CustomerOnTimeStatus, InvoicePaidStatus } from "~/components/layout/Statuses";
 
 
 
@@ -51,7 +51,7 @@ export default function CustomerDetails() {
 
 
 
-    return <div id="workflow_customers_table" className="bg-white shadow-lg rounded-xl justify-between h-full flex flex-col">
+    return <div id="workflow_customers_table" className="bg-white shadow-lg rounded-xl justify-start h-screen flex flex-col">
         <div id="table_functions" className="flex flex-row items-center  p-5 py-3  justify-between h-auto">
             <div className="flex flex-row bg-[#f5f5f5]  h-10 space-x-4 p-2 w-2/5  rounded-lg">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -72,7 +72,7 @@ export default function CustomerDetails() {
             </div>
         </div>
 
-        <div className={`hidden sm:table p-3 rounded-xl h-[75vh] max-h-[75vh] mt-1`}>
+        <div className={`hidden sm:table p-3 rounded-xl h-[70vh] min-h-[50vh] mt-1`}>
             <table className={`w-full max-h-[70vh] overflow-y-scroll sm:block table-auto text-sm text-left text-black`}>
 
                 <tbody className='sm:block table-row-group'>
@@ -80,7 +80,7 @@ export default function CustomerDetails() {
 
                         <th scope="row" className="px-2 py-4 w-full font-medium text-left whitespace-nowrap">
                             <div className="flex flex-row w-auto justify-start space-x-4">
-                                <input type="checkbox"></input>
+                                {/* <input type="checkbox"></input> */}
                                 <h1>COMPANY NAME</h1>
 
                             </div>
@@ -103,7 +103,7 @@ export default function CustomerDetails() {
                             <tr key={customer?.id} className={`border-b border-dashed h-24 sm:flex sm:flex-row sm:justify-evenly sm:items-center w-full border-gray-400 dark:bg-gray-800 dark:border-gray-700 transition-all hover:bg-bg-primary-dark hover:bg-opacity-50 hover:border-primary-dark`}>
                                 <td scope="row" className="px-2 py-4 w-full font-gilroy-regular text-left">
                                     <div className="flex flex-row w-auto justify-start items-center space-x-4">
-                                        <input type="checkbox"></input>
+                                        {/* <input type="checkbox"></input> */}
                                         <Link to={`/customers/${customer?.id}/overview`} preventScrollReset><span className="w-full break-words ">{customer?.data?.vendor_name}</span></Link>
                                     </div>
                                 </td>
@@ -125,7 +125,7 @@ export default function CustomerDetails() {
                 </tbody>
             </table>
         </div>
-        <div className="flex flex-row justify-end items-center px-3 mb-2 h-12 w-full self-end" id="invoices_pagination">
+        <div className="flex flex-row justify-end items-center px-3 mb-2 h-12 w-full self-end justify-self-end" id="invoices_pagination">
             {/* <select className="bg-[#f5f5f5] p-2 rounded-xl text-secondary-text outline-none">
                 <option value="" disabled selected className="hidden">Actions</option>
                 <option>View</option>

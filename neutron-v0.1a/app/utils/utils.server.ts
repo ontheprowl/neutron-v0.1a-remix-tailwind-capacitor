@@ -98,7 +98,6 @@ export async function executeDunningPayloads(dunningPayloads: Array<WhatsappPayl
         })
         delay(60);
         const result = await queueDunningOperationRequest.json();
-        console.dir(result, { depth: null })
     }
     return []
 }
@@ -218,7 +217,7 @@ export function getScheduleForActionAndInvoice(invoice: any, senderInfo: { calle
 }
 
 
-export function registerWorkflowTriggerForCustomer(businessID: string, customerID: string, workflowID: string) : boolean {
+export function registerWorkflowTriggeredEventForCustomer(businessID: string, customerID: string): boolean {
     const workflowTriggeredEvent: NeutronEvent = {
         id: randomUUID(),
         uid: businessID,
@@ -229,13 +228,36 @@ export function registerWorkflowTriggerForCustomer(businessID: string, customerI
             message: "Workflow Triggered",
             data: {
                 customer_id: customerID,
+                workflow_id: ''
+            }
+        },
+        timestamp: moment.tz("Asia/Colombo").unix()
+    }
+
+    sendEvent(workflowTriggeredEvent, ["customer_id"])
+    sendEvent(workflowTriggeredEvent)
+
+    return true
+}
+
+export function registerWorkflowTriggeredEventForWorkflow(businessID: string, workflowID: string): boolean {
+    const workflowTriggeredEvent: NeutronEvent = {
+        id: randomUUID(),
+        uid: businessID,
+        sandbox: false,
+        type: EventType.DunningEvent,
+        event: DunningEvent.WorkflowTriggered,
+        payload: {
+            message: "Workflow Triggered",
+            data: {
+                customer_id: '',
                 workflow_id: workflowID
             }
         },
         timestamp: moment.tz("Asia/Colombo").unix()
     }
 
-    sendEvent(workflowTriggeredEvent, ['workflow_id', "customer_id"])
+    sendEvent(workflowTriggeredEvent, ["workflowID"])
 
     return true
 }

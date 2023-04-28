@@ -14,7 +14,7 @@ import { ActionFunction, LoaderFunction, json, redirect } from "@remix-run/serve
 import { requireUser } from "~/session.server";
 
 import { addFirestoreDocFromData, getSingleDoc, updateFirestoreDocFromData } from "~/firebase/queries.server";
-import { executeDunningPayloads, getScheduleForActionAndInvoice, registerWorkflowTriggerForCustomer } from "~/utils/utils.server";
+import { executeDunningPayloads, getScheduleForActionAndInvoice, registerWorkflowTriggeredEventForCustomer, registerWorkflowTriggeredEventForWorkflow } from "~/utils/utils.server";
 import type { EmailPayloadStructure, WhatsappPayloadStructure } from "~/models/dunning";
 import NucleiCheckBox from "~/components/inputs/fields/NucleiCheckBox";
 import ActionType from "~/components/layout/ActionTypes";
@@ -40,14 +40,20 @@ export const action: ActionFunction = async ({ request, params }) => {
     const actions = payload?.actions;
     const assigned_to: [name: string, email: string] = payload?.assigned_to?.split(",")
 
-    const workflowCreationRoutine = new Promise(async (resolve, reject) => {
-        let dunningPayloads: Array<WhatsappPayloadStructure | EmailPayloadStructure> = [];
+    const payload_without_invoices = JSON.parse(JSON.stringify(payload))
+    for (const customer of payload_without_invoices?.customers) {
+        delete customer['data']
+    }
 
-        for (const customer of customers) {
+    let dunningPayloads: Array<WhatsappPayloadStructure | EmailPayloadStructure> = [];
+
+    const dunningScheduleRoutine = new Promise(async () => {
+        for (let i = 0; i < customers.length; i++) {
+            const customer = customers[i];
             customer['data']['dunning_meta'] = {}
             // ? only the invoice IDs are being sent, not the invoices themselves
-            const customersReceivables = customer?.data?.invoices;
-            if (customersReceivables) {
+            const customersReceivables: { [x: string]: any }[] = customer?.data?.invoices;
+            if (customersReceivables.length > 0) {
                 customer['data']['dunning_meta']['has_receivables'] = true
                 if (!customer['data']['email'] || !customer['data']['mobile']) {
                     customer['data']['dunning_meta']['details_missing'] = true
@@ -76,24 +82,42 @@ export const action: ActionFunction = async ({ request, params }) => {
             if (!customer['data']['dunning_meta']['dunning_starts_on']) {
                 customer['data']['dunning_meta']['has_dunnable_invoices'] = false
             }
+            const target_customer_object = payload_without_invoices.customers[i];
+            target_customer_object['data'] = {}
+            target_customer_object['data']['dunning_meta'] = customer['data']['dunning_meta'];
+            target_customer_object['data']['first_name'] = customer['data']['first_name'];
+            target_customer_object['data']['last_name'] = customer['data']['last_name'];
+            target_customer_object['data']['email'] = customer['data']['email'];
+            target_customer_object['data']['mobile'] = customer['data']['mobile'];
+            target_customer_object['data']['vendor_name'] = customer['data']['vendor_name'];
 
         }
+
+        const clearJobsFromWorkflow = await fetch(`https://neutron-knock.fly.dev/jobs/delete/${workflowID}`, {
+            method: "DELETE",
+            headers: new Headers({
+                'Connection': 'close'
+            })
+        })
+        console.log(JSON.stringify(await clearJobsFromWorkflow.json()))
         // ? Need to build reactive infrastructure for invoices that are to be added later.
 
         executeDunningPayloads(dunningPayloads);
 
-        payload['customer_ids'] = customers?.map((customer) => {
-            registerWorkflowTriggerForCustomer(session?.metadata?.businessID, customer.id, workflowID)
-            return customer.id
-        });
+        // payload_without_invoices?.customers?.forEach(async (customer) => {
+        //     registerWorkflowTriggeredEventForCustomer(session?.metadata?.businessID, customer.id)
+        // });
+        // registerWorkflowTriggeredEventForWorkflow(session?.metadata?.businessID, workflowID)
 
 
-        updateFirestoreDocFromData(payload, 'workflows/business', `${session?.metadata?.businessID}/${workflowID}`);
-        resolve(redirect('/workflows'))
 
-    }).then(() => {
-        console.log("WORKFLOW CREATION ROUTINE COMPLETE...")
+        updateFirestoreDocFromData(payload_without_invoices, 'workflows/business', `${session?.metadata?.businessID}/${workflowID}`);
+        const updateObject: { [x: string]: any } = {};
+        updateObject[`${workflowID}`] = { id: workflowID, type: 'Workflow', index: payload?.name };
+        updateFirestoreDocFromData(updateObject, 'indexes', session?.metadata?.businessID);
     });
+    dunningScheduleRoutine.then(() => { console.log("WORKFLOW CREATED.. DUNNING OPERATIONS SCHEDULED") })
+
     return redirect('/workflows');
 
 

@@ -35,9 +35,17 @@ export async function getFirebaseDocs(collectionName: string, onlyKeys?: boolean
 
 
 export async function addFirestoreDocFromData(data: any, collectionName: string, path?: string): Promise<DocumentReference<any>> {
+    console.log("ENTERED THE ADD DOC FUNCTION")
+    try {
+        const docRef = await serverFirestore.addDoc(serverFirestore.collection(firestore, `${path ? `${collectionName}/${path}` : `${collectionName}`}`), data);
+        return docRef
+    } catch (e: any) {
+        console.log("ERROR ENCOUNTERED.... ERROR IS : ")
+        console.log(e)
+        throw e
+    }
 
-    const docRef = await serverFirestore.addDoc(serverFirestore.collection(firestore, `${path ? `${collectionName}/${path}` : `${collectionName}`}`), data);
-    return docRef
+
 }
 
 export async function addFirestoreDocsAndReturnIDs(data: any[], collectionName: string, path?: string): Promise<string[]> {

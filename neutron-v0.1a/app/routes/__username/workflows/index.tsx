@@ -30,6 +30,13 @@ export const action: ActionFunction = async ({ request, params }) => {
             for (const id of ids) {
                 const deleteDocRef = await deleteFirestoreDoc('workflows', `business/${session?.metadata?.businessID}/${id}`);
                 const deleteEventsRef = await deleteEvents(id, ['workflow_id']);
+                const clearJobsFromWorkflow = await fetch(`https://neutron-knock.fly.dev/jobs/delete/${id}`, {
+                    method: "DELETE",
+                    headers: new Headers({
+                        'Connection': 'close'
+                    })
+                })
+                console.log(JSON.stringify(await clearJobsFromWorkflow.json()))
 
             }
             const indexUpdateRef = await deleteFieldsFromFirestoreDoc(ids, 'indexes', session?.metadata?.businessID);

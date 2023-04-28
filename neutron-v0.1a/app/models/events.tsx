@@ -4,7 +4,8 @@ export enum DunningEvent {
 	MessageDelivered,
 	EmailSent,
 	EmailDelivered,
-	WorkflowTriggered
+	WorkflowTriggered,
+	WorkflowEdited
 }
 
 export enum PaymentEvent {
