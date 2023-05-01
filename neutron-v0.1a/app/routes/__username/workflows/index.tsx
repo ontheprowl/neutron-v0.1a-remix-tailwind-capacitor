@@ -132,10 +132,10 @@ export default function WorkflowsList() {
                                 {workflows.map((workflow) => {
                                     const assigned_to: [name: string, email: string] = workflow?.data?.assigned_to?.split(",")
                                     return (<tr key={workflow.id} className={`border-b border-dashed sm:flex sm:flex-row sm:justify-evenly sm:items-center w-full border-gray-400 dark:bg-gray-800 dark:border-gray-700 transition-all hover:bg-bg-primary-dark hover:bg-opacity-50 hover:border-primary-dark`}>
-                                        <td scope="row" className="px-2 py-4 w-full font-gilroy-regular text-left  whitespace-nowrap">
+                                        <td scope="row" className="px-2 py-4 w-full font-gilroy-regular text-left">
                                             <div className="flex flex-row w-auto justify-start space-x-4">
                                                 <input name='check_for_deletion' value={workflow.id} type="checkbox"></input>
-                                                <Link to={`${workflow.id}/overview`} className="decoration-black break-all  font-gilroy-bold hover:underline cursor-pointer">{workflow?.data?.name}</Link>
+                                                <Link to={`${workflow.id}/overview`} className="decoration-black break-normal  font-gilroy-bold hover:underline cursor-pointer">{workflow?.data?.name}</Link>
                                             </div>
                                         </td>
 

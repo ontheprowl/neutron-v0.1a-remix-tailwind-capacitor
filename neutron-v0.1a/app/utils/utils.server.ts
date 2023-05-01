@@ -83,21 +83,27 @@ export async function executePaginatedRequestandAggregate(callback: (page: numbe
 
 
 export async function executeDunningPayloads(dunningPayloads: Array<WhatsappPayloadStructure | EmailPayloadStructure>): Promise<Array<any>> {
+    console.log("BEGINNING EXECUTION OF DUNNING PAYLOADS")
     for (const payload of dunningPayloads) {
         if (!payload?.data?.contact) {
             console.log("GONNA BREAK...")
             break;
         }
-        const queueDunningOperationRequest = await fetch('https://neutron-knock.fly.dev/jobs/create', {
-            method: "POST",
-            body: JSON.stringify(payload),
-            headers: new Headers({
-                'Content-Type': 'application/json',
-                'Connection': 'close'
+        try {
+            const queueDunningOperationRequest = await fetch('https://neutron-knock.fly.dev/jobs/create', {
+                method: "POST",
+                body: JSON.stringify(payload),
+                headers: new Headers({
+                    'Content-Type': 'application/json',
+                    'Connection': 'close'
+                })
             })
-        })
-        delay(60);
-        const result = await queueDunningOperationRequest.json();
+            delay(60);
+        } catch(e){
+            console.log("ERROR ENCOUNTERED WHILE QUEUEING OPERATION. Error: " + e)
+        }
+        
+
     }
     return []
 }
@@ -217,15 +223,15 @@ export function getScheduleForActionAndInvoice(invoice: any, senderInfo: { calle
 }
 
 
-export function registerWorkflowTriggeredEventForCustomer(businessID: string, customerID: string): boolean {
+export function registerEventForCustomer(businessID: string, customerID: string, event?: DunningEvent, message?: string): boolean {
     const workflowTriggeredEvent: NeutronEvent = {
         id: randomUUID(),
         uid: businessID,
         sandbox: false,
         type: EventType.DunningEvent,
-        event: DunningEvent.WorkflowTriggered,
+        event: event ? event : DunningEvent.WorkflowTriggered,
         payload: {
-            message: "Workflow Triggered",
+            message: message ? message : "Workflow Triggered",
             data: {
                 customer_id: customerID,
                 workflow_id: ''
@@ -235,20 +241,19 @@ export function registerWorkflowTriggeredEventForCustomer(businessID: string, cu
     }
 
     sendEvent(workflowTriggeredEvent, ["customer_id"])
-    sendEvent(workflowTriggeredEvent)
 
     return true
 }
 
-export function registerWorkflowTriggeredEventForWorkflow(businessID: string, workflowID: string): boolean {
+export function registerEventForWorkflow(businessID: string, workflowID: string, event?: DunningEvent, message?: string): boolean {
     const workflowTriggeredEvent: NeutronEvent = {
         id: randomUUID(),
         uid: businessID,
         sandbox: false,
         type: EventType.DunningEvent,
-        event: DunningEvent.WorkflowTriggered,
+        event: event ? event : DunningEvent.WorkflowTriggered,
         payload: {
-            message: "Workflow Triggered",
+            message: message ? message : "Workflow Triggered",
             data: {
                 customer_id: '',
                 workflow_id: workflowID
@@ -257,7 +262,7 @@ export function registerWorkflowTriggeredEventForWorkflow(businessID: string, wo
         timestamp: moment.tz("Asia/Colombo").unix()
     }
 
-    sendEvent(workflowTriggeredEvent, ["workflowID"])
+    sendEvent(workflowTriggeredEvent, ["workflow_id"])
 
     return true
 }

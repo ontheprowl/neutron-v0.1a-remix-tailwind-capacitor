@@ -15,7 +15,7 @@ import { redirect } from "@remix-run/server-runtime";
 import { requireUser } from "~/session.server";
 
 import { addFirestoreDocFromData, getSingleDoc, updateFirestoreDocFromData } from "~/firebase/queries.server";
-import { executeDunningPayloads, getScheduleForActionAndInvoice, registerWorkflowTriggeredEventForCustomer, registerWorkflowTriggeredEventForWorkflow } from "~/utils/utils.server";
+import { executeDunningPayloads, getScheduleForActionAndInvoice, registerEventForCustomer, registerEventForWorkflow } from "~/utils/utils.server";
 import type { EmailPayloadStructure, WhatsappPayloadStructure } from "~/models/dunning";
 import ActionType from "~/components/layout/ActionTypes";
 import NeutronModal from "~/components/layout/NeutronModal";
@@ -41,7 +41,7 @@ export const action: ActionFunction = async ({ request, params }) => {
     const customers: Array<{ id: string, data: { [x: string]: any } }> = payload?.customers
     const actions = payload?.actions;
     const assigned_to: [name: string, email: string] = payload?.assigned_to?.split(",")
-    
+
     const payload_without_invoices = JSON.parse(JSON.stringify(payload))
     for (const customer of payload_without_invoices?.customers) {
         delete customer['data']
@@ -61,6 +61,14 @@ export const action: ActionFunction = async ({ request, params }) => {
                 customer['data']['dunning_meta']['has_receivables'] = true
                 if (!customer['data']['email'] || !customer['data']['mobile']) {
                     customer['data']['dunning_meta']['details_missing'] = true
+                    const target_customer_object = payload_without_invoices.customers[i];
+                    target_customer_object['data'] = {}
+                    target_customer_object['data']['dunning_meta'] = customer['data']['dunning_meta'];
+                    target_customer_object['data']['first_name'] = customer['data']['first_name'];
+                    target_customer_object['data']['last_name'] = customer['data']['last_name'];
+                    target_customer_object['data']['email'] = customer['data']['email'];
+                    target_customer_object['data']['mobile'] = customer['data']['mobile'];
+                    target_customer_object['data']['vendor_name'] = customer['data']['vendor_name'];
                     continue;
                 }
                 for (const receivable of customersReceivables) {
@@ -101,12 +109,11 @@ export const action: ActionFunction = async ({ request, params }) => {
         executeDunningPayloads(dunningPayloads);
 
         payload_without_invoices?.customers?.forEach(async (customer) => {
-            registerWorkflowTriggeredEventForCustomer(session?.metadata?.businessID, customer.id)
+            registerEventForCustomer(session?.metadata?.businessID, customer.id)
         });
-        registerWorkflowTriggeredEventForWorkflow(session?.metadata?.businessID, workflowCreationRef.id)
+        registerEventForWorkflow(session?.metadata?.businessID, workflowCreationRef.id)
 
-
-
+        payload_without_invoices['customer_ids'] = payload_without_invoices?.customers?.map((customer) => customer?.id);
         updateFirestoreDocFromData(payload_without_invoices, 'workflows/business', `${session?.metadata?.businessID}/${workflowCreationRef.id}`);
         const updateObject: { [x: string]: any } = {};
         updateObject[`${workflowCreationRef.id}`] = { id: workflowCreationRef.id, type: 'Workflow', index: payload?.name };
@@ -155,6 +162,8 @@ export default function CreateWorkflowScreen() {
     const template: string = useWatch({ control: workflowCreationForm.control, name: `actions.${currentAction}.template` })
     const assignedTo: string = useWatch({ control: workflowCreationForm.control, name: `assigned_to` })
     const all_customers: boolean = useWatch({ control: workflowCreationForm.control, name: 'all_customers' })
+
+    const customers_for_list = useMemo(() => { return businessData?.customers.filter((customer) => (customer?.vendor_name?.toLowerCase().includes(customersFilter.toLowerCase()))) }, [businessData?.customers, customersFilter])
 
     useEffect(() => {
         console.log("ALL_CUSTOMERS : " + all_customers)
@@ -354,7 +363,7 @@ export default function CreateWorkflowScreen() {
                         <span className="font-gilroy-medium text-lg">Select All Customers</span>
                     </div>
                     <div className="grid grid-flow-dense auto-rows-min grid-cols-3 border-2 border-neutral-light rounded-xl mt-2  p-3 h-[400px] overflow-y-scroll">
-                        {businessData?.customers.filter((customer) => (customer?.vendor_name?.toLowerCase().includes(customersFilter.toLowerCase()))).map((customer, index) => {
+                        {customers_for_list.map((customer, index) => {
                             return (
                                 <NucleiCheckBox stateControl={all_customers} name={`customers.${customer?.contact_id}`} key={customer?.contact_id} value={customer?.contact_id} label={customer?.vendor_name} />)
                         })}

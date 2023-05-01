@@ -211,12 +211,18 @@ export async function deleteFieldsFromFirestoreDoc(fieldKeys: string[], collecti
 }
 
 export async function uploadBulkToCollection(data: any[], collectionPath: string, batchSize: number, idKey: string) {
-    const batches = Math.ceil(data.length / batchSize);
+    try {
+        const batches = Math.ceil(data.length / batchSize);
 
 
-    return new Promise((resolve, reject) => {
-        uploadBatch(data, batches, 0, collectionPath, resolve, idKey).catch(reject);
-    });
+        return new Promise((resolve, reject) => {
+            uploadBatch(data, batches, 0, collectionPath, resolve, idKey).catch(reject);
+        });
+    } catch (e) {
+        console.log("ERROR OCCURED DURING BULK UPLOAD.")
+        console.dir(e)
+    }
+
 }
 
 export async function uploadBatch(data: any[], batchesLeft: number, offset: number, collectionPath: string, resolve: (value: unknown) => void, idKey: string) {
@@ -236,12 +242,19 @@ export async function uploadBatch(data: any[], batchesLeft: number, offset: numb
 
     const batch = adminFirestore.batch();
 
+    // const collectionDocs = await adminFirestore.collection('').listDocuments();
+    // collectionDocs.forEach((doc) => {
+    //     doc.delete()
+    // })
+
+
     for (const elem of slice) {
         const slug = elem[idKey];
         const path = `${collectionPath}/${slug ? slug : randomUUID()}`;
         const docRef = adminFirestore.doc(path);
         const doc = await docRef.get();
         if (doc.exists) {
+            
             continue;
         } else {
             batch.create(docRef, elem);

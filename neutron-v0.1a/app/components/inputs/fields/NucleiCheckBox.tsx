@@ -14,7 +14,7 @@ export default function NucleiCheckBox({ name, value, label, stateControl }: { n
 
 
     useEffect(() => {
-        if(stateControl){
+        if (stateControl != undefined) {
             setChecked(stateControl)
         }
     }, [stateControl])
@@ -27,7 +27,7 @@ export default function NucleiCheckBox({ name, value, label, stateControl }: { n
                 if (!checked) {
                     setChecked(e.currentTarget.value === value)
                 } else {
-                    form.setValue(name, '')
+                    form.setValue(name, {})
                     setChecked(false);
                 }
             }} value={value} checked={checked} className="text-primary-base fill-primary-base accent-primary-base rounded-full outline-none" type="checkbox" placeholder="" />

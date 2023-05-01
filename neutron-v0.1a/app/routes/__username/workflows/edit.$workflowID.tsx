@@ -14,12 +14,13 @@ import { ActionFunction, LoaderFunction, json, redirect } from "@remix-run/serve
 import { requireUser } from "~/session.server";
 
 import { addFirestoreDocFromData, getSingleDoc, updateFirestoreDocFromData } from "~/firebase/queries.server";
-import { executeDunningPayloads, getScheduleForActionAndInvoice, registerWorkflowTriggeredEventForCustomer, registerWorkflowTriggeredEventForWorkflow } from "~/utils/utils.server";
+import { executeDunningPayloads, getScheduleForActionAndInvoice, registerEventForCustomer, registerEventForWorkflow } from "~/utils/utils.server";
 import type { EmailPayloadStructure, WhatsappPayloadStructure } from "~/models/dunning";
 import NucleiCheckBox from "~/components/inputs/fields/NucleiCheckBox";
 import ActionType from "~/components/layout/ActionTypes";
 import DunningTemplates from "~/components/layout/DunningTemplates";
 import NeutronModal from "~/components/layout/NeutronModal";
+import { EventType, DunningEvent } from "~/models/events";
 
 
 
@@ -45,6 +46,21 @@ export const action: ActionFunction = async ({ request, params }) => {
         delete customer['data']
     }
 
+    // * Clear all obsolete jobs for the workflow, and then begin queuing new jobs
+    try {
+        const clearJobsFromWorkflow = await fetch(`https://neutron-knock.fly.dev/jobs/delete/${workflowID}`, {
+            method: "DELETE",
+            headers: new Headers({
+                'Connection': 'close'
+            })
+        })
+        console.log(JSON.stringify(await clearJobsFromWorkflow.json()))
+    } catch (e) {
+        console.log("ERR DETECTED HERE AS WELL")
+        console.dir(e, { depth: null })
+    }
+
+
     let dunningPayloads: Array<WhatsappPayloadStructure | EmailPayloadStructure> = [];
 
     const dunningScheduleRoutine = new Promise(async () => {
@@ -57,6 +73,14 @@ export const action: ActionFunction = async ({ request, params }) => {
                 customer['data']['dunning_meta']['has_receivables'] = true
                 if (!customer['data']['email'] || !customer['data']['mobile']) {
                     customer['data']['dunning_meta']['details_missing'] = true
+                    const target_customer_object = payload_without_invoices.customers[i];
+                    target_customer_object['data'] = {}
+                    target_customer_object['data']['dunning_meta'] = customer['data']['dunning_meta'];
+                    target_customer_object['data']['first_name'] = customer['data']['first_name'];
+                    target_customer_object['data']['last_name'] = customer['data']['last_name'];
+                    target_customer_object['data']['email'] = customer['data']['email'];
+                    target_customer_object['data']['mobile'] = customer['data']['mobile'];
+                    target_customer_object['data']['vendor_name'] = customer['data']['vendor_name'];
                     continue;
                 }
                 for (const receivable of customersReceivables) {
@@ -93,24 +117,18 @@ export const action: ActionFunction = async ({ request, params }) => {
 
         }
 
-        const clearJobsFromWorkflow = await fetch(`https://neutron-knock.fly.dev/jobs/delete/${workflowID}`, {
-            method: "DELETE",
-            headers: new Headers({
-                'Connection': 'close'
-            })
-        })
-        console.log(JSON.stringify(await clearJobsFromWorkflow.json()))
+
         // ? Need to build reactive infrastructure for invoices that are to be added later.
 
         executeDunningPayloads(dunningPayloads);
 
-        // payload_without_invoices?.customers?.forEach(async (customer) => {
-        //     registerWorkflowTriggeredEventForCustomer(session?.metadata?.businessID, customer.id)
-        // });
-        // registerWorkflowTriggeredEventForWorkflow(session?.metadata?.businessID, workflowID)
+        payload_without_invoices?.customers?.forEach(async (customer) => {
+            registerEventForCustomer(session?.metadata?.businessID, customer?.id, DunningEvent.WorkflowEdited, "Workflow Edited");
+        });
+        registerEventForWorkflow(session?.metadata?.businessID, workflowID, DunningEvent.WorkflowEdited, "Workflow Edited")
 
 
-
+        payload_without_invoices['customer_ids'] = payload_without_invoices?.customers?.map((customer) => customer?.id);
         updateFirestoreDocFromData(payload_without_invoices, 'workflows/business', `${session?.metadata?.businessID}/${workflowID}`);
         const updateObject: { [x: string]: any } = {};
         updateObject[`${workflowID}`] = { id: workflowID, type: 'Workflow', index: payload?.name };
@@ -155,6 +173,8 @@ export default function CreateWorkflowScreen() {
     const workflowCreationForm = useForm({ defaultValues: workflowData });
 
 
+
+
     const [currentAction, setCurrentAction] = useState(0)
 
 
@@ -163,7 +183,24 @@ export default function CreateWorkflowScreen() {
     const trigger: string = useWatch({ control: workflowCreationForm.control, name: `actions.${currentAction}.trigger` })
     const template: string = useWatch({ control: workflowCreationForm.control, name: `actions.${currentAction}.template` })
     const assignedTo: string = useWatch({ control: workflowCreationForm.control, name: `assigned_to` })
+    const customer_ids: Array<string> = useWatch({ control: workflowCreationForm.control, name: 'customer_ids' })
+    let customers: Array<any> | { [x: string]: any } = useWatch({ control: workflowCreationForm.control, name: 'customers', defaultValue: {} })
+
+
+    // const customers_entries = Object.entries(customers)
+    // console.log(customers_entries)
+    // customers = customers.forEach((customer: { id: string, data: any }) => {
+    //     if (typeof customer == "object") {
+    //         customers_entries.push([customer?.id, customer?.id])
+    //     }
+    //     return customer
+    // })
+
+    // console.log("MODIFIED")
+
+    // console.log(customers)
     const all_customers: boolean = useWatch({ control: workflowCreationForm.control, name: 'all_customers' })
+
 
     const [localActions, setCurrentActions] = useState<Array<{ [x: string]: any }>>(actions);
     const [editIndex, setEditIndex] = useState<number | null>(null);
@@ -171,9 +208,7 @@ export default function CreateWorkflowScreen() {
     const [templatePreviewModal, setTemplatePreviewModal] = useState(false);
     const [tags, setTags] = useState<string[]>([])
 
-    useEffect(() => {
-        console.dir(actions, { depth: null })
-    }, [actions])
+
 
     useEffect(() => {
         if (actionType == "manual") {
@@ -187,7 +222,10 @@ export default function CreateWorkflowScreen() {
     return (<>
         <FormProvider {...workflowCreationForm}>
             <form onSubmit={workflowCreationForm.handleSubmit(async (data) => {
-                const customerIDsArray: Array<string | boolean> = Object.values(data['customers'])
+
+                const customerIDsArray: Array<string | boolean> = Object.values(data['customers']);
+
+                delete data['customer_ids']
                 data['customers'] = customerIDsArray.filter((customerID) => {
                     return (typeof customerID == 'string')
                 }).map((value) => {
@@ -212,14 +250,13 @@ export default function CreateWorkflowScreen() {
                 }
 
                 formData.append('payload', JSON.stringify(data))
-                formData.append('customersData', JSON.stringify(data));
-                console.dir(data, { depth: null })
+                console.log(data)
                 submit(formData, { method: "post" })
             })} className=" h-full flex flex-col space-y-4">
                 <div className="flex flex-row justify-between">
                     <div id="page_title" className="flex flex-col">
-                        <h1 className="text-lg">Create Workflow</h1>
-                        <span className="text-neutral-base text-sm font-gilroy-medium"> Home - Workflows - Create Workflow</span>
+                        <h1 className="text-lg">Edit Workflow</h1>
+                        <span className="text-neutral-base text-sm font-gilroy-medium"> Home - Workflows - Edit Workflow</span>
                     </div>
                     <div className="flex flex-row space-x-4">
                         <SaveButton submit />
@@ -372,7 +409,7 @@ export default function CreateWorkflowScreen() {
                     <div className="grid grid-flow-dense auto-rows-min grid-cols-3 border-2 border-neutral-light rounded-xl mt-2  p-3 h-[400px] overflow-y-scroll">
                         {businessData?.customers.filter((customer) => (customer?.vendor_name?.toLowerCase().includes(customersFilter.toLowerCase()))).map((customer, index) => {
                             return (
-                                <NucleiCheckBox stateControl={all_customers} name={`customers.${customer?.contact_id}`} key={customer?.contact_id} value={customer?.contact_id} label={customer?.vendor_name} />)
+                                <NucleiCheckBox stateControl={all_customers ? all_customers : typeof customers[customer?.contact_id] === "string"} name={`customers.${customer?.contact_id}`} key={customer?.contact_id} value={customer?.contact_id} label={customer?.vendor_name} />)
                         })}
                     </div>
                     <div className="flex flex-row py-5 justify-end space-x-4">

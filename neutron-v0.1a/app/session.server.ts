@@ -6,7 +6,8 @@ import {
   getSessionToken,
   sessionTTL,
 } from "./firebase/neutron-config.server";
-import { hasKey, retrieveObject } from "./redis/queries.server";
+import * as schedule from 'node-schedule'
+import type { DecodedIdToken } from "firebase-admin/lib/auth/token-verifier";
 
 export const sessionStorage = createCookieSessionStorage({
   cookie: {
@@ -31,10 +32,29 @@ export async function getSession(request: Request) {
 
 export async function requireUser(request: Request, autoRedirect?: boolean) {
   const session = await getUserSession(request, autoRedirect);
-  if (session) return session;
+  if (session) {
+
+    return session;
+  }
+
 
   if (autoRedirect) throw await logout(request);
   return null;
+}
+
+export async function queuePeriodicSync(session: {
+  token: DecodedIdToken;
+  metadata: any;
+}) {
+  const rule = new schedule.RecurrenceRule();
+  rule.minute = 30;
+  console.dir(schedule.scheduledJobs, { depth: null })
+  if (!schedule.scheduledJobs['neutronDataSync']) {
+    console.log("QUEUEING AUTOSYNC ")
+
+  }
+
+
 }
 
 export async function createUserSession({

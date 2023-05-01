@@ -5,7 +5,8 @@ export enum DunningEvent {
 	EmailSent,
 	EmailDelivered,
 	WorkflowTriggered,
-	WorkflowEdited
+	WorkflowEdited,
+	ReminderScheduled
 }
 
 export enum PaymentEvent {
@@ -24,13 +25,13 @@ export enum EventType {
 }
 
 export type NeutronEvent = {
-	id: string;
+	id?: string;
 	uid: string;
 	type: EventType;
 	sandbox?: boolean;
 	event: DunningEvent;
 	payload?: EventPayload;
-	timestamp: number;
+	timestamp?: number;
 }
 
 export type EventPayload = {

@@ -1,5 +1,5 @@
 import { Link, useOutletContext } from "@remix-run/react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import DeleteButton from "~/components/inputs/buttons/DeleteButton";
 import EditButton from "~/components/inputs/buttons/EditButton";
 import NucleiPagination from "~/components/inputs/pagination/NucleiPagination";
@@ -27,6 +27,26 @@ export default function CustomerDetails() {
             return 1
         }
     };
+
+    const [currTab, setCurrTab] = useState<string>('All')
+
+    const currView = function (currTab: string) {
+        switch (currTab) {
+            case "All":
+                return workflow?.customers;
+            case "Running":
+                return workflow?.customers?.filter((customer) => customer?.data?.dunning_meta?.dunning_starts_on);
+            case "Details Missing":
+                return workflow?.customers?.filter((customer) => customer?.data?.dunning_meta?.details_missing);
+            case "No Invoices":
+                return workflow?.customers?.filter((customer) => !customer?.data?.dunning_meta?.details_missing && !customer?.data?.dunning_meta?.dunning_starts_on);
+            default:
+                return workflow?.customers;
+        }
+
+    }(currTab);
+
+    console.log(currView)
 
     const generateCustomerDunningStatus = (dunningMeta: { [x: string]: any }) => {
 
@@ -63,12 +83,21 @@ export default function CustomerDetails() {
                 }} placeholder="Search for a customer" className="w-full bg-transparent text-neutral-dark placeholder:text-neutral-dark focus:border-transparent outline-none " />
 
             </div>
-            <div className="flex flex-row  space-x-4 w-1/3 items-center justify-start">
-
-                {/* <div className="flex flex-row space-x-4 items-center">
-                    <EditButton />
-                    <DeleteButton />
-                </div> */}
+            <div className="flex flex-row space-x-4 w-2/5 p-2  items-center justify-end">
+                <div className="flex flex-row space-x-4">
+                    <button onClick={() => {
+                        setCurrTab('All')
+                    }} className={`underline-offset-4 hover:opacity-75 transition-all ${currTab == "All" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>All</button>
+                    <button onClick={() => {
+                        setCurrTab('Running');
+                    }} className={`underline-offset-4 hover:opacity-75  transition-all ${currTab == "Running" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>Running</button>
+                    <button onClick={() => {
+                        setCurrTab('Details Missing');
+                    }} className={`underline-offset-4 hover:opacity-75  transition-all ${currTab == "Details Missing" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>Details Missing</button>
+                    <button onClick={() => {
+                        setCurrTab('No Invoices');
+                    }} className={`underline-offset-4 hover:opacity-75  transition-all ${currTab == "No Invoices" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>No Invoices</button>
+                </div>
             </div>
         </div>
 
@@ -95,14 +124,14 @@ export default function CustomerDetails() {
                             STATUS
                         </th>
                     </tr>
-                    {workflow?.customers?.filter((customer) => {
+                    {currView?.filter((customer) => {
                         return (customer?.data?.vendor_name?.toLowerCase().includes(filter.toLowerCase()) || customer?.data?.first_name?.toLowerCase()?.includes(filter.toLowerCase()) || customer?.data?.last_name?.toLowerCase()?.includes(filter.toLowerCase()));
                     }).sort(currSort).slice(startOffset, endOffset).map((customer, index) => {
 
                         return (
                             <tr key={customer?.id} className={`border-b border-dashed h-24 sm:flex sm:flex-row sm:justify-evenly sm:items-center w-full border-gray-400 dark:bg-gray-800 dark:border-gray-700 transition-all hover:bg-bg-primary-dark hover:bg-opacity-50 hover:border-primary-dark`}>
                                 <td scope="row" className="px-2 py-4 w-full font-gilroy-regular text-left">
-                                    <div className="flex flex-row w-auto justify-start items-center space-x-4">
+                                    <div className="flex flex-row w-auto justify-start hover:underline  items-center space-x-4">
                                         {/* <input type="checkbox"></input> */}
                                         <Link to={`/customers/${customer?.id}/overview`} preventScrollReset><span className="w-full break-words ">{customer?.data?.vendor_name}</span></Link>
                                     </div>
@@ -131,7 +160,7 @@ export default function CustomerDetails() {
                 <option>View</option>
                 <option>Delete</option>
             </select> */}
-            <NucleiPagination items={workflow?.customers} startPage={0} pageSize={50} pagesDisplayed={2} startState={[startOffset, setStart]} endState={[endOffset, setEnd]} />
+            <NucleiPagination items={currView} startPage={0} pageSize={50} pagesDisplayed={2} startState={[startOffset, setStart]} endState={[endOffset, setEnd]} />
         </div>
     </div>
 }

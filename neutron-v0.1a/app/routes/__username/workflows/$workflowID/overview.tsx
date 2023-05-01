@@ -74,6 +74,9 @@ export default function WorkflowOverview() {
                                             <h1 className="text-primary-base text-lg">{action?.days ? `${action?.days} Days ` : ''}</h1>
                                             <span className="font-gilroy-medium">{action?.trigger}</span>
                                         </div>
+                                        <div className="flex flex-col justify-between">
+                                            <span className="font-gilroy-bold text-lg">Will be sent at {action?.time}</span>
+                                        </div>
                                     </div>
                                     <div className="bg-white flex flex-row w-full px-12 py-3  justify-between items-center rounded-xl h-2/3">
                                         <div className="flex flex-col space-y-2">

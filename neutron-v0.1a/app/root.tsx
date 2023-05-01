@@ -1,4 +1,3 @@
-import React from 'react';
 import { useLocation, useMatches } from '@remix-run/react';
 import type {
   LinksFunction,
@@ -229,8 +228,7 @@ export default function App() {
 
         <Meta /> <Links />
       </head>
-      <body className="font-gilroy-regular  bg-bg-primary-dark">
-
+      <body className="font-gilroy-regular">
         <Outlet />
         <NeutronToastContainer></NeutronToastContainer>
 
