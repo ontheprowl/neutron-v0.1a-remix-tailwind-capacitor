@@ -82,7 +82,7 @@ export default function NucleiTimeline({ id, index }: { id: string, index?: stri
         <div className="h-full w-full bg-white p-2 shadow-xl rounded-xl">
             <AnimatePresence exitBeforeEnter>
                 <ul className={`p-2 flex flex-col space-y-1 ${sortedEvents && sortedEvents?.length > 0 ? 'justify-start' : 'justify-center'} w-full h-full overflow-y-scroll`}>
-                    {sortedEvents && sortedEvents?.length > 0 ? generateMilestonesFromEvents(sortedEvents) : <DefaultSpinner size="large"></DefaultSpinner>}
+                    {sortedEvents && sortedEvents?.length > 0 ? generateMilestonesFromEvents(sortedEvents) : <DefaultSpinner size="regular"></DefaultSpinner>}
                 </ul>
             </AnimatePresence>
         </div>

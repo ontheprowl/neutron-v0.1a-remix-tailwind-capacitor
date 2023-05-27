@@ -60,7 +60,7 @@ export default function SettingsScreen() {
 
     return (
         <div className="flex flex-col space-y-4 h-full">
-            <div id="business_settings" className="flex flex-col h-auto bg-white shadow-lg p-3 rounded-lg">
+            <div id="business_settings" className="flex flex-col h-auto bg-white shadow-lg p-2 rounded-lg">
                 <FormProvider {...customerSettingsForm} >
                     <form onSubmit={customerSettingsForm.handleSubmit((data) => {
                         const jsonData = JSON.stringify(data);
@@ -69,9 +69,9 @@ export default function SettingsScreen() {
                             formData.append('payload', jsonData);
                             submit(formData, { method: 'post' });
                         }
-                    })} className="flex flex-col p-4">
+                    })} className="flex flex-col p-2">
                         <div className="flex flex-row justify-between items-center">
-                            <h1 className="text-lg">Customer Details</h1>
+                            <h1 className="text-base">Customer Details</h1>
                             <div className="flex flex-row space-x-4 ">
                                 <AnimatePresence exitBeforeEnter>
                                     {!customerEditLocked && <SaveButtonMotion loading={navigation.formData} submit />}

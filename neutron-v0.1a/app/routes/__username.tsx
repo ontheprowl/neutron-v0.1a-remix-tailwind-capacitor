@@ -184,8 +184,8 @@ export default function CustomUserPage() {
         <>
             {navigation.state != "idle" && <div className={`fixed bg-black bg-opacity-20 top-0 left-0 right-0 z-50 flex flex-col   w-full p-4 items-center justify-center overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-0px)] max-h-full`}>
                 <div className=" flex flex-col space-y-4">
-                    <DefaultSpinner size="large" />
-                    <span className="text-white font-gilroy-bold text-2xl">Please Wait</span>
+                    <DefaultSpinner size="regular" />
+                    <span className="text-white font-gilroy-bold text-xl">Please Wait</span>
                 </div>
             </div>}
             <div className={`flex font-gilroy-bold h-auto w-full flex-col bg-white sm:border-0 border-transparent`}>
@@ -200,7 +200,7 @@ export default function CustomUserPage() {
 
                             <input type="text" onChange={(e) => {
                                 setFilter(e.currentTarget.value);
-                            }} placeholder="Search across all your data" className="w-full bg-transparent text-neutral-dark placeholder:text-neutral-dark border-transparent focus:border-transparent outline-none focus:ring-0 ring-0 " />
+                            }} placeholder="Search across all your data" className="w-full bg-transparent text-sm text-neutral-dark placeholder:text-neutral-dark border-transparent focus:border-transparent outline-none focus:ring-0 ring-0 " />
                             {filter != '' && currView?.length > 0 &&
                                 <ul className="bg-white z-40 shadow-md snap-y snap-mandatory transition-all absolute top-20 left-56 w-full max-w-md max-h-72 h-auto overflow-y-scroll rounded-lg">
                                     {currView?.map((indexedItem) => {
@@ -210,8 +210,8 @@ export default function CustomUserPage() {
                                                     setFilter('');
                                                 }} to={`/${indexedItem.type == "Workflow" ? 'workflows' : 'customers'}/${indexedItem.id}/overview`}>
                                                     <div className="flex flex-col space-y-4">
-                                                        <span className="font-gilroy-medium text-lg">{indexedItem.index}</span>
-                                                        <span className="font-gilroy-regular text-sm text-primary-base ">{indexedItem.type}</span>
+                                                        <span className="font-gilroy-medium text-md">{indexedItem.index}</span>
+                                                        <span className="font-gilroy-regular text-xs text-primary-base ">{indexedItem.type}</span>
                                                     </div>
                                                 </Link>
                                             </li>)
@@ -221,7 +221,7 @@ export default function CustomUserPage() {
                         </div>
                     </div>
                     <div className="flex flex-col space-y-2 text-right">
-                        <span>Welcome {businessData?.business_name}</span>
+                        <span className=" text-base">Welcome {businessData?.business_name}</span>
                         <span className="font-gilroy-medium text-neutral-base text-sm">{metadata?.name}</span>
                     </div>
 
@@ -247,7 +247,7 @@ export default function CustomUserPage() {
                                         >
                                             <DashboardIcon selected={pathname.includes('dashboard')} />
 
-                                            <h1 className="text-[18px]">Dashboard</h1>
+                                            <h1 className="text-[16px]">Dashboard</h1>
                                         </button>
                                     </li>
 
@@ -264,7 +264,7 @@ export default function CustomUserPage() {
                      `}
                     >
                         <ContractsButton />
-                        <h1 className="text-[18px]">Contracts</h1>
+                        <h1 className="text-[16px]">Contracts</h1>
 
                     </button>
                 </li> */}
@@ -282,7 +282,7 @@ export default function CustomUserPage() {
                     `}
                                         >
                                             <WorkflowIcon selected={pathname.includes('workflows')} />
-                                            <h1 className="text-[18px]">Workflows</h1>
+                                            <h1 className="text-[16px]">Workflows</h1>
 
                                         </button>
                                     </li>
@@ -300,7 +300,7 @@ export default function CustomUserPage() {
                     `}
                                         >
                                             <TeamIcon selected={pathname.includes('team')} />
-                                            <h1 className="text-[18px]">Team</h1>
+                                            <h1 className="text-[16px]">Team</h1>
 
                                         </button>
                                     </li>
@@ -318,7 +318,7 @@ export default function CustomUserPage() {
                     `}
                                         >
                                             <InvoicesIcon selected={pathname.includes('invoices')} />
-                                            <h1 className="text-[18px]">Invoices</h1>
+                                            <h1 className="text-[16px]">Invoices</h1>
 
                                         </button>
                                     </li>
@@ -336,8 +336,32 @@ export default function CustomUserPage() {
                     `}
                                         >
                                             <CustomersIcon selected={pathname.includes('customers') && !pathname.includes('workflows')} />
-                                            <h1 className="text-[18px]">Customers</h1>
+                                            <h1 className="text-[16px]">Customers</h1>
 
+                                        </button>
+                                    </li>
+                                    <li className=" transition-all rounded-lg">
+                                        <button onClick={() => {
+                                            navigate('settings/basic', { preventScrollReset: true });
+
+                                        }}
+                                            className={`rounded-lg transition-all flex flex-row align-middle p-2 w-full border-2 border-transparent active:border-primary-base hover:border-primary-base  sm:space-x-4 ${pathname.includes('settings') ? 'bg-primary-base text-white' : `text-black`}
+                     `}
+                                        >
+                                            <SettingsButton selected={pathname.includes('settings')} />
+                                            <h1 className="text-[16px]">Settings</h1>
+
+                                        </button>
+                                    </li>
+                                    <li className=" transition-all rounded-lg">
+                                        <button onClick={() => {
+                                            setLogoutConfirmationModal(!logoutConfirmationModal);
+                                        }}
+                                            className={`rounded-lg transition-all flex flex-row align-middle p-2 w-full border-2 border-transparent active:border-primary-base  hover:border-primary-base  sm:space-x-4 ${logoutConfirmationModal ? 'bg-primary-base text-white' : `text-black`}
+                     `}
+                                        >
+                                            <LogoutButton></LogoutButton>
+                                            <h1 className="text-[16px]">Logout</h1>
                                         </button>
                                     </li>
 
@@ -358,34 +382,11 @@ export default function CustomUserPage() {
                      `}
                     >
                         <SettingsButton />
-                        <h1 className="text-[18px]">Profile</h1>
+                        <h1 className="text-[16px]">Profile</h1>
 
                     </button>
                 </li> */}
-                                    <li className=" transition-all rounded-lg">
-                                        <button onClick={() => {
-                                            navigate('settings/basic', { preventScrollReset: true });
-
-                                        }}
-                                            className={`rounded-lg transition-all flex flex-row align-middle p-2 w-full border-2 border-transparent active:border-primary-base hover:border-primary-base  sm:space-x-4 ${pathname.includes('settings') ? 'bg-primary-base text-white' : `text-black`}
-                     `}
-                                        >
-                                            <SettingsButton selected={pathname.includes('settings')} />
-                                            <h1 className="text-[18px]">Settings</h1>
-
-                                        </button>
-                                    </li>
-                                    <li className=" transition-all rounded-lg">
-                                        <button onClick={() => {
-                                            setLogoutConfirmationModal(!logoutConfirmationModal);
-                                        }}
-                                            className={`rounded-lg transition-all flex flex-row align-middle p-2 w-full border-2 border-transparent active:border-primary-base  hover:border-primary-base  sm:space-x-4 ${logoutConfirmationModal ? 'bg-primary-base text-white' : `text-black`}
-                     `}
-                                        >
-                                            <LogoutButton></LogoutButton>
-                                            <h1 className="text-[18px]">Logout</h1>
-                                        </button>
-                                    </li>
+                                    
                                 </ul>
                             </div>
 

@@ -31,6 +31,6 @@ export default function NucleiCheckBox({ name, value, label, stateControl }: { n
                     setChecked(false);
                 }
             }} value={value} checked={checked} className="text-primary-base fill-primary-base accent-primary-base rounded-full outline-none" type="checkbox" placeholder="" />
-            <span className="font-gilroy-medium text-lg">{label}</span>
+            <span className="font-gilroy-medium text-md">{label}</span>
         </div>)
 }

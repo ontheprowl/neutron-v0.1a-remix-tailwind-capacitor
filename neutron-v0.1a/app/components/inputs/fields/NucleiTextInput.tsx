@@ -36,7 +36,7 @@ export default function NucleiTextInput({ name, options, label, placeholder, opt
         <div className="sm:text-left transition-all space-y-2 mb-1 w-full">
             <div className="flex flex-row justify-between">
                 <span className="prose prose-md text-black font-gilroy-bold text-[14px]">{label}</span>
-                {optional && <span className="text-secondary-text font-gilroy-medium">(Optional)</span>}
+                {optional && <span className="text-secondary-text text-sm font-gilroy-medium">(Optional)</span>}
             </div>
             <input disabled={disabled} {...register(name, options)} type={type ? type : "text"} placeholder={placeholder} defaultValue={inputWatch}
                 className={`transition-all outline-none focus:ring-0 ${disabled ? 'bg-neutral-light text-secondary-text' : 'bg-white text-black hover:border-primary-dark active:border-primary-dark focus:border-primary-dark'}  pt-3 pb-3 pl-4 pr-4 border-2 ${hasError ? 'border-error-dark' : 'border-neutral-light'}  outline-none  text-sm rounded-xl placeholder-neutral-base block w-full h-12 font-gilroy-medium`} />

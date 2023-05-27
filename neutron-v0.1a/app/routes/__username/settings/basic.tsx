@@ -69,7 +69,7 @@ export default function SettingsScreen() {
 
     return (
         <div className="flex flex-col space-y-4 h-full">
-            <div id="business_settings" className="flex flex-col h-auto bg-white shadow-lg p-3 rounded-lg">
+            <div id="business_settings" className="flex flex-col h-auto bg-white shadow-lg p-2 rounded-lg">
                 <FormProvider {...businessSettingsForm} >
                     <form onSubmit={businessSettingsForm.handleSubmit((data) => {
                         const jsonData = JSON.stringify(data);
@@ -79,9 +79,9 @@ export default function SettingsScreen() {
                             formData.append('type', 'business');
                             submit(formData, { method: 'post' });
                         }
-                    })} className="flex flex-col p-4">
+                    })} className="flex flex-col p-2">
                         <div className="flex flex-row justify-between items-center">
-                            <h1 className="text-lg">Business Settings</h1>
+                            <h1 className="text-md">Business Settings</h1>
                             <div className="flex flex-row space-x-4 ">
                                 <AnimatePresence exitBeforeEnter>
                                     {!businessEditLocked && <SaveButtonMotion loading={navigation.formData?.get('type') == "business"} submit />}
@@ -151,7 +151,7 @@ export default function SettingsScreen() {
                 </FormProvider>
 
             </div>
-            <div id="account_settings" className="flex flex-col h-auto p-3 shadow-lg bg-white rounded-lg">
+            <div id="account_settings" className="flex flex-col h-auto p-2 shadow-lg bg-white rounded-lg">
                 <FormProvider {...accountSettingsForm} >
                     <form onSubmit={accountSettingsForm.handleSubmit((data) => {
                         const jsonData = JSON.stringify(data);
@@ -161,9 +161,9 @@ export default function SettingsScreen() {
                             formData.append('type', 'user');
                             submit(formData, { method: 'post' });
                         }
-                    })} className="flex flex-col p-4">
+                    })} className="flex flex-col p-2">
                         <div className="flex flex-row justify-between items-center">
-                            <h1 className="text-lg">Account Settings</h1>
+                            <h1 className="text-base">Account Settings</h1>
                             <div className="flex flex-row space-x-4 ">
                                 <AnimatePresence exitBeforeEnter>
                                     {!accountEditLocked && <SaveButtonMotion loading={navigation.formData?.get('type') == "user"} submit />}

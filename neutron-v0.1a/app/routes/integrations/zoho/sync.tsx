@@ -92,8 +92,6 @@ export const action: ActionFunction = async ({ request, params }) => {
                                     customer_id: invoice.customer_id,
                                     total: invoice.total,
                                     balance: invoice.balance,
-                                    payment_terms: invoice?.payment_terms,
-                                    payment_terms_label: invoice?.payment_terms_label
                                 }
 
                             })
@@ -124,8 +122,6 @@ export const action: ActionFunction = async ({ request, params }) => {
                                     customer_id: invoice.customer_id,
                                     total: invoice.total,
                                     balance: invoice.balance,
-                                    payment_terms: invoice?.payment_terms,
-                                    payment_terms_label: invoice?.payment_terms_label
                                 }
 
                             })
@@ -192,6 +188,7 @@ export const action: ActionFunction = async ({ request, params }) => {
 
 
 
+
                         const paidInvoices = await executePaginatedRequestandAggregate(async (page: number) => {
                             const paidInvoicesRequest = await fetch(`${apiDomain}/books/v3/invoices?organization_id=${organization_id}&status=paid&page=${page}`, {
                                 method: "GET",
@@ -215,8 +212,6 @@ export const action: ActionFunction = async ({ request, params }) => {
                                     customer_id: invoice.customer_id,
                                     total: invoice.total,
                                     balance: invoice.balance,
-                                    payment_terms: invoice?.payment_terms,
-                                    payment_terms_label: invoice?.payment_terms_label
                                 }
 
                             })
@@ -224,6 +219,10 @@ export const action: ActionFunction = async ({ request, params }) => {
                             return { page_result: reducedInvoices, has_more_page: response?.page_context?.has_more_page }
 
                         });
+
+                        const allInvoices = [...new Set([...allReceivables, ...paidInvoices])];
+
+                        // // * Obtain Payments for paid invoices (https://www.zoho.com/books/api/v3/invoices/#list-invoice-payments)
 
 
                         const oldestPaidDate = paidInvoices?.sort((a, b) => {
@@ -260,7 +259,6 @@ export const action: ActionFunction = async ({ request, params }) => {
                             if (last.total) return first + last.total
                             return first
                         }, 0);
-
                         const revenue60Days = [...paidInvoices30Days, ...paidInvoices60Days].reduce((first, last) => {
                             if (last.total) return first + last.total
                             return first
@@ -278,6 +276,35 @@ export const action: ActionFunction = async ({ request, params }) => {
 
                         const total_revenue = revenueExcess;
 
+                        // * credit sales (for a time period) = (outstanding + revenue) where due_date - issue_date >0 
+
+                        const creditSales30 = [...receivables30Days, ...paidInvoices30Days]?.filter((invoice) => invoice?.date != invoice?.due_date).reduce((first, last) => {
+                            if (last.total) return first + last.total
+                            return first
+                        }, 0);
+
+                        const creditSales60 = [...receivables60Days, ...receivables30Days, ...paidInvoices30Days, ...paidInvoices60Days]?.filter((invoice) => invoice?.date != invoice?.due_date).reduce((first, last) => {
+                            if (last.total) return first + last.total
+                            return first
+                        }, 0);
+
+                        const creditSales90 = [...receivables30Days, ...receivables60Days, ...receivables90Days, ...paidInvoices30Days, ...paidInvoices60Days, ...paidInvoices90Days]?.filter((invoice) => invoice?.date != invoice?.due_date).reduce((first, last) => {
+                            if (last.total) return first + last.total
+                            return first
+                        }, 0);
+
+                        const creditSalesExcess = allInvoices?.filter((invoice) => invoice?.date != invoice?.due_date).reduce((first, last) => {
+                            if (last.total) return first + last.total
+                            return first
+                        }, 0);
+
+
+                        console.log(`TOTAL OUTSTANDING FOR 30 DAYS : ${outstanding30Days}, CREDIT SALES FOR 30 DAYS : ${creditSales30}`)
+                        console.log(`TOTAL OUTSTANDING FOR 60 DAYS : ${outstanding60Days}, CREDIT SALES FOR 30 DAYS : ${creditSales60}`)
+
+                        console.log(`TOTAL OUTSTANDING FOR 90 DAYS : ${outstanding90Days}, CREDIT SALES FOR 30 DAYS : ${creditSales90}`)
+
+                        console.log(`TOTAL OUTSTANDING FOR ALL TIME : ${outstandingExcess}, CREDIT SALES FOR 30 DAYS : ${creditSalesExcess}`)
 
                         console.log("FETCHING All CONTACTS")
 
@@ -316,26 +343,35 @@ export const action: ActionFunction = async ({ request, params }) => {
                         uploadBulkToCollection(paidInvoices90Days, `paid/${business_id}/90d`, 500, 'invoice_id')
                         uploadBulkToCollection(paidInvoicesExcess, `paid/${business_id}/excess`, 500, 'invoice_id')
 
-                        const allInvoices = [...new Set([...allReceivables, ...paidInvoices])];
                         // const allClearedIDS = [...new Set([...paidInvoices30daysIDS, ...paidInvoices60daysIDS, ...paidInvoices90daysIDS, ...paidInvoicesExcessIDS])];
+
 
                         console.log("FETCHING INVOICES PER CUSTOMER...")
                         let customerIndexes: { [x: string]: any } = {};
                         for (const customer of allCustomers) {
                             const customerInvoices = allInvoices.filter((invoice) => {
                                 return (invoice?.customer_id == customer?.contact_id);
-                            })
+                            });
+
                             if (customerInvoices.length > 0) {
                                 customer['invoices'] = customerInvoices.map((invoice) => invoice?.invoice_id);
-                                customer['outstanding'] = customerInvoices.filter((invoice) => invoice?.status == "overdue" || invoice?.status == "sent").reduce((first, last) => {
+                                const customerReceivables = customerInvoices.filter((invoice) => invoice?.status == "overdue" || invoice?.status == "sent");
+                                const customerPaid = customerInvoices.filter((invoice) => invoice?.status == "paid");
+                                const outstanding = customerReceivables.reduce((first, last) => {
+                                    if (last?.balance) return first + last.balance
+                                    return first
+                                }, 0);
+
+                                const creditSales = customerInvoices.filter((invoice) => invoice.due_date != invoice?.date).reduce((first, last) => {
+                                    if (last?.total) return first + last.total
+                                    return first;
+                                }, 0);
+                                customer['outstanding'] = outstanding
+                                customer['revenue'] = customerPaid.reduce((first, last) => {
                                     if (first?.total) return first.total + last.total
                                     return first + last.total
                                 }, 0);
-                                customer['revenue'] = customerInvoices.filter((invoice) => invoice?.status == "paid").reduce((first, last) => {
-                                    if (first?.total) return first.total + last.total
-                                    return first + last.total
-                                }, 0);
-                                customer['dso'] = customer['revenue'] > 0 ? (customer['outstanding'] / customer['revenue']) * 30 : 'No data'
+                                customer['dso'] = creditSales > 0 ? (customer['outstanding'] / creditSales) * 30 : 'Insufficient data'
                                 customerIndexes[customer?.contact_id] = { id: customer?.contact_id, type: "Customer", index: customer?.vendor_name };
                             }
                         }
@@ -366,10 +402,10 @@ export const action: ActionFunction = async ({ request, params }) => {
                                 '30d': revenue30Days, '60d': revenue60Days, '90d': revenue90Days, 'excess': revenueExcess, 'total': total_revenue
                             },
                             dso: {
-                                '30d': revenue30Days ? (outstanding30Days / revenue30Days) * 30 : 0,
-                                '60d': revenue60Days ? (outstanding60Days / revenue60Days) * 60 : 0,
-                                '90d': revenue90Days ? (outstanding90Days / revenue90Days) * 90 : 0,
-                                'excess': revenueExcess ? (outstandingExcess / revenueExcess) * daysSinceEarliestInvoice : 0
+                                '30d': creditSales30 > 0 ? (outstanding30Days / creditSales30) * 30 : 0,
+                                '60d': creditSales60 > 0 ? (outstanding60Days / creditSales60) * 60 : 0,
+                                '90d': creditSales90 > 0 ? (outstanding90Days / creditSales90) * 90 : 0,
+                                'excess': creditSalesExcess > 0 ? (outstandingExcess / creditSalesExcess) * daysSinceEarliestInvoice : 0
                             }
                         };
 

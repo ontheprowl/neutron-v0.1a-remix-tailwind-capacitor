@@ -56,7 +56,7 @@ export function InvoiceStatusGenerator({ status }: { status: InvoiceStatus }) {
         case InvoiceStatus.Sent:
             return <h3 className="font-gilroy-medium p-2 max-w-fit rounded-xl text-primary-dark bg-primary-light">SENT</h3>
         default:
-            return <h3 className="font-gilroy-medium text-black bg-gray-100 text-center text-[16px] rounded-lg p-1"> Invalid State </h3>
+            return <h3 className="font-gilroy-medium text-black bg-gray-100 text-center rounded-lg p-1"> Invalid State </h3>
 
     }
 

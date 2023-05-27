@@ -54,26 +54,26 @@ export default function ARDashboard() {
         <div className="flex flex-col space-y-3 h-full w-full">
             <div className="flex flex-row justify-between">
                 <div id="page_title" className="flex flex-col">
-                    <h1 className="text-lg">Dashboard</h1>
-                    <span className="text-neutral-base"> Home - Dashboard</span>
+                    <h1 className="text-base">Dashboard</h1>
+                    <span className="text-neutral-base font-gilroy-medium text-sm"> Home - Dashboard</span>
                 </div>
                 <div className='bg-white w-full rounded-xl p-3 space-x-4 items-center max-w-[600px] justify-between flex flex-row shadow-lg' id="time_period_buttons">
-                    <span className='whitespace-nowrap'>Time Range</span>
+                    <span className='whitespace-nowrap text-base'>Time Range</span>
                     <button onClick={() => {
                         setCurrentPeriod('30d')
-                    }} className={`font-gilroy-medium p-3 w-full transition-all hover:bg-primary-base hover:text-white  border-2  text-base ${currentPeriod == '30d' ? 'text-white bg-primary-base border-transparent' : 'text-primary-base bg-primary-light border-primary-base'} rounded-xl whitespace-nowrap`}>30 Days
+                    }} className={`font-gilroy-medium p-3 w-full transition-all hover:bg-primary-base hover:text-white  border-2  text-sm ${currentPeriod == '30d' ? 'text-white bg-primary-base border-transparent' : 'text-primary-base bg-primary-light border-primary-base'} rounded-xl whitespace-nowrap`}>30 Days
                     </button>
                     <button onClick={() => {
                         setCurrentPeriod('60d')
-                    }} className={`font-gilroy-medium p-3 w-full transition-all hover:bg-primary-base hover:text-white  border-2  text-base ${currentPeriod == '60d' ? 'text-white bg-primary-base border-transparent' : 'text-primary-base bg-primary-light border-primary-base'} rounded-xl whitespace-nowrap`}>60 Days
+                    }} className={`font-gilroy-medium p-3 w-full transition-all hover:bg-primary-base hover:text-white  border-2  text-sm ${currentPeriod == '60d' ? 'text-white bg-primary-base border-transparent' : 'text-primary-base bg-primary-light border-primary-base'} rounded-xl whitespace-nowrap`}>60 Days
                     </button>
                     <button onClick={() => {
                         setCurrentPeriod('90d')
-                    }} className={`font-gilroy-medium p-3 w-full transition-all hover:bg-primary-base hover:text-white  border-2  text-base ${currentPeriod == '90d' ? 'text-white bg-primary-base border-transparent' : 'text-primary-base bg-primary-light border-primary-base'} rounded-xl whitespace-nowrap`}>90 Days
+                    }} className={`font-gilroy-medium p-3 w-full transition-all hover:bg-primary-base hover:text-white  border-2  text-sm ${currentPeriod == '90d' ? 'text-white bg-primary-base border-transparent' : 'text-primary-base bg-primary-light border-primary-base'} rounded-xl whitespace-nowrap`}>90 Days
                     </button>
                     <button onClick={() => {
                         setCurrentPeriod('excess')
-                    }} className={`font-gilroy-medium p-3 w-full transition-all hover:bg-primary-base hover:text-white  border-2  text-base ${currentPeriod == 'excess' ? 'text-white bg-primary-base border-transparent' : 'text-primary-base bg-primary-light border-primary-base'} rounded-xl whitespace-nowrap`}>All time
+                    }} className={`font-gilroy-medium p-3 w-full transition-all hover:bg-primary-base hover:text-white  border-2  text-sm ${currentPeriod == 'excess' ? 'text-white bg-primary-base border-transparent' : 'text-primary-base bg-primary-light border-primary-base'} rounded-xl whitespace-nowrap`}>All time
                     </button>
 
                 </div>
@@ -84,11 +84,11 @@ export default function ARDashboard() {
             <div className="flex flex-row space-x-3  h-1/5">
                 <div id="primary_metric" className="w-1/3 bg-primary-base flex flex-col text-white p-5 space-y-6 justify-between shadow-lg rounded-xl">
                     <div className="flex flex-row justify-between">
-                        <h1 className=" text-5xl transition-all">Rs. {Math.ceil(businessData?.outstanding[currentPeriod]).toLocaleString('en-IN')}</h1>
+                        <h1 className=" text-4xl transition-all">Rs. {Math.ceil(businessData?.outstanding[currentPeriod]).toLocaleString('en-IN')}</h1>
                     </div>
 
                     <div className="flex flex-row justify-between">
-                        <span className=" text-lg">
+                        <span className=" text-base">
                             Total Outstanding
                         </span>
                         {outstandingDiff && outstandingDiff > 0 ? <span className=" text-2xl text-success-light">
@@ -97,9 +97,9 @@ export default function ARDashboard() {
                     </div>
                 </div>
                 <div id="secondary_metric" className="w-1/3 bg-white flex flex-col text-black p-5 space-y-6 justify-between shadow-lg rounded-xl">
-                    <h1 className=" text-5xl">{Math.ceil(businessData?.dso[currentPeriod])}</h1>
+                    <h1 className=" text-4xl">{Math.ceil(businessData?.dso[currentPeriod])}</h1>
                     <div className="flex flex-row justify-between">
-                        <span className=" text-lg">
+                        <span className=" text-base">
                             Days Sales Outstanding
                         </span>
                         {dsoDiff && dsoDiff > 0 ? <span className=" text-2xl text-warning-dark">
@@ -108,9 +108,9 @@ export default function ARDashboard() {
                     </div>
                 </div>
                 <div id="tertiary_metric" className="w-1/3 flex flex-col bg-white p-5 space-y-6 justify-between text-black shadow-lg rounded-xl">
-                    <h1 className=" text-5xl">Rs. {Math.ceil(businessData?.revenue[currentPeriod]).toLocaleString('en-IN')}</h1>
+                    <h1 className=" text-4xl">Rs. {Math.ceil(businessData?.revenue[currentPeriod]).toLocaleString('en-IN')}</h1>
                     <div className="flex flex-row justify-between">
-                        <span className=" text-lg">
+                        <span className=" text-base">
                             Revenue (Realized)
                         </span>
                         {revenueDiff && revenueDiff > 0 ? <span className=" text-2xl text-warning-dark">
@@ -119,9 +119,9 @@ export default function ARDashboard() {
                     </div>
                 </div>
             </div>
-            <div className="flex flex-row w-full space-x-3 h-2/5">
+            <div className="flex flex-row w-full space-x-3 h-3/5">
                 <div id="actions" className="w-1/2 h-full p-6 bg-white text-black shadow-lg rounded-xl">
-                    <span>Sales vs. Collections (in Lakh INR)</span>
+                    <span>Sales vs. Collections <span className='font-gilroy-medium text-sm'>(in Lakh INR)</span></span>
 
                     <div id="visualizations_panel" className='h-full w-full p-2'>
                         <SalesAndCollectionsChart data={chartData} />
@@ -138,7 +138,7 @@ export default function ARDashboard() {
                 </div>
                 <div className='w-1/2 flex flex-row justify-center  p-6 bg-white text-black shadow-lg rounded-xl'>
                     <div className="w-[98%] h-full">
-                        <span>Ageing Balance (in Lakh INR)</span>
+                        <span>Ageing Balance <span className='font-gilroy-medium text-sm'>(in Lakh INR)</span></span>
                         <div id="visualizations_panel" className='h-full w-full p-3'>
                             <AgeingBalanceChart data={{ due: businessData?.due, overdue: businessData?.outstanding['excess'], ...businessData?.outstanding }} />
                         </div>
@@ -151,14 +151,14 @@ export default function ARDashboard() {
                 <div id="receivables_queue" className="w-1/2 bg-white flex flex-col text-black shadow-lg rounded-xl">
                     <div className='flex flex-row justify-between items-center m-5'>
                         <div className='flex flex-col w-auto'>
-                            <h1>Receivables Queue (Ordered by Amount)</h1>
-                            <span className=' text-error-dark'>
+                            <h1 className='text-base'>Receivables Queue (Ordered by Amount)</h1>
+                            <span className=' text-error-dark text-sm'>
                                 From total {Object.keys(businessData?.customers).length} clients
                             </span>
                         </div>
                         <button onClick={() => {
                             navigate('/invoices', { preventScrollReset: true })
-                        }} className='bg-primary-base hover:bg-primary-dark transition-all p-2.5 font-gilroy-regular text-white rounded-lg'>
+                        }} className='bg-primary-base hover:bg-primary-dark transition-all p-2.5 font-gilroy-regular text-white text-base rounded-lg'>
                             View All Invoices
                         </button>
                     </div>
@@ -171,16 +171,16 @@ export default function ARDashboard() {
                             }
                         }).map((invoice, index) => {
                             return (
-                                <li key={index} className='flex flex-row items-center py-3 snap-start justify-between'>
+                                <li key={invoice?.invoice_id} className='flex flex-row items-center py-3 snap-start justify-between'>
                                     <div className='flex flex-col space-y-2'>
-                                        <span className='font-gilroy-bold text-base'>{String(invoice?.customer_name).toUpperCase()}</span>
-                                        <span className='font-gilroy-medium text-sm text-secondary-text'>{String(invoice?.company_name).toUpperCase()}</span>
+                                        <span className='font-gilroy-bold text-sm'>{String(invoice?.customer_name).toUpperCase()}</span>
+                                        <span className='font-gilroy-medium text-xs text-secondary-text'>{String(invoice?.company_name).toUpperCase()}</span>
                                     </div>
                                     <div className='flex flex-row space-x-4 items-center'>
-                                        <span className='text-secondary-text font-gilroy-medium text-base'>
+                                        <span className='text-secondary-text font-gilroy-medium text-sm'>
                                             {invoice?.due_days}
                                         </span>
-                                        <span className=' bg-neutral-light p-3 max-w-sm min-w-fit rounded-lg text-lg'>Rs. {(invoice?.balance).toLocaleString('en-IN')}</span>
+                                        <span className=' bg-neutral-light p-3 max-w-sm min-w-fit rounded-lg text-base'>Rs. {(invoice?.balance).toLocaleString('en-IN')}</span>
                                     </div>
                                 </li>)
                         }) : <NucleiZeroState entity={'invoices'} cta={'Sync Data'} ></NucleiZeroState>}
@@ -189,11 +189,11 @@ export default function ARDashboard() {
                 <div id="top_debtors" className="w-1/2 bg-white flex flex-col text-black shadow-lg rounded-xl">
                     <div className='flex flex-row justify-between items-center m-5'>
                         <div className='flex flex-col w-auto'>
-                            <h1>Top Debtors</h1>
+                            <h1 className='text-base'>Top Debtors</h1>
                         </div>
                         <button onClick={() => {
                             navigate('/customers', { preventScrollReset: true })
-                        }} className='bg-primary-base hover:bg-primary-dark transition-all p-2.5 font-gilroy-regular text-white rounded-lg'>
+                        }} className='bg-primary-base text-base hover:bg-primary-dark transition-all p-2.5 font-gilroy-regular text-white rounded-lg'>
                             View All Customers
                         </button>
                     </div>
@@ -208,16 +208,16 @@ export default function ARDashboard() {
                             }
                         }).map((customer, index) => {
                             return (
-                                <li key={index} className='flex flex-row items-center py-3 snap-start justify-between'>
+                                <li key={customer?.contact_id} className='flex flex-row items-center py-3 snap-start justify-between'>
                                     <div className='flex flex-col space-y-2'>
-                                        <span className='font-gilroy-bold text-base'>{String(customer?.contact_name).toUpperCase()}</span>
-                                        <span className='font-gilroy-medium text-sm text-secondary-text'>{String(customer?.first_name + " " + customer?.last_name).toUpperCase()}</span>
+                                        <span className='font-gilroy-bold text-sm'>{String(customer?.contact_name).toUpperCase()}</span>
+                                        <span className='font-gilroy-medium text-xs text-secondary-text'>{String(customer?.first_name + " " + customer?.last_name).toUpperCase()}</span>
                                     </div>
                                     <div className='flex flex-row space-x-4 items-center'>
                                         <span className='text-secondary-text uppercase font-gilroy-medium text-base'>
                                             {customer?.place_of_contact_formatted}
                                         </span>
-                                        <span className=' bg-neutral-light p-3 max-w-sm min-w-fit rounded-lg text-lg'>Rs. {Number(customer?.outstanding_receivable_amount).toLocaleString('en-IN')}</span>
+                                        <span className=' bg-neutral-light p-3 max-w-sm min-w-fit rounded-lg text-md'>Rs. {Number(customer?.outstanding_receivable_amount).toLocaleString('en-IN')}</span>
                                     </div>
                                 </li>)
                         }) : <NucleiZeroState entity={"customers"} cta='Sync Data'></NucleiZeroState>

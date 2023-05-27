@@ -31,7 +31,7 @@ export default function CustomerDetailsMissingPanel({ email, phone, firstName, l
                     <motion.div initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }} className="flex pt-4  lex-col space-y-4 w-full">
-                        <div className="flex flex-row space-x-6 w-full items-center justify-between text-base">
+                        <div className="flex flex-row space-x-6 w-full items-center justify-between text-sm">
                             <ul className='flex flex-col justify-start space-y-2  font-gilroy-medium divide-y divide divide-neutral-light divide-dashed text-black'>
                                 {phone && <li>Mobile Number is missing</li>}
                                 {email && <li className='pt-2'>Email is missing</li>}

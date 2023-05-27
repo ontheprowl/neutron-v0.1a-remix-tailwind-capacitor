@@ -22,7 +22,7 @@ export default function SaveButtonMotion({ onClick, submit, loading }: { onClick
             exit={{ opacity: 0 }}
             type={submit ? 'submit' : 'button'} onClick={onClick ? (e) => { setClicked(true); onClick(e); setClicked(false); } : submit ? () => { setClicked(true); } : () => {
                 alert("No click handler implemented")
-            }} className="bg-success-light font-gilroy-medium hover:opacity-60 justify-center max-w-fit rounded-lg p-3 text-success-dark space-x-2 flex flex-row items-center">
+            }} className="bg-success-light font-gilroy-medium text-sm hover:opacity-60 justify-center max-w-fit rounded-lg p-3 text-success-dark space-x-2 flex flex-row items-center">
 
             <img src={SaveIcon} alt="save_icon" className='h-6'></img>
             <span>{navigation.state == "submitting" && loading ? 'Saving..' : 'Save'}</span>

@@ -39,15 +39,15 @@ export default function CustomersList() {
         <div className=" h-full flex flex-col space-y-4">
             <div className="flex flex-row justify-between">
                 <div id="page_title" className="flex flex-col">
-                    <h1 className="text-lg">Customers List</h1>
-                    <span className="text-neutral-base"> Home - Customers</span>
+                    <h1 className="text-base">Customers List</h1>
+                    <span className="text-neutral-base text-sm font-gilroy-medium"> Home - Customers</span>
                 </div>
                 {/* <button className="bg-primary-base text-white hover:bg-primary-dark transition-all rounded-lg p-3">
                     Add Customers
                 </button> */}
             </div>
             {currView?.length > 0 ?
-                <div id="invoices_table" className="bg-white shadow-lg rounded-xl justify-between h-full flex flex-col">
+                <div id="invoices_table" className="bg-white shadow-lg rounded-xl justify-start h-full flex flex-col">
                     <div id="table_functions" className="flex flex-row items-center  pl-5 py-3 pr-5   justify-between h-auto">
                         <div className="flex flex-row bg-[#f5f5f5]  h-10 space-x-4 p-2 w-2/5  rounded-lg">
                             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -56,11 +56,11 @@ export default function CustomersList() {
 
                             <input onChange={(e) => {
                                 setFilter(e.currentTarget.value);
-                            }} type="text" placeholder="Search for a customer by company or contact name" className="w-full bg-transparent text-neutral-dark placeholder:text-neutral-dark focus:border-transparent outline-none " />
+                            }} type="text" placeholder="Search for a customer by company or contact name" className="text-sm w-full bg-transparent text-neutral-dark placeholder:text-neutral-dark focus:border-transparent outline-none " />
 
                         </div>
                         <div className="flex flex-row space-x-4 w-2/5 p-2  items-center justify-end">
-                            <div className="flex flex-row space-x-4">
+                            <div className="flex flex-row space-x-4 text-sm">
                                 <button onClick={() => {
                                     setCurrTab('All')
                                 }} className={`underline-offset-4 hover:opacity-75 transition-all ${currTab == "All" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>All</button>

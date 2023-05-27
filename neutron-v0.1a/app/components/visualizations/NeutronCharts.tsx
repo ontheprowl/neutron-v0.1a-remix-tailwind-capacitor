@@ -126,27 +126,34 @@ function NucleiAgeingBalanceChart({ data }: { data: { 'due': number, 'overdue': 
         Legend
     );
 
+
+
     const options = {
 
+        indexAxis: 'y',
+        
         plugins: {
             tooltip: {
                 callbacks: {
+                    title: function (context) {
+                        let label = context[0].dataset.label;
+                        return label ? [label] : ['Nothing found'];
+                    },
                     label: function (context) {
-                        return 'Rs. ' + Math.floor(Number(context.parsed.y))?.toLocaleString('en-IN');
+                        return 'Rs. ' + Math.floor(Number(context.parsed.x))?.toLocaleString('en-IN');
                     }
                 }
             },
             legend: {
-
-                display: false,
-
                 labels: {
                     font: {
                         size: 14,
                         family: 'Gilroy-Bold',
                     },
                     color: "#000000"
-                }
+                },
+
+                display: true,
             },
             // title: {
             //     display: true,
@@ -156,7 +163,9 @@ function NucleiAgeingBalanceChart({ data }: { data: { 'due': number, 'overdue': 
         responsive: true,
         maintainAspectRatio: false,
         scales: {
-            x: {
+            y: {
+                stacked: true,
+
                 border: {
                     color: '#000000'
                 },
@@ -172,8 +181,8 @@ function NucleiAgeingBalanceChart({ data }: { data: { 'due': number, 'overdue': 
                 }
 
             },
-            y: {
-
+            x: {
+                stacked: true,
                 border: {
                     color: '#000000'
                 },
@@ -195,23 +204,64 @@ function NucleiAgeingBalanceChart({ data }: { data: { 'due': number, 'overdue': 
         },
     };
 
-    const labels = ['Due', 'Overdue', '0-30d', '0-60d', '0-90d', 'All-time'];
+    const labels = ['Overdue', 'Due'];
 
     const chartData = {
         labels,
         datasets: [
+           
             {
+                label: 'Due',
                 borderRadius: 10,
                 barPercentage: 1.0,
                 barThickness: 45,
-                data: [data['due'], data['overdue'], data['30d'], data['60d'], data['90d'], data['excess']],
-                backgroundColor: ['#6950ba', '#f670c7', '#4F3A92', '#D50D8E', '#D33030', '#B81414']
+                data: [0, data['due']],
+                backgroundColor: ['#6950ba']
+            },
+            {
+                label: '30d',
+
+                borderRadius: 10,
+                barPercentage: 1.0,
+                barThickness: 45,
+                data: [data['30d']],
+                backgroundColor: ['#f670c7']
+            },
+            {
+                label: '60d',
+
+                borderRadius: 10,
+                barPercentage: 1.0,
+                barThickness: 45,
+                data: [data['60d']],
+                backgroundColor: ['#d50d8e']
+            },
+            {
+                label: '90d',
+
+                borderRadius: 10,
+                barPercentage: 1.0,
+                barThickness: 45,
+                data: [data['90d']],
+                backgroundColor: ['#A4096D']
+            },
+            {
+                label: 'All-time',
+
+                borderRadius: 10,
+                barPercentage: 1.0,
+                barThickness: 45,
+                data: [data['excess']],
+                backgroundColor: ['#660C47']
             },
         ],
+
     };
 
+    
+
     return (
-        <Bar ref={data?.ref ? data?.ref : null} redraw={false}  datasetIdKey='id' options={options}
+        <Bar ref={data?.ref ? data?.ref : null} redraw={false} updateMode="none" datasetIdKey='id' options={options}
             data={chartData} >
         </Bar >)
 

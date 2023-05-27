@@ -67,8 +67,8 @@ export default function WorkflowsList() {
         <div className=" h-full flex flex-col space-y-4">
             <div className="flex flex-row justify-between">
                 <div id="page_title" className="flex flex-col">
-                    <h1 className="text-lg">Workflows</h1>
-                    <span className="text-neutral-base"> Home - Workflows</span>
+                    <h1 className="text-base">Workflows</h1>
+                    <span className="text-neutral-base font-gilroy-medium text-sm"> Home - Workflows</span>
                 </div>
                 {workflows?.length > 0 && <button onClick={() => {
                     navigate("create")

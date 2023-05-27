@@ -14,7 +14,7 @@ export default function DisconnectButton({ onClick, submit }: { onClick?: React.
     return (
         <button type={submit ? 'submit' : 'button'} onClick={onClick ? (e) => { setClicked(true); onClick(e); setClicked(false); } : submit ? () => { setClicked(true); } : () => {
             alert("No click handler implemented")
-        }} className="bg-error-light font-gilroy-medium hover:opacity-70 transition-all min-w-fit rounded-lg p-3 text-error-dark space-x-2 flex flex-row items-center">
+        }} className="bg-error-light text-sm font-gilroy-medium hover:opacity-70 transition-all min-w-fit rounded-lg p-3 text-error-dark space-x-2 flex flex-row items-center">
             <img src={DisconnectIcon} alt="save_icon" className='h-6'></img>
             <span>Disconnect</span>
 

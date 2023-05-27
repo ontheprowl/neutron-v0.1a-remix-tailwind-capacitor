@@ -22,6 +22,7 @@ import NeutronModal from "~/components/layout/NeutronModal";
 import DunningTemplates from "~/components/layout/DunningTemplates";
 import NucleiCheckBox from "~/components/inputs/fields/NucleiCheckBox";
 import { register } from "react-scroll/modules/mixins/scroller";
+import { AnimatePresence } from "framer-motion";
 
 
 
@@ -211,7 +212,7 @@ export default function CreateWorkflowScreen() {
             })} className=" h-full flex flex-col space-y-4">
                 <div className="flex flex-row justify-between">
                     <div id="page_title" className="flex flex-col">
-                        <h1 className="text-lg">Create Workflow</h1>
+                        <h1 className="text-base">Create Workflow</h1>
                         <span className="text-neutral-base text-sm font-gilroy-medium"> Home - Workflows - Create Workflow</span>
                     </div>
                     <div className="flex flex-row space-x-4">
@@ -223,7 +224,7 @@ export default function CreateWorkflowScreen() {
                 </div>
 
                 <div id="workflow_details" className=" h-auto flex flex-col p-6 bg-white shadow-lg rounded-xl">
-                    <h1 className="text-lg">Workflow Details</h1>
+                    <h1 className="text-base">Workflow Basics</h1>
                     <div className="flex flex-row space-x-4 mt-4">
                         <NucleiTextInput name={"name"} label={"Workflow Name"} placeholder={"E.g: General Workflow"} ></NucleiTextInput>
                         <NucleiDropdownInput name={"assigned_to"} label={"Person In Charge"} placeholder={""}>
@@ -241,19 +242,24 @@ export default function CreateWorkflowScreen() {
                 </div>
 
                 <div id="workflow_settings" className="h-auto flex p-6 flex-col space-y-4 bg-white shadow-lg rounded-xl">
-                    <h1 className="text-lg">Workflow Details</h1>
-                    <div className="flex flex-row transition-all space-x-6 mt-4">
+                    <h1 className="text-base">Workflow Details</h1>
+                    <div className="flex flex-row transition-all justify-between space-x-6 mt-4">
                         <NucleiDropdownInput name={`actions.${currentAction}.trigger`} label={"Trigger"} placeholder={"The action's trigger condition"} >
                             <option value={"Before Due Date"}>Before Due Date</option>
                             <option value={"On Due Date"}>On Due Date</option>
                             <option value={"After Due Date"}>After Due Date</option>
                         </NucleiDropdownInput>
-                        {trigger != "On Due Date" && <NucleiTextInput name={`actions.${currentAction}.days`} label="Days" placeholder="E.g: 20 " />}
-                        <NeutronRadioGroup>
-                            <NeutronRadioButton noIcon name={`actions.${currentAction}.action_type`} value={"automatic"} heading={"Automatic"} no={1} />
-                            <NeutronRadioButton noIcon name={`actions.${currentAction}.action_type`} value={"manual"} heading={"Manual"} no={2} />
-                        </NeutronRadioGroup>
+                        <AnimatePresence exitBeforeEnter>
+                            {trigger != "On Due Date" && <NucleiTextInput name={`actions.${currentAction}.days`} label="Days" placeholder="E.g: 20 " />}
+                        </AnimatePresence>
+                        <div className="flex flex-row space-x-1">
+                            <NeutronRadioGroup>
+                                <NeutronRadioButton noIcon name={`actions.${currentAction}.action_type`} value={"automatic"} heading={"Automatic"} no={1} />
+                                <NeutronRadioButton noIcon name={`actions.${currentAction}.action_type`} value={"manual"} heading={"Manual"} no={2} />
+                            </NeutronRadioGroup>
+                        </div>
                     </div>
+
                     <div className="flex flex-row space-x-4 mt-4">
                         <NucleiDropdownInput name={`actions.${currentAction}.action`} label={"Action"} placeholder={"Email / Whatsapp"} >
                             {actionType == "manual" ?
@@ -309,8 +315,8 @@ export default function CreateWorkflowScreen() {
                                         <div className="flex flex-row w-1/4 items-center space-x-4">
                                             <img src={WorkflowMessageIcon} alt="workflow_message_icon"></img>
                                             <div className="flex flex-col space-y-4">
-                                                <span className="font-gilroy-bold text-lg">{action?.action}</span>
-                                                <span className="font-gilroy-medium text-base">{action?.days ? ` ${action?.days} days ${action?.trigger}` : `${action?.trigger}`}</span>
+                                                <span className="font-gilroy-bold text-base">{action?.action}</span>
+                                                <span className="font-gilroy-medium text-sm">{action?.days ? ` ${action?.days} days ${action?.trigger}` : `${action?.trigger}`}</span>
                                             </div>
                                         </div>
                                         <div className="flex flex-row w-1/4 items-center space-x-4">
@@ -318,8 +324,8 @@ export default function CreateWorkflowScreen() {
                                         </div>
                                         <div className="flex flex-row w-1/4 items-center space-x-4">
                                             <div className="flex flex-col space-y-4">
-                                                <span className="font-gilroy-bold text-lg">{action?.action_type == "automatic" ? `Template - ${action?.template}` : `Assigned To - ${action?.assigned_to}`}</span>
-                                                <span className="font-gilroy-medium text-base">This action is to be executed at {action?.time}</span>
+                                                <span className="font-gilroy-bold text-base">{action?.action_type == "automatic" ? `Template - ${action?.template}` : `Assigned To - ${action?.assigned_to}`}</span>
+                                                <span className="font-gilroy-medium text-sm">This action is to be executed at {action?.time}</span>
                                             </div>
                                         </div>
                                         <div className="flex flex-row w-1/4 items-center justify-end space-x-4">
@@ -347,7 +353,7 @@ export default function CreateWorkflowScreen() {
 
                 </div>
                 <div id="add_customers" className="h-auto flex flex-col p-6 bg-white shadow-lg rounded-xl">
-                    <h1 className="text-lg">Choose Customers</h1>
+                    <h1 className="text-base">Choose Customers</h1>
                     <div className="flex flex-row bg-[#f5f5f5]  h-10 space-x-4 p-2 mt-4 w-1/2  rounded-lg">
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M17.5 17.5L14.5834 14.5833M16.6667 9.58333C16.6667 13.4954 13.4954 16.6667 9.58333 16.6667C5.67132 16.6667 2.5 13.4954 2.5 9.58333C2.5 5.67132 5.67132 2.5 9.58333 2.5C13.4954 2.5 16.6667 5.67132 16.6667 9.58333Z" stroke="#6F6E6E" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round" />
@@ -355,12 +361,12 @@ export default function CreateWorkflowScreen() {
 
                         <input type="text" onChange={(e) => {
                             setCustomersFilter(e.currentTarget.value);
-                        }} placeholder="Search for customers" className="w-full bg-transparent text-neutral-dark placeholder:text-neutral-dark border-transparent focus:border-transparent outline-none focus:ring-0 ring-0 " />
+                        }} placeholder="Search for customers" className="w-full bg-transparent text-sm placeholder:text-sm text-neutral-dark placeholder:text-neutral-dark border-transparent focus:border-transparent outline-none focus:ring-0 ring-0 " />
 
                     </div>
                     <div className="flex flex-row space-x-1 mt-2 w- px-6 justify-end items-center">
                         <input type="checkbox" {...workflowCreationForm.register('all_customers')} className="text-primary-base mx-3 fill-primary-base accent-primary-base rounded-full outline-none" placeholder="" />
-                        <span className="font-gilroy-medium text-lg">Select All Customers</span>
+                        <span className="font-gilroy-medium text-base">Select All Customers</span>
                     </div>
                     <div className="grid grid-flow-dense auto-rows-min grid-cols-3 border-2 border-neutral-light rounded-xl mt-2  p-3 h-[400px] overflow-y-scroll">
                         {customers_for_list.map((customer, index) => {

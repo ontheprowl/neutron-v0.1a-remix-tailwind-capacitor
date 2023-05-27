@@ -19,7 +19,7 @@ export default function NucleiPrimaryButton({ text, onClick }: { text: string, o
             setClicked(true);
             onClick(e);
             setClicked(false);
-        }} className="bg-primary-base min-w-max text-white hover:bg-primary-dark transition-all rounded-lg p-3">
+        }} className="bg-primary-base min-w-max text-sm text-white hover:bg-primary-dark transition-all rounded-lg p-3">
             {navigation.state == "idle" ? text : <DefaultSpinner />}
         </button>
     )

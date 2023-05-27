@@ -8,6 +8,7 @@ import {
 } from "./firebase/neutron-config.server";
 import * as schedule from 'node-schedule'
 import type { DecodedIdToken } from "firebase-admin/lib/auth/token-verifier";
+import { prependBaseURLForEnvironment } from "./utils/utils.server";
 
 export const sessionStorage = createCookieSessionStorage({
   cookie: {
@@ -47,11 +48,24 @@ export async function queuePeriodicSync(session: {
   metadata: any;
 }) {
   const rule = new schedule.RecurrenceRule();
-  rule.minute = 30;
-  console.dir(schedule.scheduledJobs, { depth: null })
+  rule.hour = 1;
   if (!schedule.scheduledJobs['neutronDataSync']) {
     console.log("QUEUEING AUTOSYNC ")
 
+    const job = schedule.scheduleJob(`neutron_data_sync_job_${session?.metadata?.businessID}`, rule, () => {
+      console.log("INITIATING PERIODIC DATA SYNC FOR BUSINESS " + session?.metadata?.businessID)
+      const formData = new FormData();
+      formData.append('business_id', session?.metadata?.businessID)
+      const response = fetch(prependBaseURLForEnvironment('/integrations/zoho/sync'), {
+
+        method: "POST",
+
+        redirect: 'follow',
+
+        body: formData,
+
+      });
+    })
   }
 
 

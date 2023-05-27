@@ -38,17 +38,17 @@ export default function InviteUsers() {
     return (<div className=" h-full flex flex-col space-y-4">
         <div className="flex flex-row justify-between">
             <div id="page_title" className="flex flex-col">
-                <h1 className="text-lg">Team Members</h1>
+                <h1 className="text-base">Team Members</h1>
                 <span className="text-neutral-base text-sm font-gilroy-medium"> Home - Team Members - Invite</span>
             </div>
-            <button className="text-white bg-primary-base hover:bg-primary-dark transition-all p-3 rounded-lg" onClick={() => {
+            <button className="text-white text-sm font-gilroy-medium bg-primary-base hover:bg-primary-dark transition-all p-3 rounded-lg" onClick={() => {
                 navigate('/team', { preventScrollReset: true })
             }}>Back to Team</button>
         </div>
 
         <div id="invite_team_members" className="bg-white w-full rounded-xl shadow-lg p-6 ">
             <div>
-                <h1 className="font-gilroy-bold text-lg">Invite Team Members</h1>
+                <h1 className="font-gilroy-bold text-md">Invite Team Members</h1>
                 <span className="font-gilroy-medium text-sm">Assign roles and permissions</span>
             </div>
             <div id="team_details">

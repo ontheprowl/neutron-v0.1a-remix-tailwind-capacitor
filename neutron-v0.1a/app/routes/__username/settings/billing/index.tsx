@@ -30,14 +30,14 @@ export default function SettingsScreen() {
 
     return (
         <div className="flex flex-col space-y-4 h-full">
-            <div id="current_plan" className="bg-white px-6 py-4 space-y-6 flex flex-col rounded-xl drop-shadow-lg h-fit">
+            <div id="current_plan" className="bg-white px-4 py-6 space-y-6 flex flex-col rounded-xl drop-shadow-lg h-fit">
                 <h1>Billing & Quotas</h1>
                 <div id="current_plan" className="flex flex-row items-center justify-between">
                     <div className="flex flex-col space-y-2">
                         <span className="">{businessData?.current_plan?.name}</span>
                         <span className="text-sm font-gilroy-medium">{businessData?.current_plan?.expires_in == "Never expires" ? businessData?.current_plan?.expires_in : `Renewal in ${businessData?.current_plan?.expires_in}`}</span>
                     </div>
-                    <div className=" text-3xl">
+                    <div className=" text-2xl">
                         {businessData?.current_plan?.monthly_rates === "Free" ? "Free" : `Rs. ${businessData?.current_plan?.monthly_rates}`}
                     </div>
                 </div>
@@ -49,9 +49,9 @@ export default function SettingsScreen() {
                         </div>
                         <div id="utilization" className=' items-center justify-end flex flex-row  m-2 w-2/5'>
                             <span className='font-gilroy-medium text-sm mr-3'>Used</span>
-                            <span className='text-3xl text-success-base'>{businessData?.current_plan?.usage?.email}</span>
-                            <span className='text-3xl'>/</span>
-                            <span className='text-3xl'>{businessData?.current_plan?.quotas?.email}</span>
+                            <span className='text-2xl text-success-base'>{businessData?.current_plan?.usage?.email}</span>
+                            <span className='text-2xl'>/</span>
+                            <span className='text-2xl'>{businessData?.current_plan?.quotas?.email}</span>
                         </div>
                     </div>
                     <div id="whatsapp_quota" className="border-2 rounded-lg flex flex-row justify-between border-dashed w-1/2 px-4">
@@ -61,22 +61,20 @@ export default function SettingsScreen() {
                         </div>
                         <div id="utilization" className=' items-center justify-end flex flex-row  m-2 w-2/5'>
                             <span className='font-gilroy-medium text-sm mr-3'>Used</span>
-                            <span className='text-3xl text-success-base'>{businessData?.current_plan?.usage?.whatsapp}</span>
-                            <span className='text-3xl'>/</span>
-                            <span className='text-3xl'>{businessData?.current_plan?.quotas?.whatsapp}</span>
+                            <span className='text-2xl text-success-base'>{businessData?.current_plan?.usage?.whatsapp}</span>
+                            <span className='text-2xl'>/</span>
+                            <span className='text-2xl'>{businessData?.current_plan?.quotas?.whatsapp}</span>
                         </div>
                     </div>
                 </div>
                 <div className='w-full p-5 flex flex-row font-gilroy-medium space-x-6 items-center justify-center'>
                     {businessData?.current_plan?.name != "Starter" && <button className="p-3 text-error-dark bg-error-light rounded-lg hover:opacity-80 transition-all">Cancel Plan</button>}
-                    <button onClick={() => {
-                        navigate('pricing')
-                    }} className="p-3 text-white bg-primary-base rounded-lg hover:opacity-80 transition-all">Upgrade Plan</button>
+                    <a href="https://www.neutron.money/pricing" className="p-3 text-white text-sm bg-primary-base rounded-lg hover:opacity-80 transition-all">Upgrade Plan</a>
                 </div>
             </div>
             <div className="flex flex-row h-full space-x-4">
-                <div className='bg-white flex flex-col space-y-4 px-3 py-2 rounded-lg w-full drop-shadow-xl'>
-                    <h1 className='text-xl'>Billing History</h1>
+                <div className='bg-white flex flex-col space-y-4 px-6 py-4 rounded-lg w-full drop-shadow-xl'>
+                    <h1 className='text-base'>Billing History</h1>
                     <SectionUnderConstructionComponent />
                     {/* <ul className='mx-5 h-full divide-y-2 overflow-y-scroll'>
                         <div className='flex flex-row text-secondary-text justify-between p-5 text-sm'>
