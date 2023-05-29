@@ -94,7 +94,7 @@ export default function CustomerOverview() {
                 </div>
 
                 <div className={`hidden sm:table p-3 rounded-xl h-[900px] mt-1`}>
-                    <table className={`w-full h-full overflow-y-scroll sm:block table-auto text-sm text-left text-black`}>
+                    <table className={`w-full h-full overflow-y-scroll sm:block table-auto text-xs text-left text-black`}>
                         <tbody className='sm:block table-row-group'>
                             <tr className={` bg-white border-b text-secondary-text sm:flex sm:flex-row w-full transition-all sticky top-0 pointer-events-none bg-bg-secondary-dark z-20  hover:bg-opacity-50  dark:hover:bg-gray-600`}>
 
@@ -175,12 +175,12 @@ export default function CustomerOverview() {
                         </tbody>
                     </table>
                 </div>
-                <div className="flex flex-row justify-between items-center px-3 mb-2 h-12 w-full self-end" id="invoices_pagination">
-                    <select className="bg-[#f5f5f5] p-2 rounded-xl text-secondary-text outline-none">
+                <div className="flex flex-row justify-end items-center px-3 mb-2 h-12 w-full self-end" id="invoices_pagination">
+                    {/* <select className="bg-[#f5f5f5] p-2 rounded-xl text-secondary-text outline-none">
                         <option value="" disabled selected className="hidden">Actions</option>
                         <option>View</option>
                         <option>Delete</option>
-                    </select>
+                    </select> */}
                     <NucleiPagination items={customerData?.invoices} startPage={0} pageSize={50} pagesDisplayed={2} startState={[startOffset, setStart]} endState={[endOffset, setEnd]} />
                 </div>
             </div>

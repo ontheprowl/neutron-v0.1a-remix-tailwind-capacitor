@@ -4,6 +4,7 @@ import NucleiPagination from "~/components/inputs/pagination/NucleiPagination";
 import NucleiZeroState from "~/components/layout/NucleiZeroState";
 import { CustomerOnTimeStatus } from "~/components/layout/Statuses";
 import ErrorIcon from '~/assets/images/errorIcon.svg';
+import SortButton from "~/components/inputs/buttons/SortButton";
 
 
 
@@ -16,19 +17,58 @@ export default function CustomersList() {
     const [currTab, setCurrTab] = useState('All')
     // const currView = currTab == "Outstanding" ? outstandingCustomers : allCustomers;
     const currView = businessData?.customers;
-    const currSort = currTab == "Outstanding" ? (a, b) => {
-        if (a?.outstanding_receivable_amount > b?.outstanding_receivable_amount) {
-            return -1
-        } else {
-            return 1
+
+
+    // * State for sort
+    const [currSortType, setCurrSort] = useState('vendor_name');
+    const [sortAsc, setSortAsc] = useState(false);
+
+    const currSort = function (sortType: string) {
+
+        switch (sortType) {
+            case 'vendor_name':
+                return (a, b) => {
+                    if (a?.vendor_name < b?.vendor_name) {
+                        return sortAsc ? 1 : -1
+                    } else {
+                        return sortAsc ? -1 : 1
+                    }
+                }
+            case 'outstanding':
+                return (a, b) => {
+                    if (a?.outstanding_receivable_amount > b?.outstanding_receivable_amount) {
+                        return sortAsc ? 1 : -1
+                    } else {
+                        return sortAsc ? -1 : 1
+                    }
+                }
+            case 'payment_terms':
+                return (a, b) => {
+                    if (a?.payment_terms > b?.payment_terms) {
+                        return sortAsc ? 1 : - 1
+                    } else {
+                        return sortAsc ? -1 : 1
+                    }
+                }
+            case 'rating':
+                return (a, b) => {
+                    if (a?.payment_rating > b?.payment_rating) {
+                        return sortAsc ? 1 : - 1
+                    } else {
+                        return sortAsc ? -1 : 1
+                    }
+                }
+            default:
+                return (a, b) => {
+                    if (a?.outstanding_receivable_amount > b.outstanding_receivable_amount) {
+                        return -1
+                    } else {
+                        return 1
+                    }
+                }
         }
-    } : (a, b) => {
-        if (a?.vendor_name < b?.vendor_name) {
-            return -1
-        } else {
-            return 1
-        }
-    }
+
+    };
 
 
     const [startOffset, setStart] = useState(0);
@@ -62,10 +102,12 @@ export default function CustomersList() {
                         <div className="flex flex-row space-x-4 w-2/5 p-2  items-center justify-end">
                             <div className="flex flex-row space-x-4 text-sm">
                                 <button onClick={() => {
-                                    setCurrTab('All')
+                                    setCurrTab('All');
+                                    setCurrSort('vendor_name');
                                 }} className={`underline-offset-4 hover:opacity-75 transition-all ${currTab == "All" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>All</button>
                                 <button onClick={() => {
                                     setCurrTab('Outstanding');
+                                    setCurrSort('outstanding');
                                 }} className={`underline-offset-4 hover:opacity-75  transition-all ${currTab == "Outstanding" ? 'underline decoration-primary-dark text-primary-dark' : ''}`}>Outstanding</button>
                             </div>
                             {/* <div className="flex flex-row space-x-4 items-center">
@@ -77,44 +119,70 @@ export default function CustomersList() {
                     </div>
 
                     <div className={`hidden sm:table p-3 rounded-xl h-[75vh] max-h-[75vh] mt-1`}>
-                        <table className={`w-full max-h-[70vh] overflow-y-scroll sm:block table-auto text-sm text-left text-black`}>
+                        <table className={`w-full max-h-[70vh] overflow-y-scroll sm:block table-auto text-xs text-left text-black`}>
 
                             <tbody className='sm:block table-row-group'>
-                                <tr className={` bg-white border-b text-secondary-text sm:flex sm:flex-row w-full transition-all sticky top-0 pointer-events-none bg-bg-secondary-dark z-20  hover:bg-opacity-50  dark:hover:bg-gray-600`}>
+                                <tr className={` bg-white border-b text-secondary-text sm:flex sm:flex-row w-full transition-all sticky top-0  z-20`}>
 
-                                    <th scope="row" className="px-2 py-4 w-full font-medium text-left whitespace-nowrap">
-                                        <div className="flex flex-row w-auto justify-start space-x-4">
+                                    <th scope="row" className="px-2 py-4 w-full font-medium text-center whitespace-nowrap">
+                                        <div className="flex flex-row space-x-2 items-center">
                                             <input type="checkbox"></input>
-                                            <h1>COMPANY NAME</h1>
-
+                                            <h1 className={`hover:opacity-80 cursor-pointer ${currSortType == "vendor_name" ? 'text-black' : ''} hover:text-black transition-colors`} onClick={(e) => {
+                                                setCurrSort('vendor_name')
+                                            }}>COMPANY NAME</h1>
+                                            {currSortType == "vendor_name" && <SortButton onClick={() => {
+                                                setSortAsc(!sortAsc)
+                                            }} expanded={sortAsc}></SortButton>}
                                         </div>
+
                                     </th>
-                                    <th scope="row" className="px-2 text-left py-4 w-full font-medium  whitespace-nowrap">
+                                    <th scope="row" className="px-2 text-center py-4 w-full font-medium  whitespace-nowrap">
                                         POINT OF CONTACT
                                     </th>
                                     <th scope="row" className="px-2 py-4 w-full font-medium text-center ">
-                                        OUTSTANDING BALANCE
+                                        <div className="flex flex-row space-x-2 justify-center items-center">
+                                            <h1 className={`hover:opacity-80 cursor-pointer ${currSortType == "outstanding" ? 'text-black' : ''} hover:text-black transition-colors`} onClick={(e) => {
+                                                setCurrSort('outstanding')
+                                            }}>OUTSTANDING BALANCE</h1>
+                                            {currSortType == "outstanding" && <SortButton onClick={() => {
+                                                setSortAsc(!sortAsc)
+                                            }} expanded={sortAsc}></SortButton>}
+                                        </div>
                                     </th>
                                     <th scope="row" className="px-2 py-4 w-full font-medium text-center  ">
-                                        PAYMENT TERMS (CREDIT)
+                                        <div className="flex flex-row space-x-2 justify-center items-center">
+                                            <h1 className={`hover:opacity-80 cursor-pointer ${currSortType == "payment_terms" ? 'text-black' : ''} hover:text-black transition-colors`} onClick={(e) => {
+                                                setCurrSort('payment_terms')
+                                            }}>PAYMENT TERMS (CREDIT)</h1>
+                                            {currSortType == "payment_terms" && <SortButton onClick={() => {
+                                                setSortAsc(!sortAsc)
+                                            }} expanded={sortAsc}></SortButton>}
+                                        </div>
                                     </th>
                                     <th scope="row" className="px-2 py-4 w-full font-medium text-center  whitespace-nowrap">
-                                        RATING
+                                        <div className="flex flex-row space-x-2 justify-center items-center">
+                                            <h1 className={`hover:opacity-80 cursor-pointer ${currSortType == "rating" ? 'text-black' : ''} hover:text-black transition-colors`} onClick={(e) => {
+                                                setCurrSort('rating')
+                                            }}>RATING</h1>
+                                            {currSortType == "rating" && <SortButton onClick={() => {
+                                                setSortAsc(!sortAsc)
+                                            }} expanded={sortAsc}></SortButton>}
+                                        </div>
                                     </th>
                                 </tr>
                                 {currView.filter((customer) => {
                                     return (customer?.vendor_name?.toLowerCase()?.includes(filter.toLowerCase()) || customer?.first_name?.toLowerCase()?.includes(filter.toLowerCase()) || customer?.last_name?.toLowerCase()?.includes(filter.toLowerCase()));
-                                }).sort(currSort).slice(startOffset, endOffset).map((customer, index) => {
+                                }).sort(currSort(currSortType)).filter((customer) => currTab == "Outstanding" && customer?.outstanding_receivable_amount > 0 || currTab == "All").slice(startOffset, endOffset).map((customer, index) => {
                                     return (
                                         <tr key={index} className={`border-b border-dashed sm:flex sm:flex-row sm:justify-evenly h-24 sm:items-center w-full border-gray-400 dark:bg-gray-800 dark:border-gray-700 transition-all hover:bg-bg-primary-dark hover:bg-opacity-50 hover:border-primary-dark`}>
                                             <td scope="row" className="px-2 py-4 w-full font-gilroy-regular text-left">
-                                                <div className="flex flex-row w-auto justify-start items-center space-x-4">
+                                                <div className="flex flex-row w-auto justify-start items-center space-x-2">
                                                     <input type="checkbox"></input>
                                                     <Link to={`${customer?.contact_id}/overview`} preventScrollReset><span className="w-full break-words underline decoration-transparent hover:decoration-black underline-offset-1">{customer?.vendor_name}</span></Link>
                                                     {(customer?.mobile == "" || customer?.email == "" || (customer?.firstName || customer?.lastName)) && <img src={ErrorIcon} alt="customer_details_missing_icon"></img>}
                                                 </div>
                                             </td>
-                                            <td className="px-2 py-4 w-full text-left flex flex-col space-y-2  ">
+                                            <td className="px-2 py-4 w-full text-center flex flex-col space-y-2  ">
                                                 {customer?.first_name + " " + customer?.last_name}
                                                 <span className=" text-secondary-text text-md">{customer?.email}</span>
                                                 <span className=" text-secondary-text text-md">{customer?.mobile}</span>
@@ -123,10 +191,10 @@ export default function CustomersList() {
                                             <td className="px-2 py-4 font-gilroy-regular  w-full text-center ">
                                                 Rs. {Number(customer?.outstanding_receivable_amount).toLocaleString('en-IN')}
                                             </td>
-                                            <td className="px-2 py-4 font-gilroy-regular  w-full text-center ">
+                                            <td className="px-2 py-4 font-gilroy-regular  w-full text-center  ">
                                                 {customer?.payment_terms}
                                             </td>
-                                            <td className="  px-2 py-4 w-full font-gilroy-regular justify-center flex flex-row  text-center">
+                                            <td className="  px-2 py-4 w-full font-gilroy-regular  text-center">
                                                 {customer?.payment_rating == "on-time" ? <CustomerOnTimeStatus /> : 'Not enough data'}
                                             </td>
                                         </tr>

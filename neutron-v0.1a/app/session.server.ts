@@ -49,7 +49,7 @@ export async function queuePeriodicSync(session: {
 }) {
   const rule = new schedule.RecurrenceRule();
   rule.hour = 1;
-  if (!schedule.scheduledJobs['neutronDataSync']) {
+  if (!schedule.scheduledJobs[`neutron_data_sync_job_${session?.metadata?.businessID}`]) {
     console.log("QUEUEING AUTOSYNC ")
 
     const job = schedule.scheduleJob(`neutron_data_sync_job_${session?.metadata?.businessID}`, rule, () => {

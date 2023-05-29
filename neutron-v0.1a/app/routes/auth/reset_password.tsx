@@ -67,13 +67,11 @@ export async function loader({ request }: { request: Request }) {
 
 export async function action({ request }: { request: Request }) {
 
-  console.log("REQUEST RECEIVED")
   try {
     const data = await request.formData();
     const password: string = data.get('password') as string;
     const oobCode: string = data.get('oobCode') as string;
 
-    console.log("PASSWORD: " + password + ", and OOBCODE: " + oobCode)
     if (!oobCode) {
       return json({ status: 0 })
     }

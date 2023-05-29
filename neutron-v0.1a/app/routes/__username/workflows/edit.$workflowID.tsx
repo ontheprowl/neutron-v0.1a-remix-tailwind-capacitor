@@ -30,7 +30,7 @@ export const action: ActionFunction = async ({ request, params }) => {
     const session = await requireUser(request);
     const workflowID: string = params.workflowID as string;
 
-    console.log("REQUEST RECEIVED");
+
     const formData = await request.formData();
     const payload: { [x: string]: any } = JSON.parse(formData.get("payload"));
     // // **  For invoices that exist already, calculate all trigger conditions ( cron schedules ), filter cron schedules that are after today, then procedurally queue messages right now. 

@@ -27,7 +27,6 @@ import DefaultSpinner from "~/components/layout/DefaultSpinner";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
 
-    console.log("DATA REFRESH FROM USERNAME ROUTE")
     const session = await requireUser(request);
 
 
@@ -43,7 +42,6 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
         const integration = businessData?.integration;
         if (integration === "zoho") {
-            console.log("INTEGRATION IS ZOHO")
             queuePeriodicSync(session)
         }
         const indexes: { [id: string]: { indexes: { id: string, index: string, type: string } } } = await getSingleDoc(`indexes/${session?.metadata?.businessID}`);
@@ -85,23 +83,6 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
 
 export default function CustomUserPage() {
-
-
-
-    // const options = {
-    //     body: "Hello, take a break and drink some water! 💧", // required!
-    //     silent: false,
-    //     badge:"/favicon.ico" ,
-    //     icon:"/favicon.ico",
-    //     image:"/favicon.ico"
-    // }
-
-    // let minutes = 30
-
-    // // executed in several ways
-    // React.useEffect(() => {
-    //     SendNotification("Neutron", options)
-    // })
 
 
     const [filter, setFilter] = useState('');

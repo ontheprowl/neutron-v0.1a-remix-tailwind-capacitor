@@ -53,7 +53,6 @@ export default function WorkflowsList() {
 
     const workflows: Array<{ id: string, data: { [x: string]: any } }> = useLoaderData();
 
-    console.log(workflows)
 
     const [startOffset, setStart] = useState(0);
     const [endOffset, setEnd] = useState(50);
@@ -105,7 +104,7 @@ export default function WorkflowsList() {
                     </div>
 
                     <div className={`hidden sm:table p-3 rounded-xl h-[75vh] max-h-[75vh] mt-1`}>
-                        <table className={`w-full max-h-[70vh] overflow-y-scroll sm:block table-auto text-sm text-left text-black`}>
+                        <table className={`w-full max-h-[70vh] overflow-y-scroll sm:block table-auto text-xs text-left text-black`}>
 
                             <tbody className='sm:block table-row-group'>
                                 <tr className={` border-b text-secondary-text sm:flex sm:flex-row w-full transition-all sticky top-0 pointer-events-none bg-bg-secondary-dark z-20  hover:bg-opacity-50  dark:hover:bg-gray-600`}>

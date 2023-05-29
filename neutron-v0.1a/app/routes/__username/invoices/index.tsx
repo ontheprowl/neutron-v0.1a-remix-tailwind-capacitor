@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import DeleteButton from "~/components/inputs/buttons/DeleteButton";
 import ExportButton from "~/components/inputs/buttons/ExportButton";
 import FilterButton from "~/components/inputs/buttons/FilterButton";
+import SortButton from "~/components/inputs/buttons/SortButton";
 import NucleiPagination from "~/components/inputs/pagination/NucleiPagination";
 import NucleiZeroState from "~/components/layout/NucleiZeroState";
 import { InvoicePaidStatus, InvoiceOverdueStatus, InvoiceSentStatus } from "~/components/layout/Statuses";
@@ -19,7 +20,76 @@ export default function InvoicesList() {
 
     const invoices = [...receivables, ...paid];
 
+
+    // * State for sort
     const [currTab, setCurrTab] = useState('All')
+    const [currSortType, setCurrSort] = useState('balance');
+    const [sortAsc, setSortAsc] = useState(false);
+
+    const currSort = function (sortType: string) {
+
+        switch (sortType) {
+            case 'balance':
+                return (a, b) => {
+                    if (a?.balance > b.balance) {
+                        return sortAsc ? 1 : -1
+                    } else {
+                        return sortAsc ? -1 : 1
+                    }
+                }
+            case 'total':
+                return (a, b) => {
+                    if (a?.total > b?.total) {
+                        return sortAsc ? 1 : -1
+                    } else {
+                        return sortAsc ? -1 : 1
+                    }
+                }
+            case 'customer_name':
+                return (a, b) => {
+                    if (a?.customer_name > b?.customer_name) {
+                        return sortAsc ? 1 : - 1
+                    } else {
+                        return sortAsc ? -1 : 1
+                    }
+                }
+            case 'invoice_number':
+                return (a, b) => {
+                    if (a?.invoice_number > b?.invoice_number) {
+                        return sortAsc ? 1 : - 1
+                    } else {
+                        return sortAsc ? -1 : 1
+                    }
+                }
+
+            case 'date':
+                return (a, b) => {
+                    if (a?.date > b?.date) {
+                        return sortAsc ? 1 : - 1
+                    } else {
+                        return sortAsc ? -1 : 1
+                    }
+                }
+
+            case 'due_date':
+                return (a, b) => {
+                    if (a?.due_date > b?.due_date) {
+                        return sortAsc ? 1 : - 1
+                    } else {
+                        return sortAsc ? -1 : 1
+                    }
+                }
+            default:
+                return (a, b) => {
+                    if (a?.balance > b.balance) {
+                        return -1
+                    } else {
+                        return 1
+                    }
+                }
+        }
+
+    };
 
     const currView = function (currTab: string) {
         switch (currTab) {
@@ -35,22 +105,6 @@ export default function InvoicesList() {
     }(currTab);
 
 
-    const currSort = function (sortType: string) {
-
-        switch (sortType) {
-            case 'balance':
-                return (a, b) => {
-                    if (a?.balance > b.balance) {
-                        return -1
-                    } else {
-                        return 1
-                    }
-                }
-            default:
-                return (a, b) => { }
-        }
-
-    };
 
     const [startOffset, setStart] = useState(0);
     const [endOffset, setEnd] = useState(50)
@@ -82,7 +136,7 @@ export default function InvoicesList() {
 
                         </div>
                         <div className="flex flex-row space-x-4 w-3/5 p-2 items-center justify-end">
-                            
+
                             <div className="flex flex-row space-x-4 text-sm">
                                 <button onClick={() => {
                                     setCurrTab('All')
@@ -107,48 +161,93 @@ export default function InvoicesList() {
                     </div>
 
                     <div className={`hidden sm:table p-3 rounded-xl h-[75vh] max-h-[75vh] mt-1`}>
-                        <table  className={`w-full max-h-[70vh] overflow-y-scroll sm:block table-auto text-sm text-left text-black`}>
-                            <tbody className='sm:block table-row-group'>
-                                <tr className={` bg-white border-b text-secondary-text sm:flex sm:flex-row w-full transition-all sticky top-0 pointer-events-none bg-bg-secondary-dark z-20  hover:bg-opacity-50  dark:hover:bg-gray-600`}>
-
+                        <table className={`w-full max-h-[70vh] overflow-y-scroll sm:block table-auto text-xs text-left text-black`}>
+                            <tbody className='sm:block z-10 table-row-group'>
+                                <tr className={` z-20 bg-white border-b text-secondary-text sm:flex sm:flex-row w-full transition-all sticky top-0    dark:hover:bg-gray-600`}>
                                     <th scope="row" className="px-2 py-4 w-full font-medium text-center whitespace-nowrap">
-                                        <div className="flex flex-row w-auto justify-start space-x-4">
+                                        <div className="flex flex-row z-50 w-auto justify-start items-center space-x-2">
                                             <input type="checkbox"></input>
-                                            <h1>INVOICE NUMBER</h1>
-                                            
+                                            <h1 className={`hover:opacity-80 cursor-pointer ${currSortType == "invoice_number" ? 'text-black' : ''} hover:text-black transition-colors`} onClick={(e) => {
+                                                setCurrSort('invoice_number')
+                                            }}>INVOICE NUMBER</h1>
+                                            {currSortType == "invoice_number" && <SortButton onClick={() => {
+                                                setSortAsc(!sortAsc)
+                                            }} expanded={sortAsc}></SortButton>}
                                         </div>
                                     </th>
-                                    <th scope="row" className="px-2 text-left py-4 w-full cursor-pointer font-medium  whitespace-nowrap">
-                                        <div className=" z-50 hover:bg-purple-400 ">COMPANY NAME</div>
+                                    <th scope="row" className="px-2 text-center py-4 w-full  font-medium  whitespace-nowrap">
+                                        <div className="flex flex-row space-x-2 justify-center items-center">
+                                            <h1 className={`hover:opacity-80 cursor-pointer ${currSortType == "customer_name" ? 'text-black' : ''} hover:text-black transition-colors`} onClick={(e) => {
+                                                setCurrSort('customer_name')
+                                            }}>COMPANY NAME</h1>
+                                            {currSortType == "customer_name" && <SortButton onClick={() => {
+                                                setSortAsc(!sortAsc)
+                                            }} expanded={sortAsc}></SortButton>}
+                                        </div>
+
                                     </th>
                                     <th scope="row" className="px-2 py-4 w-full font-medium text-center ">
-                                        TOTAL AMOUNT
+                                        <div className="flex flex-row space-x-2 justify-center items-center">
+                                            <h1 className={`hover:opacity-80 cursor-pointer ${currSortType == "total" ? 'text-black' : ''} hover:text-black transition-colors`} onClick={(e) => {
+                                                setCurrSort('total')
+
+                                            }}>TOTAL AMOUNT</h1>
+                                            {currSortType == "total" && <SortButton onClick={() => {
+                                                setSortAsc(!sortAsc)
+                                            }} expanded={sortAsc}></SortButton>}
+                                        </div>
+
                                     </th>
                                     <th scope="row" className="px-2 py-4 w-full font-medium text-center ">
-                                        BALANCE AMOUNT
+                                        <div className="flex flex-row space-x-2 justify-center items-center">
+                                            <h1 className={`hover:opacity-80 cursor-pointer ${currSortType == "balance" ? 'text-black' : ''} hover:text-black transition-colors`} onClick={(e) => {
+                                                setCurrSort('balance')
+                                            }}>BALANCE AMOUNT</h1>
+                                            {currSortType == "balance" && <SortButton onClick={() => {
+                                                setSortAsc(!sortAsc)
+                                            }} expanded={sortAsc}></SortButton>}
+                                        </div>
+
                                     </th>
                                     <th scope="row" className="px-2 py-4 w-full font-medium text-center  ">
-                                        CREATED DATE
+                                        <div className="flex flex-row space-x-2 justify-center items-center">
+                                            <h1 className={`hover:opacity-80 cursor-pointer ${currSortType == "date" ? 'text-black' : ''} hover:text-black transition-colors`} onClick={(e) => {
+                                                setCurrSort('date');
+
+                                            }}>CREATED DATE</h1>
+                                            {currSortType == "date" && <SortButton onClick={() => {
+                                                setSortAsc(!sortAsc)
+                                            }} expanded={sortAsc}></SortButton>}
+                                        </div>
+
                                     </th>
                                     <th scope="row" className="px-2 py-4 w-full font-medium text-center  whitespace-nowrap">
-                                        DUE DATE
+                                        <div className="flex flex-row space-x-2 justify-center items-center">
+                                            <h1 className={`hover:opacity-80 cursor-pointer ${currSortType == "due_date" ? 'text-black' : ''} hover:text-black transition-colors`} onClick={(e) => {
+                                                setCurrSort('due_date')
+                                            }}>DUE DATE</h1>
+                                            {currSortType == "due_date" && <SortButton onClick={() => {
+                                                setSortAsc(!sortAsc)
+                                            }} expanded={sortAsc}></SortButton>}
+                                        </div>
+
                                     </th>
-                                    <th scope="row" className="px-2 py-4  w-full font-medium text-center  whitespace-nowrap">
+                                    <th scope="row" className="px-2 py-4  w-full font-medium text-center whitespace-nowrap">
                                         STATUS
                                     </th>
                                 </tr>
                                 {currView?.filter((invoice) => {
                                     return invoice?.customer_name?.toLowerCase().includes(filter.toLowerCase());
-                                }).sort(currSort('balance')).slice(startOffset, endOffset).map((invoice, index) => {
+                                }).sort(currSort(currSortType)).slice(startOffset, endOffset).map((invoice, index) => {
                                     return (
-                                        <tr key={invoice.id} className={`border-b border-dashed sm:flex sm:flex-row h-24  sm:justify-evenly sm:items-center w-full border-gray-400 dark:bg-gray-800 dark:border-gray-700 transition-all hover:bg-opacity-50 hover:border-primary-dark`}>
+                                        <tr key={invoice?.invoice_id} className={`border-b border-dashed sm:flex sm:flex-row h-24  sm:justify-evenly sm:items-center w-full border-gray-400 dark:bg-gray-800 dark:border-gray-700 transition-all hover:bg-opacity-50 hover:border-primary-dark`}>
                                             <td scope="row" className="px-2 py-4 w-full font-gilroy-regular text-center  whitespace-nowrap">
-                                                <div className="flex flex-row w-auto justify-start space-x-4">
+                                                <div className="flex flex-row w-auto justify-start space-x-2">
                                                     <input type="checkbox"></input>
                                                     <h1 >{invoice?.invoice_number}</h1>
                                                 </div>
                                             </td>
-                                            <td className="px-2 py-4 w-full text-left flex flex-col space-y-2  ">
+                                            <td className="px-2 py-4 w-full text-center flex flex-col space-y-2  ">
                                                 {/* {invoice?.company_name} */}
                                                 <span className=" text-secondary-text ">{invoice?.customer_name}</span>
                                             </td>
@@ -161,10 +260,10 @@ export default function InvoicesList() {
                                             <td className="px-2 py-4 font-gilroy-regular  w-full text-center ">
                                                 {new Date(invoice?.date).toLocaleDateString('en-IN', { dateStyle: "long" })}
                                             </td>
-                                            <td className="  px-2 py-4 w-full font-gilroy-regular  text-center justify-center items-center flex-row flex ">
+                                            <td className="  px-2 py-4 w-full font-gilroy-regular  text-center  items-center ">
                                                 {new Date(invoice?.due_date).toLocaleDateString('en-IN', { dateStyle: "long" })}
                                             </td>
-                                            <td className="  px-2 py-4 w-full font-gilroy-regular justify-center flex flex-row  text-center">
+                                            <td className="  px-2 py-4 w-full font-gilroy-regular flex-row flex justify-center   text-center">
                                                 {invoice?.status == "overdue" ? <InvoiceOverdueStatus /> : invoice?.status == "paid" ? <InvoicePaidStatus /> : <InvoiceSentStatus />}
 
                                             </td>

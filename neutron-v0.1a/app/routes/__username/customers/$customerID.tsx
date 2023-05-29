@@ -23,7 +23,6 @@ export default function CustomerOverview() {
         for (const key of Object.keys(businessData?.customers)) {
             const currentCustomer = businessData?.customers[key];
             if (currentCustomer.contact_id == contactID) {
-                console.log("FOUND THE CUSTOMER");
                 currentCustomer['invoices'] = invoices?.filter((invoice) => invoice?.customer_id == businessData?.customers[key]?.contact_id);
                 return businessData?.customers[key];
             }
@@ -31,11 +30,6 @@ export default function CustomerOverview() {
         return null
     }, [businessData?.customers, contactID, invoices]);
 
-    console.log("THE CURRENT CUSTOMER IS")
-    console.dir(currentCustomer)
-
-    console.log("INVOICES ARE")
-    console.dir(invoices)
 
 
     return (

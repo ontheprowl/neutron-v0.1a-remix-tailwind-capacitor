@@ -15,7 +15,6 @@ import TimelineStep from './NucleiTimelineStep';
 export default function NucleiTimeline({ id, index }: { id: string, index?: string }) {
 
 
-    console.log(id)
     //* Events are being loaded using this ad-hoc strategy to support real-time transformations
 
     const [dunningEvents, setDunningEvents] = useState<NeutronEvent[]>();
@@ -30,7 +29,6 @@ export default function NucleiTimeline({ id, index }: { id: string, index?: stri
             let result: NeutronEvent[] = []
 
             const data = snapshot.val();
-            console.log(data)
             if (data) {
                 for (const [key, value] of Object.entries(data)) {
                     result.push(value)
